@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AutoPilot App",
+    "name": "AutoPilot",
     "slug": "autopilot-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,7 +12,7 @@
       "bundleIdentifier": "com.nova.autopilotapp"
     },
     "android": {
-      "package": "com.nova.autopilotapp"
+      "package": "com.nova.autopilot"
     },
     "web": {
       "bundler": "metro",
