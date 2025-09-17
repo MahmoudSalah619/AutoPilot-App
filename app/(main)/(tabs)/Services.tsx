@@ -4,7 +4,7 @@ import { SheetManager } from 'react-native-actions-sheet';
 import RandomModal from '@/components/organisms/common/modals/randomModal';
 import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
 
-const Explore = () => {
+const Services = () => {
   const [isModalShown, setisModalShown] = useState(false);
   const handleOpenActionSheet = async () => {
     const payload = await SheetManager.show('random-bottom-sheet', {
@@ -23,7 +23,7 @@ const Explore = () => {
   };
   return (
     <MainScreenWrapper>
-      <Text>Explore</Text>
+      <Text>Services</Text>
       <Button title="Open ActionSheet" onPress={handleOpenActionSheet} />
       <Button title="Open Modal" onPress={handleOpenModal} />
 
@@ -34,4 +34,4 @@ const Explore = () => {
   );
 };
 
-export default Explore;
+export default Services;

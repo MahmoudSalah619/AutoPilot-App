@@ -50,7 +50,7 @@ export default function AuthScreenWrapper({
         >
           {showHeader && (
             <View>
-              <Logo width={260} height={200} />
+              <Logo width={200} height={200} />
             </View>
           )}
 

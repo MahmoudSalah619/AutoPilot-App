@@ -12,43 +12,39 @@ const Welcome = () => {
     <AuthScreenWrapper paddingSize="sm" isScrollable>
       <View style={styles.container}>
         <View style={GLOBAL_STYLES.gap16}>
-          <View style={[GLOBAL_STYLES.row, GLOBAL_STYLES.gap4]}>
+          <View style={[GLOBAL_STYLES.row, GLOBAL_STYLES.gap4, styles.title]}>
             <Text size={24} weight={700}>
               Welcome to
             </Text>
-            <Text size={24} weight={800} color="primary">
-              NovaByte! 🌟
+            <Text size={24} weight={800} color="primary" style={styles.title}>
+              AutoPilot
             </Text>
           </View>
-          <Text color="grey70" lineHeight={21}>
-            Your all-in-one toolkit for building beautiful, high-performance mobile apps. With
-            NovaByte, you get clean, modern, and easy-to-use templates that help you move fast and
-            build smarter. Let’s create something amazing together! ✨
+          <Text color="grey70" lineHeight={24} style={styles.desc}>
+            Track your car’s kilometers, keep up with services, and get simple reminders for
+            maintenance. From oil changes to tire checks, we’ve got your back so your car stays
+            happy and healthy.
           </Text>
           <Text size={18} weight={700} lineHeight={21}>
-            Why NovaByte? 💡
+            Why AutoPilot? 💡
           </Text>
           <View style={GLOBAL_STYLES.gap16}>
             <Text color="grey70" weight={500}>
-              ✅ Ready-to-Use Components
+              📏 Track kilometers so you always know when service is due.{' '}
             </Text>
             <Text color="grey70" weight={500}>
-              🎨 Highly Customizable
+              🛠️ Stay on top of maintenance with simple reminders.{' '}
             </Text>
             <Text color="grey70" weight={500}>
-              ⚡ Optimized for Speed
+              💰 Save money by preventing small issues from becoming big problems.{' '}
             </Text>
             <Text color="grey70" weight={500}>
-              🛠️ Developer-Friendly
-            </Text>
-            <Text color="grey70" weight={500}>
-              🚀 Built to Scale
+              😌 Drive stress-free knowing your car is always in good hands.{' '}
             </Text>
           </View>
         </View>
         <View style={GLOBAL_STYLES.gap16}>
-          <Button title="Go to Login" onPress={() => router.push('/(auth)/login')} />
-          <Button title="Go to Signup" onPress={() => router.push('/(auth)/signup')} />
+          <Button title="Get started" onPress={() => router.push('/(auth)/login')} />
         </View>
       </View>
     </AuthScreenWrapper>
@@ -60,6 +56,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     paddingVertical: 16,
+  },
+  title: {
+    margin: 'auto',
+  },
+  desc: {
+    textAlign: 'center',
   },
 });
 

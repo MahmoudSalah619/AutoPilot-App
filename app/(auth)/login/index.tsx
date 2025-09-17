@@ -4,11 +4,11 @@ import { useRouter } from 'expo-router';
 import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
 import { Controller, useForm } from 'react-hook-form';
 import { Checkbox, FormInput } from '@/components/molecules/common';
-import { Button, SeperateLine, Text } from '@/components/atoms';
+import { Button, Text } from '@/components/atoms';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import GoogleRegisterationButton from '@/components/organisms/scoped/auth/social/GoogleRegisterationButton';
-import FacebookRegisterationButton from '@/components/organisms/scoped/auth/social/FacebookRegisterationButton';
-import AppleRegistarationButton from '@/components/organisms/scoped/auth/social/AppleRegistarationButton';
+// import GoogleRegisterationButton from '@/components/organisms/scoped/auth/social/GoogleRegisterationButton';
+// import FacebookRegisterationButton from '@/components/organisms/scoped/auth/social/FacebookRegisterationButton';
+// import AppleRegistarationButton from '@/components/organisms/scoped/auth/social/AppleRegistarationButton';
 import Biometric from '@/components/organisms/scoped/auth/biometric';
 import styles from './styles';
 
@@ -49,12 +49,12 @@ const Login = () => {
         />
       </View>
       <Biometric />
-      <SeperateLine />
-      <View style={GLOBAL_STYLES.gap8}>
+      {/* <SeperateLine /> */}
+      {/* <View style={GLOBAL_STYLES.gap8}>
         <AppleRegistarationButton />
         <GoogleRegisterationButton />
         <FacebookRegisterationButton />
-      </View>
+      </View> */}
       <View style={[GLOBAL_STYLES.rowCenter, GLOBAL_STYLES.gap4]}>
         <Text>Don't have an account?</Text>
         <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>

@@ -9,8 +9,9 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 const getIcon = (routeName: string, isFocused: boolean) => {
   const icons = {
     Home: 'home',
+    Maintainance: 'build',
     Favourites: 'favorite',
-    Explore: 'explore',
+    Services: 'checklist',
     Profile: 'person',
   } as const;
   const iconName = icons[routeName as keyof typeof icons] || 'home';

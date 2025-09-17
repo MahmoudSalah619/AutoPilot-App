@@ -3,6 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button, Text } from '@/components/atoms';
 import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
+import VehicleCardOrganism from '@/components/organisms/scoped/VehicleCard';
 
 const Home = () => {
   const router = useRouter();
@@ -17,9 +18,10 @@ const Home = () => {
             gap: 16,
           }}
         >
-          <Text>Left</Text>
+          <Text size={20}>Hello, User</Text>
           <Text>Right</Text>
         </View>
+        <VehicleCardOrganism />
       </View>
       <Button title="Go to Screen 1" onPress={() => router.push('/(main)/screen1')} />
       <Button
