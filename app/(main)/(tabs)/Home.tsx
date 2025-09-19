@@ -8,9 +8,9 @@ import VehicleCardOrganism from '@/components/organisms/scoped/VehicleCard';
 const Home = () => {
   const router = useRouter();
   return (
-    <MainScreenWrapper>
+    <MainScreenWrapper customStyle={{ paddingTop: 0, flex: 1 }}>
       <View>
-        <View
+        {/* <View
           style={{
             display: 'flex',
             flexDirection: 'row',
@@ -20,10 +20,10 @@ const Home = () => {
         >
           <Text size={20}>Hello, User</Text>
           <Text>Right</Text>
-        </View>
+        </View> */}
         <VehicleCardOrganism />
       </View>
-      <Button title="Go to Screen 1" onPress={() => router.push('/(main)/screen1')} />
+      {/* <Button title="Go to Screen 1" onPress={() => router.push('/(main)/screen1')} />
       <Button
         title="Go to Screen 2 with props"
         onPress={() =>
@@ -55,7 +55,7 @@ const Home = () => {
         }}
       >
         View user (with params)
-      </Link>
+      </Link> */}
     </MainScreenWrapper>
   );
 };

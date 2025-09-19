@@ -54,7 +54,9 @@ const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
               style={styles.tab}
             >
               {getIcon(route.name, isFocused)}
-              <Text color={isFocused ? 'primary' : 'text'}>{label}</Text>
+              <Text color={isFocused ? 'primary' : 'text'} size={12}>
+                {label}
+              </Text>
             </TouchableOpacity>
           );
         })}

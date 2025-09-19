@@ -45,8 +45,8 @@ export default function NavigationHeader({
           </TouchableOpacity>
         )}
         {!!hasLogo && (
-          <View>
-            <Logo />
+          <View style={{ padding: 8 }}>
+            <Logo width={80} height={80} />
           </View>
         )}
       </View>

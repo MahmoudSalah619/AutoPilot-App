@@ -1,64 +1,90 @@
-import { Button, Text } from '@/components/atoms';
+import { Button, SeperateLine, Text } from '@/components/atoms';
 import CardWrapper from '@/components/wrappers/Card';
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Touchable, TouchableOpacity, View } from 'react-native';
 import styles from './styles';
 import VehicleItemCard from '@/components/molecules/scoped/VehicleItemCard';
+import Feather from '@expo/vector-icons/Feather';
+import ControllableInput from '@/components/molecules/common/FormInput';
+import { useForm } from 'react-hook-form';
+import GLOBAL_STYLES from '@/constants/GlobalStyles';
 
 export default function VehicleCardOrganism() {
-  const [Disbled, setDisbled] = useState(true);
+  const [isEditing, setisEditing] = useState(false);
+  const { control } = useForm();
   return (
     <CardWrapper customStyles={styles.container}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+      <View style={{ ...GLOBAL_STYLES.rowJustifyBetween }}>
         <View>
-          <Text size={22} weight={800}>
+          <Text size={18} weight={800}>
             Your Vehicle
           </Text>
-          <Text style={{ marginVertical: 8 }} size={18}>
+          <Text style={{ marginVertical: 8 }} size={14} color="grey70">
             View and edit your car's details.
           </Text>
         </View>
-        <View>
-          <Button
-            title={Disbled ? 'Edit' : 'Save'}
-            variant="underlined"
-            onPress={() => {
-              setDisbled(!Disbled);
-            }}
-          />
+        <TouchableOpacity
+          style={{ alignSelf: 'flex-start', padding: 8, paddingTop: 0 }}
+          onPress={() => {
+            setisEditing(!isEditing);
+          }}
+        >
+          <Feather name="edit" size={28} color="#707070" />
+        </TouchableOpacity>
+      </View>
+      <View style={{ ...GLOBAL_STYLES.gap8 }}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <ControllableInput
+              control={control}
+              name="brand"
+              label="Brand"
+              placeholder="Vehicle Brand"
+              defaultValue="Toyota Camry"
+              editable={isEditing}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <ControllableInput
+              control={control}
+              name="model"
+              label="Model"
+              placeholder="Vehicle Model"
+              defaultValue="Toyota Camry"
+              editable={isEditing}
+            />
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <ControllableInput
+              control={control}
+              name="year"
+              label="Year"
+              placeholder="Vehicle Year"
+              defaultValue="2020"
+              editable={isEditing}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <ControllableInput
+              control={control}
+              name="kilometers"
+              label="Kilometers"
+              placeholder="Vehicle Kilometers"
+              defaultValue="10000 Km"
+              editable={isEditing}
+            />
+          </View>
         </View>
       </View>
-
-      <View style={{ marginTop: 10, flexDirection: 'row', gap: 15 }}>
-        <VehicleItemCard
-          placeHolder="Vehicle Brand"
-          onChange={(value) => console.log(value)}
-          defaultValue="Toyota Camry"
-          disabled={Disbled}
-        />
-        <VehicleItemCard
-          placeHolder="Vehicle Model"
-          onChange={(value) => console.log(value)}
-          defaultValue="Toyota Camry"
-          disabled={Disbled}
-        />
-      </View>
-      <View style={{ marginTop: 10, flexDirection: 'row', gap: 15 }}>
-        <VehicleItemCard
-          placeHolder="Vehicle Year"
-          onChange={(value) => console.log(value)}
-          defaultValue="2020"
-          disabled={Disbled}
-        />
-        <VehicleItemCard
-          placeHolder="Vehicle Kilometers"
-          onChange={(value) => console.log(value)}
-          defaultValue="10000 Km"
-          disabled={Disbled}
-        />
-      </View>
-      <View style={{ marginTop: 20, borderTopWidth: 1, borderTopColor: '#E0E0E0', paddingTop: 20 }}>
-        <Button title="Update Kilometers" variant="filled" onPress={() => {}} />
+      <SeperateLine />
+      <View>
+        {isEditing ? (
+          <Button title="Save changes" variant="filled" onPress={() => {}} />
+        ) : (
+          <Button title="Update Kilometers" variant="filled" onPress={() => {}} />
+        )}
       </View>
     </CardWrapper>
   );

@@ -7,5 +7,6 @@ export default StyleSheet.create({
     backgroundColor: COLORS.light.white,
     borderRadius: 12,
     marginVertical: 20,
+    gap: 12
   },
 });
