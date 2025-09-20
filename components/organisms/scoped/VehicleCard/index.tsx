@@ -8,12 +8,25 @@ import Feather from '@expo/vector-icons/Feather';
 import ControllableInput from '@/components/molecules/common/FormInput';
 import { useForm } from 'react-hook-form';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
+import UpdateKiloModal from '../../common/modals/updateKiloModal';
 
 export default function VehicleCardOrganism() {
   const [isEditing, setisEditing] = useState(false);
+  const [isUpdateModalVisible, setisUpdateModalVisible] = useState(false);
   const { control } = useForm();
+
+  const showUpdateModal = () => {
+    setisUpdateModalVisible(true);
+  };
   return (
     <CardWrapper customStyles={styles.container}>
+      {isUpdateModalVisible && (
+        <UpdateKiloModal
+          isVisible={isUpdateModalVisible}
+          setVisible={setisUpdateModalVisible}
+          onSubmit={() => {}}
+        />
+      )}
       <View style={{ ...GLOBAL_STYLES.rowJustifyBetween }}>
         <View>
           <Text size={18} weight={800}>
@@ -63,6 +76,7 @@ export default function VehicleCardOrganism() {
               label="Year"
               placeholder="Vehicle Year"
               defaultValue="2020"
+              keyboardType="numeric"
               editable={isEditing}
             />
           </View>
@@ -73,6 +87,7 @@ export default function VehicleCardOrganism() {
               label="Kilometers"
               placeholder="Vehicle Kilometers"
               defaultValue="10000 Km"
+              keyboardType="numeric"
               editable={isEditing}
             />
           </View>
@@ -83,7 +98,7 @@ export default function VehicleCardOrganism() {
         {isEditing ? (
           <Button title="Save changes" variant="filled" onPress={() => {}} />
         ) : (
-          <Button title="Update Kilometers" variant="filled" onPress={() => {}} />
+          <Button title="Update Kilometers" variant="filled" onPress={showUpdateModal} />
         )}
       </View>
     </CardWrapper>
