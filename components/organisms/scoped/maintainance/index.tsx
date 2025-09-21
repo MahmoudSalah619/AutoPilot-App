@@ -76,9 +76,9 @@ export function MaintenanceSchedule({ initialData, type = 'all' }: MaintenanceSc
   const cardContent = getCardContent();
 
   const handleViewFullSchedule = () => {
-    // Navigate to full maintenance schedule screen
-    // router.push('/maintenance');
-    console.log('Navigate to full maintenance schedule');
+    // Navigate to full maintenance schedule screen with appropriate filter
+    const filterParam = type === 'upcoming' ? 'Upcoming' : type === 'recent' ? 'Completed' : 'All';
+    router.push(`/(main)/maintenance-details?filter=${filterParam}` as any);
   };
 
   const formatDate = (dateString: string) => {

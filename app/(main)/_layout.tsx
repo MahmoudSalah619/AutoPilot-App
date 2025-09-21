@@ -18,6 +18,12 @@ export default function _layout() {
         }}
       />
       <Stack.Screen name="(tabs)" initialParams={{ hasLogo: true }} />
+      <Stack.Screen 
+        name="maintenance-details" 
+        initialParams={{ 
+          headerShown: false,
+        }} 
+      />
     </Stack>
   );
 }
