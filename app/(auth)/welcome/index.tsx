@@ -1,50 +1,114 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Text } from '@/components/atoms';
+import { Button, Text, Image } from '@/components/atoms';
 import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
-import GLOBAL_STYLES from '@/constants/GlobalStyles';
+
+const { width } = Dimensions.get('window');
 
 const Welcome = () => {
   const router = useRouter();
 
+  const FeatureCard = ({
+    icon,
+    title,
+    description,
+  }: {
+    icon: string;
+    title: string;
+    description: string;
+  }) => (
+    <View style={styles.featureCard}>
+      <View style={styles.iconContainer}>
+        <Text size={24}>{icon}</Text>
+      </View>
+      <View style={styles.featureContent}>
+        <Text size={16} weight={600} style={styles.featureTitle}>
+          {title}
+        </Text>
+        <Text size={14} color="grey70" lineHeight={20} style={styles.featureDesc}>
+          {description}
+        </Text>
+      </View>
+    </View>
+  );
+
   return (
-    <AuthScreenWrapper paddingSize="sm" isScrollable>
+    <AuthScreenWrapper paddingSize="sm" isScrollable showHeader={false}>
       <View style={styles.container}>
-        <View style={GLOBAL_STYLES.gap16}>
-          <View style={[GLOBAL_STYLES.row, GLOBAL_STYLES.gap4, styles.title]}>
-            <Text size={24} weight={700}>
-              Welcome to
-            </Text>
-            <Text size={24} weight={800} color="primary" style={styles.title}>
-              AutoPilot
-            </Text>
-          </View>
-          <Text color="grey70" lineHeight={24} style={styles.desc}>
-            Track your car’s kilometers, keep up with services, and get simple reminders for
-            maintenance. From oil changes to tire checks, we’ve got your back so your car stays
-            happy and healthy.
-          </Text>
-          <Text size={18} weight={700} lineHeight={21}>
-            Why AutoPilot? 💡
-          </Text>
-          <View style={GLOBAL_STYLES.gap16}>
-            <Text color="grey70" weight={500}>
-              📏 Track kilometers so you always know when service is due.{' '}
-            </Text>
-            <Text color="grey70" weight={500}>
-              🛠️ Stay on top of maintenance with simple reminders.{' '}
-            </Text>
-            <Text color="grey70" weight={500}>
-              💰 Save money by preventing small issues from becoming big problems.{' '}
-            </Text>
-            <Text color="grey70" weight={500}>
-              😌 Drive stress-free knowing your car is always in good hands.{' '}
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.gradientBackground}>
+            <View style={styles.heroImageContainer}>
+              <Image
+                source={require('@/assets/images/auto-pilot.png')}
+                style={styles.heroImage}
+                resizeMode="contain"
+              />
+            </View>
+
+            <View style={styles.titleSection}>
+              <Text size={32} weight={800} style={styles.welcomeText}>
+                Welcome to
+              </Text>
+              <Text size={36} weight={800} color="primary" style={styles.brandText}>
+                AutoPilot
+              </Text>
+            </View>
+
+            <Text color="grey70" lineHeight={24} size={16} style={styles.heroDesc}>
+              Your intelligent car maintenance companion.
             </Text>
           </View>
         </View>
-        <View style={GLOBAL_STYLES.gap16}>
-          <Button title="Get started" onPress={() => router.push('/(auth)/login')} />
+
+        {/* Features Section */}
+        <View style={styles.featuresSection}>
+          <Text size={24} weight={700} style={styles.sectionTitle}>
+            Why Choose AutoPilot?
+          </Text>
+
+          <View style={styles.featuresContainer}>
+            <FeatureCard
+              icon="📊"
+              title="Smart Tracking"
+              description="Monitor your car's kilometers and get precise maintenance schedules."
+            />
+
+            <FeatureCard
+              icon="⚡"
+              title="Instant Reminders"
+              description="Never miss important maintenance with intelligent notifications."
+            />
+
+            <FeatureCard
+              icon="💰"
+              title="Save Money"
+              description="Prevent costly repairs by staying ahead of maintenance needs."
+            />
+
+            <FeatureCard
+              icon="🛡️"
+              title="Peace of Mind"
+              description="Drive confidently knowing your car is always well-maintained."
+            />
+          </View>
+        </View>
+
+        {/* CTA Section */}
+        <View style={styles.ctaSection}>
+          <Button
+            title="Get Started"
+            onPress={() => router.push('/(auth)/login')}
+            buttonStyle={styles.ctaButton}
+            showShadow={true}
+            btnHeight={56}
+            isFullWidth={true}
+          />
+
+          <Text size={12} color="grey70" style={styles.ctaSubtext}>
+            Join thousands of drivers who trust AutoPilot
+          </Text>
         </View>
       </View>
     </AuthScreenWrapper>
@@ -54,14 +118,106 @@ const Welcome = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
-  title: {
-    margin: 'auto',
+
+  // Hero Section
+  heroSection: {
+    marginBottom: 40,
   },
-  desc: {
+  gradientBackground: {
+    backgroundColor: 'rgba(70, 130, 194, 0.08)',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(70, 130, 194, 0.15)',
+  },
+  heroImageContainer: {
+    marginBottom: 20,
+  },
+  heroImage: {
+    width: width * 0.4,
+    height: width * 0.25,
+  },
+  titleSection: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  welcomeText: {
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  brandText: {
+    textAlign: 'center',
+  },
+  heroDesc: {
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
+
+  // Features Section
+  featuresSection: {
+    marginBottom: 40,
+  },
+  sectionTitle: {
+    textAlign: 'center',
+    marginBottom: 24,
+    color: '#333',
+  },
+  featuresContainer: {
+    gap: 16,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(70, 130, 194, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  featureContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  featureTitle: {
+    marginBottom: 4,
+    color: '#333',
+  },
+  featureDesc: {
+    lineHeight: 20,
+  },
+
+  // CTA Section
+  ctaSection: {
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  ctaButton: {
+    borderRadius: 16,
+    marginBottom: 12,
+  },
+  ctaSubtext: {
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 8,
   },
 });
 
