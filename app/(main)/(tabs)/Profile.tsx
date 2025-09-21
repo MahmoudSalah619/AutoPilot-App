@@ -39,87 +39,42 @@ export default function Profile() {
     // Navigate to edit profile screen
   };
 
-  const handlePersonalInfo = () => {
-    console.log('Personal info pressed');
-    // Navigate to personal info screen
-  };
-
-  const handleVehicleInfo = () => {
-    console.log('Vehicle info pressed');
-    // Navigate to vehicle info screen
-  };
-
-  const handleNotifications = () => {
-    console.log('Notifications pressed');
-    // Navigate to notifications settings
-  };
-
-  const handlePrivacy = () => {
-    console.log('Privacy pressed');
-    // Navigate to privacy settings
-  };
-
-  const handleSupport = () => {
-    console.log('Support pressed');
-    // Navigate to support/help screen
-  };
-
-  const handleAbout = () => {
-    console.log('About pressed');
-    // Navigate to about screen
-  };
-
-  return (
-    <MainScreenWrapper isScrollable>
-      <ProfileHeader 
-        name="Mahmoud Salah"
-        email="mahmoud.s.m619@gmail.com"
-        onEditPress={handleEditProfile}
-      />
-
-      {/* Account Section */}
-      <View style={styles.section}>
-        <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
-          Account
-        </Text>
-        
-        <ProfileItem
-          icon="user"
-          title="Personal Information"
-          subtitle="Manage your personal details"
-          color={COLORS.light.primary}
-          onPress={handlePersonalInfo}
-        />
-        
-        <ProfileItem
-          icon="truck"
-          title="Vehicle Information"
-          subtitle="Your car details and preferences"
-          color="#4ECDC4"
-          onPress={handleVehicleInfo}
-        />
-        
-        <ProfileItem
-          icon="bell"
-          title="Notifications"
-          subtitle="Manage your notification preferences"
-          color="#45B7D1"
-          onPress={handleNotifications}
-        />
-      </View>
-
-      {/* Settings Section */}
-      <View style={styles.section}>
-        <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
-          Settings
-        </Text>
-        
-        <ProfileItem
-          icon="globe"
-          title="Language"
-          subtitle="English"
-          color="#96CEB4"
-          onPress={() => {
+  const profileSections = [
+    {
+      title: 'Account',
+      items: [
+        {
+          icon: 'user',
+          title: 'Personal Information',
+          subtitle: 'Manage your personal details',
+          color: COLORS.light.primary,
+          onPress: () => router.push('/(main)/profile/personal-information'),
+        },
+        {
+          icon: 'truck',
+          title: 'Vehicle Information',
+          subtitle: 'Your car details and preferences',
+          color: '#4ECDC4',
+          onPress: () => router.push('/(main)/profile/vehicle-information'),
+        },
+        {
+          icon: 'bell',
+          title: 'Notifications',
+          subtitle: 'Manage your notification preferences',
+          color: '#45B7D1',
+          onPress: () => router.push('/(main)/profile/notifications'),
+        },
+      ]
+    },
+    {
+      title: 'Settings',
+      items: [
+        {
+          icon: 'globe',
+          title: 'Language',
+          subtitle: 'English',
+          color: '#96CEB4',
+          onPress: () => {
             Alert.alert(
               'Select Language',
               'Choose your preferred language',
@@ -129,52 +84,80 @@ export default function Profile() {
                 { text: 'العربية', onPress: () => changeLanguage('ar') }
               ]
             );
-          }}
-        />
-        
-        <ProfileItem
-          icon="shield"
-          title="Privacy & Security"
-          subtitle="Manage your privacy settings"
-          color="#FF8C94"
-          onPress={handlePrivacy}
-        />
-      </View>
+          },
+        },
+        {
+          icon: 'shield',
+          title: 'Privacy & Security',
+          subtitle: 'Manage your privacy settings',
+          color: '#FF8C94',
+          onPress: () => router.push('/(main)/profile/privacy-security'),
+        },
+      ]
+    },
+    {
+      title: 'Support',
+      items: [
+        {
+          icon: 'help-circle',
+          title: 'Help & Support',
+          subtitle: 'Get help and contact support',
+          color: '#FFD93D',
+          onPress: () => router.push('/(main)/profile/help-support'),
+        },
+        {
+          icon: 'info',
+          title: 'About AutoPilot',
+          subtitle: 'App version and information',
+          color: '#A8E6CF',
+          onPress: () => router.push('/(main)/profile/about-autopilot'),
+        },
+      ]
+    },
+    {
+      title: '',
+      items: [
+        {
+          icon: 'log-out',
+          title: 'Logout',
+          subtitle: 'Sign out of your account',
+          color: '#FF6B6B',
+          onPress: handleLogout,
+          showArrow: false,
+        },
+      ]
+    }
+  ] as const;
 
-      {/* Support Section */}
-      <View style={styles.section}>
-        <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
-          Support
-        </Text>
-        
-        <ProfileItem
-          icon="help-circle"
-          title="Help & Support"
-          subtitle="Get help and contact support"
-          color="#FFD93D"
-          onPress={handleSupport}
-        />
-        
-        <ProfileItem
-          icon="info"
-          title="About AutoPilot"
-          subtitle="App version and information"
-          color="#A8E6CF"
-          onPress={handleAbout}
-        />
-      </View>
+  return (
+    <MainScreenWrapper isScrollable>
+      <ProfileHeader 
+        name="Mahmoud Salah"
+        email="mahmoud.s.m619@gmail.com"
+        onEditPress={handleEditProfile}
+      />
 
-      {/* Logout Section */}
-      <View style={styles.section}>
-        <ProfileItem
-          icon="log-out"
-          title="Logout"
-          subtitle="Sign out of your account"
-          color="#FF6B6B"
-          onPress={handleLogout}
-          showArrow={false}
-        />
-      </View>
+      {profileSections.map((section, sectionIndex) => (
+        <View key={sectionIndex} style={styles.section}>
+          {section.title ? (
+            <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
+              {section.title}
+            </Text>
+          ) : null}
+          
+          {section.items.map((item, itemIndex) => (
+            <ProfileItem
+              key={itemIndex}
+              icon={item.icon}
+              title={item.title}
+              subtitle={item.subtitle}
+              color={item.color}
+              onPress={item.onPress}
+              showArrow={'showArrow' in item ? item.showArrow : undefined}
+            />
+          ))}
+        </View>
+      ))}
     </MainScreenWrapper>
   );
 }
