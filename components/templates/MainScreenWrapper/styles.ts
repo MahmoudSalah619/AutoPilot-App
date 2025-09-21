@@ -3,7 +3,7 @@ import METRICS from '@/constants/Metrics';
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1, // Changed from flex: 1 to flexGrow: 1 for better ScrollView behavior
     justifyContent: 'space-between',
     width: METRICS.screenWidth,
     // marginTop: 16,
@@ -55,6 +55,7 @@ const styles = StyleSheet.create({
 
   scrollContainer: {
     flexGrow: 1,
+    paddingBottom: 60, // Increase base padding to ensure content doesn't get cut off
   },
   goBackBtn: {
     zIndex: 2,

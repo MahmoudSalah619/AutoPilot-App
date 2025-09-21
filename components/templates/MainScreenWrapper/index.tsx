@@ -30,6 +30,11 @@ export default function MainScreenWrapper({
     customStyle,
   ];
 
+  const scrollContentContainerStyle = [
+    styles.scrollContainer,
+    isScrollable && { paddingBottom: 64 }, // Significantly increase bottom padding when scrollable
+  ];
+
   const MainContentMarkup = <View style={allContainerStyle}>{children}</View>;
 
   return (
@@ -42,7 +47,7 @@ export default function MainScreenWrapper({
         <ScrollView
           showsVerticalScrollIndicator={false}
           scrollEnabled={isScrollable}
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={scrollContentContainerStyle}
         >
           {MainContentMarkup}
         </ScrollView>
