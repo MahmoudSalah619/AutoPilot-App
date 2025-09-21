@@ -1,16 +1,29 @@
-import { Button, SeperateLine, Text } from '@/components/atoms';
-import { Collapsible } from '@/components/molecules/common';
+import React from 'react';
+import { StyleSheet, View, Alert } from 'react-native';
+import { Text } from '@/components/atoms';
 import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
+import ProfileHeader from '@/components/molecules/scoped/ProfileHeader';
+import ProfileItem from '@/components/molecules/scoped/ProfileItem';
+import { COLORS } from '@/constants/Colors';
 import i18n from '@/locale';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
 
 export default function Profile() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    router.replace('/(auth)/welcome');
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: () => router.replace('/(auth)/welcome')
+        }
+      ]
+    );
   };
 
   const changeLanguage = async (lang: 'en' | 'ar') => {
@@ -20,50 +33,158 @@ export default function Profile() {
       console.error('Language change failed', error);
     }
   };
+
+  const handleEditProfile = () => {
+    console.log('Edit profile pressed');
+    // Navigate to edit profile screen
+  };
+
+  const handlePersonalInfo = () => {
+    console.log('Personal info pressed');
+    // Navigate to personal info screen
+  };
+
+  const handleVehicleInfo = () => {
+    console.log('Vehicle info pressed');
+    // Navigate to vehicle info screen
+  };
+
+  const handleNotifications = () => {
+    console.log('Notifications pressed');
+    // Navigate to notifications settings
+  };
+
+  const handlePrivacy = () => {
+    console.log('Privacy pressed');
+    // Navigate to privacy settings
+  };
+
+  const handleSupport = () => {
+    console.log('Support pressed');
+    // Navigate to support/help screen
+  };
+
+  const handleAbout = () => {
+    console.log('About pressed');
+    // Navigate to about screen
+  };
+
   return (
-    <MainScreenWrapper>
-      <View style={styles.container}>
-        <Text style={styles.title}>Profile</Text>
-        <Collapsible title="Personal Information">
-          <Text>First Name: John</Text>
-          <Text>Last Name: Doe</Text>
-          <Text>Age: 25</Text>
-        </Collapsible>
-        <Collapsible title="Contact Information">
-          <Text>Email: mahmoud.s.m619@gmail.com </Text>
-          <Text>Phone: +201005541537 </Text>
-        </Collapsible>
-        <Collapsible title="Address">
-          <Text>City: Cairo</Text>
-          <Text>Street: 5th Settlement</Text>
-          <Text>Building: 5</Text>
-        </Collapsible>
-        <Collapsible title="Social Media">
-          <Text>Facebook: Mahmoud salah</Text>
-          <Text>Twitter: Mahmoud salah</Text>
-          <Text>Instagram: Mahmoud salah</Text>
-        </Collapsible>
-        <View>
-          <Button title="Change Language To AR" onPress={() => changeLanguage('ar')} />
-        </View>
-        <View>
-          <Button title="Change Language To EN" onPress={() => changeLanguage('en')} />
-        </View>
-        <SeperateLine />
-        <View>
-          <Button title="Logout" onPress={handleLogout} />
-        </View>
+    <MainScreenWrapper isScrollable>
+      <ProfileHeader 
+        name="Mahmoud Salah"
+        email="mahmoud.s.m619@gmail.com"
+        onEditPress={handleEditProfile}
+      />
+
+      {/* Account Section */}
+      <View style={styles.section}>
+        <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
+          Account
+        </Text>
+        
+        <ProfileItem
+          icon="user"
+          title="Personal Information"
+          subtitle="Manage your personal details"
+          color={COLORS.light.primary}
+          onPress={handlePersonalInfo}
+        />
+        
+        <ProfileItem
+          icon="truck"
+          title="Vehicle Information"
+          subtitle="Your car details and preferences"
+          color="#4ECDC4"
+          onPress={handleVehicleInfo}
+        />
+        
+        <ProfileItem
+          icon="bell"
+          title="Notifications"
+          subtitle="Manage your notification preferences"
+          color="#45B7D1"
+          onPress={handleNotifications}
+        />
+      </View>
+
+      {/* Settings Section */}
+      <View style={styles.section}>
+        <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
+          Settings
+        </Text>
+        
+        <ProfileItem
+          icon="globe"
+          title="Language"
+          subtitle="English"
+          color="#96CEB4"
+          onPress={() => {
+            Alert.alert(
+              'Select Language',
+              'Choose your preferred language',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'English', onPress: () => changeLanguage('en') },
+                { text: 'العربية', onPress: () => changeLanguage('ar') }
+              ]
+            );
+          }}
+        />
+        
+        <ProfileItem
+          icon="shield"
+          title="Privacy & Security"
+          subtitle="Manage your privacy settings"
+          color="#FF8C94"
+          onPress={handlePrivacy}
+        />
+      </View>
+
+      {/* Support Section */}
+      <View style={styles.section}>
+        <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
+          Support
+        </Text>
+        
+        <ProfileItem
+          icon="help-circle"
+          title="Help & Support"
+          subtitle="Get help and contact support"
+          color="#FFD93D"
+          onPress={handleSupport}
+        />
+        
+        <ProfileItem
+          icon="info"
+          title="About AutoPilot"
+          subtitle="App version and information"
+          color="#A8E6CF"
+          onPress={handleAbout}
+        />
+      </View>
+
+      {/* Logout Section */}
+      <View style={styles.section}>
+        <ProfileItem
+          icon="log-out"
+          title="Logout"
+          subtitle="Sign out of your account"
+          color="#FF6B6B"
+          onPress={handleLogout}
+          showArrow={false}
+        />
       </View>
     </MainScreenWrapper>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    gap: 16,
+  section: {
+    // marginBottom: 4,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  sectionTitle: {
+    marginBottom: 12,
+    marginLeft: 4,
   },
 });

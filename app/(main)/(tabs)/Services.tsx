@@ -77,13 +77,13 @@ const Services = () => {
 
   return (
     <MainScreenWrapper isScrollable>
-      <Text size={24} weight={700} isCentered style={styles.headerTitle}>
+      {/* <Text size={24} weight={700} isCentered style={styles.headerTitle}>
         Vehicle Services
       </Text>
 
       <Text size={14} color="grey70" isCentered style={styles.headerSubtitle} autoTranslate={false}>
         Access all your vehicle management tools in one place
-      </Text>
+      </Text> */}
 
       <FlatList
         data={servicesData}
@@ -108,6 +108,8 @@ const styles = StyleSheet.create({
   },
   servicesGrid: {
     gap: 16, // Vertical gap between rows
+    paddingBottom: 8,
+    flexGrow: 1,
   },
   row: {
     gap: 12, // Horizontal gap between cards in each row
