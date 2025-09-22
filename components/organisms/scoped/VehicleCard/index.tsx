@@ -1,9 +1,8 @@
 import { Button, SeperateLine, Text } from '@/components/atoms';
 import CardWrapper from '@/components/wrappers/Card';
 import React, { useState } from 'react';
-import { Touchable, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import styles from './styles';
-import VehicleItemCard from '@/components/molecules/scoped/VehicleItemCard';
 import Feather from '@expo/vector-icons/Feather';
 import ControllableInput from '@/components/molecules/common/FormInput';
 import { useForm } from 'react-hook-form';

@@ -1,8 +1,9 @@
-import { Input, Text } from '@/components/atoms';
 import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
 import MaintenanceSchedule from '@/components/organisms/scoped/maintainance';
 import { MaintenanceRecord } from '@/@types/maintenance';
-import React from 'react';
+import React, { useState } from 'react';
+import { Button, Text } from '@/components/atoms';
+import AddMaintenanceModal from '@/components/organisms/common/modals/addMaintainance';
 
 // Sample data for demonstration
 const sampleMaintenanceData: MaintenanceRecord[] = [
@@ -41,14 +42,46 @@ const sampleMaintenanceData: MaintenanceRecord[] = [
 ];
 
 const Maintainance = () => {
+  const [isUpdateModalVisible, setisUpdateModalVisible] = useState(false);
+  const [newMaintenance, setNewMaintenance] = useState<any | null>(null);
   return (
     <MainScreenWrapper isScrollable>
-      {/* <Text size={24} weight={700} isCentered>
-        Vehicle Maintenance
-      </Text> */}
-
-      <MaintenanceSchedule initialData={sampleMaintenanceData} type="upcoming" />
-      <MaintenanceSchedule initialData={sampleMaintenanceData} type="recent" />
+      {isUpdateModalVisible && (
+        <AddMaintenanceModal
+          isVisible={isUpdateModalVisible}
+          setVisible={setisUpdateModalVisible}
+          onSubmit={(data) => {
+            setNewMaintenance(data);
+            setisUpdateModalVisible(false);
+          }}
+        />
+      )}
+      {sampleMaintenanceData.length < 0 ? (
+        <>
+          <MaintenanceSchedule initialData={sampleMaintenanceData} type="upcoming" />
+          <MaintenanceSchedule initialData={sampleMaintenanceData} type="recent" />
+        </>
+      ) : (
+        <>
+          <Text size={24} weight={800} isCentered>
+            oops, no maintenance records found.
+          </Text>
+          <Text size={24} weight={800} isCentered>
+            حط حجتك هنا يا معرص
+          </Text>
+          <Button
+            onPress={() => {
+              setisUpdateModalVisible(true);
+            }}
+            title="حط ايدك هنا كده"
+          />
+          {newMaintenance && (
+            <Text size={16} weight={600} isCentered>
+              Last submitted: {JSON.stringify(newMaintenance)}
+            </Text>
+          )}
+        </>
+      )}
     </MainScreenWrapper>
   );
 };
