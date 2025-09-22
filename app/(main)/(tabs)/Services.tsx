@@ -1,5 +1,6 @@
 import React from 'react';
 import { FlatList, StyleSheet, ListRenderItem } from 'react-native';
+import { router } from 'expo-router';
 import { Text } from '@/components/atoms';
 import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
 import ServiceCard from '@/components/molecules/scoped/ServiceCard';
@@ -15,9 +16,20 @@ interface ServiceData {
 
 const Services = () => {
   const handleServicePress = (serviceName: string) => {
-    console.log(`${serviceName} service pressed`);
     // Navigate to specific service screen
-    // router.push(`/services/${serviceName.toLowerCase().replace(' ', '-')}`);
+    const serviceRoutes: { [key: string]: string } = {
+      'Gas Consumption': '/(main)/services/gas-consumption',
+      'Errors Guide': '/(main)/services/errors-guide',
+      'Vehicle Documents': '/(main)/services/vehicle-documents',
+      'Service Reminders': '/(main)/services/service-reminders',
+      'Climate & Comfort': '/(main)/services/climate-comfort',
+      'Roadtrip Planner': '/(main)/services/roadtrip-planner',
+    };
+    
+    const route = serviceRoutes[serviceName];
+    if (route) {
+      router.push(route as any);
+    }
   };
 
   const servicesData: ServiceData[] = [
