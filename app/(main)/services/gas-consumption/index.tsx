@@ -119,6 +119,26 @@ const GasConsumption = () => {
     setGasData((prevData) => [newEntry, ...prevData]);
   };
 
+  const handleDeleteEntry = (entryId: string) => {
+    Alert.alert(
+      'Delete Entry',
+      'Are you sure you want to delete this fuel consumption record? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            setGasData((prevData) => prevData.filter((entry) => entry.id !== entryId));
+          },
+        },
+      ]
+    );
+  };
+
   const renderGasEntry = ({ item }: { item: GasConsumptionEntry }) => (
     <CardWrapper customStyles={styles.entryCard}>
       <View style={styles.entryContainer}>
@@ -143,6 +163,18 @@ const GasConsumption = () => {
             </View>
           )}
         </View>
+
+        {/* <View style={styles.entryActions}>
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => handleDeleteEntry(item.id)}
+          >
+            <Feather name="trash-2" size={16} color={COLORS.light.danger} />
+            <Text size={12} color="danger" style={styles.deleteText} autoTranslate={false}>
+              Delete
+            </Text>
+          </TouchableOpacity>
+        </View> */}
 
         <View style={styles.entryDetails}>
           <View style={styles.detailRow}>
@@ -349,6 +381,20 @@ const styles = {
     flexDirection: 'row' as const,
     justifyContent: 'space-between' as const,
     alignItems: 'center' as const,
+  },
+  entryActions: {
+    alignItems: 'flex-end' as const,
+    marginTop: 8,
+  },
+  deleteButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  },
+  deleteText: {
+    marginLeft: 4,
   },
   entryDetails: {
     gap: 8,
