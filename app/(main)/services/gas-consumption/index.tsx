@@ -5,10 +5,10 @@ import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { Text, Badge } from '@/components/atoms';
 import CardWrapper from '@/components/wrappers/Card';
-import AddGasEntryModal from '@/components/organisms/scoped/services/AddGasEntryModal';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { GasConsumptionEntry, GasConsumptionStats } from '@/@types/gasConsumption';
+import AddGasEntryModal from '@/components/organisms/scoped/services/AddGasEntryModal';
 
 // Sample data for demonstration
 const sampleGasData: GasConsumptionEntry[] = [
@@ -279,6 +279,14 @@ const GasConsumption = () => {
       <TouchableOpacity style={styles.addButton} onPress={handleAddEntry}>
         <Feather name="plus" size={24} color="white" />
       </TouchableOpacity>
+
+      {/* Add Entry Modal */}
+      <AddGasEntryModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddGasEntry}
+        lastEntry={gasData.length > 0 ? gasData[0] : undefined}
+      />
     </SafeAreaView>
   );
 };

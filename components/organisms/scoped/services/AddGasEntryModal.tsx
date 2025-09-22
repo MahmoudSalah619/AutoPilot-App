@@ -1,16 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Modal,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import Modal from 'react-native-modal';
 import Feather from '@expo/vector-icons/Feather';
 import { Text, Input, Button } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { AddEntryFormData, GasConsumptionEntry } from '@/@types/gasConsumption';
@@ -108,10 +100,6 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
     setErrors({});
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
   const handleClose = () => {
     resetForm();
     onClose();
@@ -119,15 +107,14 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
 
   return (
     <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
+      isVisible={visible}
+      onBackdropPress={handleClose}
+      backdropOpacity={0.5}
+      animationIn="fadeIn"
+      animationOut="fadeOut"
+      useNativeDriverForBackdrop
     >
-      <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={[styles.container, { backgroundColor }]}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
@@ -139,8 +126,8 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
           <View style={styles.headerSpacer} />
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          <CardWrapper customStyles={styles.formCard}>
+        <View style={styles.content}>
+          <View style={styles.formCard}>
             {/* Date Input */}
             <View style={styles.inputGroup}>
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
@@ -149,7 +136,7 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               <Input
                 placeholder="YYYY-MM-DD"
                 value={formData.date}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, date: text }))}
+                onChangeText={(text) => setFormData((prev) => ({ ...prev, date: text }))}
                 keyboardType="default"
               />
               {errors.date && (
@@ -172,10 +159,12 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               <Input
                 placeholder="50000"
                 value={formData.kilometersTotal.toString()}
-                onChangeText={(text) => setFormData(prev => ({ 
-                  ...prev, 
-                  kilometersTotal: parseInt(text) || 0 
-                }))}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    kilometersTotal: parseInt(text) || 0,
+                  }))
+                }
                 keyboardType="numeric"
               />
               {errors.kilometersTotal && (
@@ -193,10 +182,12 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               <Input
                 placeholder="45.0"
                 value={formData.litersFilled.toString()}
-                onChangeText={(text) => setFormData(prev => ({ 
-                  ...prev, 
-                  litersFilled: parseFloat(text) || 0 
-                }))}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    litersFilled: parseFloat(text) || 0,
+                  }))
+                }
                 keyboardType="numeric"
               />
               {errors.litersFilled && (
@@ -207,64 +198,74 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
             </View>
 
             {/* Preview Calculation */}
-            {lastEntry && formData.kilometersTotal > lastEntry.kilometersTotal && formData.litersFilled > 0 && (
-              <View style={styles.previewContainer}>
-                <Text size={14} weight={600} color="grey70" autoTranslate={false}>
-                  Preview Calculation:
-                </Text>
-                <View style={styles.previewRow}>
-                  <Text size={12} color="grey70" autoTranslate={false}>
-                    Distance driven:
+            {lastEntry &&
+              formData.kilometersTotal > lastEntry.kilometersTotal &&
+              formData.litersFilled > 0 && (
+                <View style={styles.previewContainer}>
+                  <Text size={14} weight={600} color="grey70" autoTranslate={false}>
+                    Preview Calculation:
                   </Text>
-                  <Text size={12} weight={600} autoTranslate={false}>
-                    {(formData.kilometersTotal - lastEntry.kilometersTotal).toLocaleString()} km
-                  </Text>
+                  <View style={styles.previewRow}>
+                    <Text size={12} color="grey70" autoTranslate={false}>
+                      Distance driven:
+                    </Text>
+                    <Text size={12} weight={600} autoTranslate={false}>
+                      {(formData.kilometersTotal - lastEntry.kilometersTotal).toLocaleString()} km
+                    </Text>
+                  </View>
+                  <View style={styles.previewRow}>
+                    <Text size={12} color="grey70" autoTranslate={false}>
+                      Fuel efficiency:
+                    </Text>
+                    <Text size={12} weight={600} color="primary" autoTranslate={false}>
+                      {(
+                        (formData.kilometersTotal - lastEntry.kilometersTotal) /
+                        formData.litersFilled
+                      ).toFixed(1)}{' '}
+                      KM/L
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.previewRow}>
-                  <Text size={12} color="grey70" autoTranslate={false}>
-                    Fuel efficiency:
-                  </Text>
-                  <Text size={12} weight={600} color="primary" autoTranslate={false}>
-                    {((formData.kilometersTotal - lastEntry.kilometersTotal) / formData.litersFilled).toFixed(1)} KM/L
-                  </Text>
-                </View>
-              </View>
-            )}
-          </CardWrapper>
-        </ScrollView>
+              )}
+          </View>
+        </View>
 
         {/* Footer Buttons */}
         <View style={styles.footer}>
-          <Button
-            title="Cancel"
-            variant="outlined"
-            onPress={handleClose}
-            isFullWidth
-          />
+          <Button title="Cancel" variant="outlined" onPress={handleClose} isFullWidth />
           <View style={styles.buttonSpacer} />
-          <Button
-            title="Add Entry"
-            variant="filled"
-            onPress={handleAdd}
-            isFullWidth
-          />
+          <Button title="Add Entry" variant="filled" onPress={handleAdd} isFullWidth />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    margin: 20,
+    // maxHeight: '80%',
+    minHeight: 400,
+    paddingVertical: 0,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   header: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 16,
-    paddingTop: 20,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.light.greyF5,
   },
   closeButton: {
     padding: 8,
@@ -272,23 +273,25 @@ const styles = {
   },
   headerTitle: {
     flex: 1,
-    textAlign: 'center' as const,
+    textAlign: 'center',
   },
   headerSpacer: {
     width: 40,
   },
   content: {
-    flex: 1,
+    // paddingHorizontal: 16,
   },
   formCard: {
     padding: 20,
-    marginBottom: 16,
+    // marginVertical: 16,
+    backgroundColor: 'transparent',
   },
   inputGroup: {
-    marginBottom: 20,
+    // marginBottom: 20,
+    gap: 8,
   },
   label: {
-    marginBottom: 8,
+    // marginBottom: 4,
   },
   hintText: {
     marginBottom: 4,
@@ -304,18 +307,20 @@ const styles = {
     borderRadius: 8,
   },
   previewRow: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 4,
   },
   footer: {
-    flexDirection: 'row' as const,
+    flexDirection: 'row',
     paddingVertical: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.light.greyF5,
   },
   buttonSpacer: {
     width: 12,
   },
-};
+});
 
 export default AddGasEntryModal;
