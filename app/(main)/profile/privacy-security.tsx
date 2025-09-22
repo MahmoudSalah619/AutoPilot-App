@@ -112,7 +112,7 @@ export default function PrivacySecurity() {
       </CardWrapper>
 
       {/* Privacy Settings */}
-      <CardWrapper customStyles={styles.card}>
+      {/* <CardWrapper customStyles={styles.card}>
         <View style={styles.cardHeader}>
           <Feather name="eye-off" size={20} color="#FF8C94" />
           <Text size={18} weight={600} style={styles.cardTitle} autoTranslate={false}>
@@ -185,7 +185,7 @@ export default function PrivacySecurity() {
             thumbColor={thirdPartySharing ? '#FFD93D' : COLORS.light.grey70}
           />
         </View>
-      </CardWrapper>
+      </CardWrapper> */}
 
       {/* Data Management */}
       <CardWrapper customStyles={styles.card}>
@@ -196,7 +196,7 @@ export default function PrivacySecurity() {
           </Text>
         </View>
 
-        <View style={styles.securityOption}>
+        {/* <View style={styles.securityOption}>
           <View style={styles.optionLeft}>
             <View style={[styles.optionIcon, { backgroundColor: '#A8E6CF15' }]}>
               <Feather name="cloud" size={18} color="#A8E6CF" />
@@ -216,7 +216,7 @@ export default function PrivacySecurity() {
             trackColor={{ false: COLORS.light.greyE5, true: '#A8E6CF40' }}
             thumbColor={autoBackup ? '#A8E6CF' : COLORS.light.grey70}
           />
-        </View>
+        </View> */}
 
         <View style={styles.actionItem}>
           <View style={styles.actionLeft}>

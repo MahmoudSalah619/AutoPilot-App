@@ -97,14 +97,14 @@ export default function HelpSupport() {
       color: '#96CEB4',
       onPress: handleRequestFeature
     },
-    {
-      id: 2,
-      title: 'System Diagnostics',
-      description: 'Check app health and performance',
-      icon: 'activity',
-      color: '#A8E6CF',
-      onPress: handleSystemDiagnostics
-    }
+    // {
+    //   id: 2,
+    //   title: 'System Diagnostics',
+    //   description: 'Check app health and performance',
+    //   icon: 'activity',
+    //   color: '#A8E6CF',
+    //   onPress: handleSystemDiagnostics
+    // }
   ];
 
   const quickActions = [
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   emergencyCard: {
     borderWidth: 1,
     borderColor: '#FF6B6B20',
-    backgroundColor: '#FF6B6B05',
+    // backgroundColor: '#FF6B6B05',
   },
   cardHeader: {
     flexDirection: 'row',
