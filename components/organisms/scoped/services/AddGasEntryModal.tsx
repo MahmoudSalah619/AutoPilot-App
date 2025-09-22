@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
+import { useForm } from 'react-hook-form';
 import Feather from '@expo/vector-icons/Feather';
-import { Text, Input, Button } from '@/components/atoms';
+import { Text, Button } from '@/components/atoms';
+import ControllableInput from '@/components/molecules/common/FormInput';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { AddEntryFormData, GasConsumptionEntry } from '@/@types/gasConsumption';
@@ -14,94 +16,63 @@ interface AddGasEntryModalProps {
   lastEntry?: GasConsumptionEntry;
 }
 
-interface FormErrors {
-  date?: string;
-  kilometersTotal?: string;
-  litersFilled?: string;
-}
-
 const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
   visible,
   onClose,
   onAdd,
   lastEntry,
 }) => {
-  const [formData, setFormData] = useState<AddEntryFormData>({
-    date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
-    kilometersTotal: lastEntry ? lastEntry.kilometersTotal + 100 : 50000, // Default suggestion
-    litersFilled: 45.0,
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<AddEntryFormData>({
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0],
+      kilometersTotal: lastEntry ? lastEntry.kilometersTotal + 100 : 50000,
+      litersFilled: 45.0,
+    },
   });
-
-  const [errors, setErrors] = useState<FormErrors>({});
 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
-  const mutedColor = useThemeColor({}, 'grey70');
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+  // Watch form values for preview calculation
+  const watchedValues = watch();
 
-    if (!formData.date) {
-      newErrors.date = 'Date is required';
-    }
-
-    if (!formData.kilometersTotal || formData.kilometersTotal <= 0) {
-      newErrors.kilometersTotal = 'Valid odometer reading is required';
-    }
-
-    if (lastEntry && formData.kilometersTotal <= lastEntry.kilometersTotal) {
-      newErrors.kilometersTotal = 'Odometer reading must be higher than last entry';
-    }
-
-    if (!formData.litersFilled || formData.litersFilled <= 0) {
-      newErrors.litersFilled = 'Valid fuel amount is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleAdd = () => {
-    if (!validateForm()) {
-      return;
-    }
-
+  const onSubmit = (data: AddEntryFormData) => {
     // Calculate KM/L and distance driven
     let kmPerLiter: number | undefined;
     let kilometersDriven: number | undefined;
 
     if (lastEntry) {
-      kilometersDriven = formData.kilometersTotal - lastEntry.kilometersTotal;
+      kilometersDriven = data.kilometersTotal - lastEntry.kilometersTotal;
       if (kilometersDriven > 0) {
-        kmPerLiter = kilometersDriven / formData.litersFilled;
+        kmPerLiter = kilometersDriven / data.litersFilled;
       }
     }
 
     const newEntry: GasConsumptionEntry = {
       id: Date.now().toString(),
-      date: formData.date,
-      kilometersTotal: formData.kilometersTotal,
-      litersFilled: formData.litersFilled,
+      date: data.date,
+      kilometersTotal: data.kilometersTotal,
+      litersFilled: data.litersFilled,
       kmPerLiter,
       kilometersDriven,
     };
 
     onAdd(newEntry);
-    onClose();
-    resetForm();
+    handleClose();
   };
 
-  const resetForm = () => {
-    setFormData({
+  const handleClose = () => {
+    reset({
       date: new Date().toISOString().split('T')[0],
       kilometersTotal: lastEntry ? lastEntry.kilometersTotal + 100 : 50000,
       litersFilled: 45.0,
     });
-    setErrors({});
-  };
-
-  const handleClose = () => {
-    resetForm();
     onClose();
   };
 
@@ -133,17 +104,15 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
                 Date
               </Text>
-              <Input
+              <ControllableInput
+                control={control as any}
+                name="date"
                 placeholder="YYYY-MM-DD"
-                value={formData.date}
-                onChangeText={(text) => setFormData((prev) => ({ ...prev, date: text }))}
                 keyboardType="default"
+                rules={{
+                  required: 'Date is required',
+                }}
               />
-              {errors.date && (
-                <Text size={12} color="danger" style={styles.errorText} autoTranslate={false}>
-                  {errors.date}
-                </Text>
-              )}
             </View>
 
             {/* Odometer Reading Input */}
@@ -156,22 +125,22 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
                   Last reading: {lastEntry.kilometersTotal.toLocaleString()} km
                 </Text>
               )}
-              <Input
+              <ControllableInput
+                control={control as any}
+                name="kilometersTotal"
                 placeholder="50000"
-                value={formData.kilometersTotal.toString()}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    kilometersTotal: parseInt(text) || 0,
-                  }))
-                }
                 keyboardType="numeric"
+                rules={{
+                  required: 'Valid odometer reading is required',
+                  min: {
+                    value: lastEntry ? lastEntry.kilometersTotal + 1 : 1,
+                    message: lastEntry 
+                      ? 'Odometer reading must be higher than last entry'
+                      : 'Valid odometer reading is required',
+                  },
+                  setValueAs: (value: string) => parseInt(value) || 0,
+                }}
               />
-              {errors.kilometersTotal && (
-                <Text size={12} color="danger" style={styles.errorText} autoTranslate={false}>
-                  {errors.kilometersTotal}
-                </Text>
-              )}
             </View>
 
             {/* Fuel Amount Input */}
@@ -179,28 +148,26 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
                 Fuel Filled (Liters)
               </Text>
-              <Input
+              <ControllableInput
+                control={control as any}
+                name="litersFilled"
                 placeholder="45.0"
-                value={formData.litersFilled.toString()}
-                onChangeText={(text) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    litersFilled: parseFloat(text) || 0,
-                  }))
-                }
                 keyboardType="numeric"
+                rules={{
+                  required: 'Valid fuel amount is required',
+                  min: {
+                    value: 0.1,
+                    message: 'Fuel amount must be greater than 0',
+                  },
+                  setValueAs: (value: string) => parseFloat(value) || 0,
+                }}
               />
-              {errors.litersFilled && (
-                <Text size={12} color="danger" style={styles.errorText} autoTranslate={false}>
-                  {errors.litersFilled}
-                </Text>
-              )}
             </View>
 
             {/* Preview Calculation */}
             {lastEntry &&
-              formData.kilometersTotal > lastEntry.kilometersTotal &&
-              formData.litersFilled > 0 && (
+              watchedValues.kilometersTotal > lastEntry.kilometersTotal &&
+              watchedValues.litersFilled > 0 && (
                 <View style={styles.previewContainer}>
                   <Text size={14} weight={600} color="grey70" autoTranslate={false}>
                     Preview Calculation:
@@ -210,7 +177,7 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
                       Distance driven:
                     </Text>
                     <Text size={12} weight={600} autoTranslate={false}>
-                      {(formData.kilometersTotal - lastEntry.kilometersTotal).toLocaleString()} km
+                      {(watchedValues.kilometersTotal - lastEntry.kilometersTotal).toLocaleString()} km
                     </Text>
                   </View>
                   <View style={styles.previewRow}>
@@ -219,8 +186,8 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
                     </Text>
                     <Text size={12} weight={600} color="primary" autoTranslate={false}>
                       {(
-                        (formData.kilometersTotal - lastEntry.kilometersTotal) /
-                        formData.litersFilled
+                        (watchedValues.kilometersTotal - lastEntry.kilometersTotal) /
+                        watchedValues.litersFilled
                       ).toFixed(1)}{' '}
                       KM/L
                     </Text>
@@ -234,7 +201,7 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
         <View style={styles.footer}>
           <Button title="Cancel" variant="outlined" onPress={handleClose} isFullWidth />
           <View style={styles.buttonSpacer} />
-          <Button title="Add Entry" variant="filled" onPress={handleAdd} isFullWidth />
+          <Button title="Add Entry" variant="filled" onPress={handleSubmit(onSubmit)} isFullWidth />
         </View>
       </View>
     </Modal>
