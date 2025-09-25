@@ -40,7 +40,7 @@ const Welcome = () => {
         <View style={styles.heroSection}>
           <View style={styles.gradientBackground}>
             <View style={styles.heroImageContainer}>
-             <Logo width={180} height={100} />
+              <Logo width={180} height={100} />
             </View>
 
             <View style={styles.titleSection}>
@@ -204,11 +204,11 @@ const styles = StyleSheet.create({
   // CTA Section
   ctaSection: {
     alignItems: 'center',
-    paddingTop: 20,
   },
   ctaButton: {
     borderRadius: 16,
     marginBottom: 12,
+    width: '100%',
   },
   ctaSubtext: {
     textAlign: 'center',
