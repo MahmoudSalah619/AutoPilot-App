@@ -4,6 +4,9 @@ import { MaintenanceRecord } from '@/@types/maintenance';
 import React, { useState } from 'react';
 import { Button, Text } from '@/components/atoms';
 import AddMaintenanceModal from '@/components/organisms/common/modals/addMaintainance';
+import { TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { COLORS } from '@/constants/Colors';
 
 // Sample data for demonstration
 const sampleMaintenanceData: MaintenanceRecord[] = [
@@ -44,8 +47,14 @@ const sampleMaintenanceData: MaintenanceRecord[] = [
 const Maintenance = () => {
   const [isUpdateModalVisible, setisUpdateModalVisible] = useState(false);
   const [newMaintenance, setNewMaintenance] = useState<any | null>(null);
+  const handleAddEntry = () => {
+    setisUpdateModalVisible(true);
+  };
   return (
     <MainScreenWrapper isScrollable>
+      <TouchableOpacity style={styles.addButton} onPress={handleAddEntry}>
+        <Feather name="plus" size={24} color="white" />
+      </TouchableOpacity>
       {isUpdateModalVisible && (
         <AddMaintenanceModal
           isVisible={isUpdateModalVisible}
@@ -85,5 +94,26 @@ const Maintenance = () => {
     </MainScreenWrapper>
   );
 };
-
+const styles = {
+  addButton: {
+    position: 'absolute' as const,
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.light.primary,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    zIndex: 1000,
+  },
+};
 export default Maintenance;
