@@ -4,7 +4,7 @@
     "slug": "autopilot-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/nova-black.png",
+    "icon": "./assets/images/white_on_trans.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -12,7 +12,13 @@
       "bundleIdentifier": "com.nova.autopilotapp"
     },
     "android": {
-      "package": "com.nova.autopilot"
+      "package": "com.nova.autopilot",
+      "splash": {
+        "image": "./assets/images/nova-black.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#4682c2",
+        "backgroundImage": "./assets/images/white_on_trans.png"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -27,7 +33,8 @@
           "image": "./assets/images/nova-black.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#4682c2",
+          "backgroundImage": "./assets/images/white_on_trans.png"
         }
       ],
       "expo-localization",
