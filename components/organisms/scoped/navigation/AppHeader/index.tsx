@@ -46,7 +46,7 @@ export default function NavigationHeader({
         )}
         {!!hasLogo && (
           <View style={{ padding: 8 }}>
-            <Logo width={80} height={80} />
+            <Logo width={120} height={80} />
           </View>
         )}
       </View>

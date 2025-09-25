@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Text, Image } from '@/components/atoms';
+import { Button, Text, Image, Logo } from '@/components/atoms';
 import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
 
 const { width } = Dimensions.get('window');
@@ -40,11 +40,7 @@ const Welcome = () => {
         <View style={styles.heroSection}>
           <View style={styles.gradientBackground}>
             <View style={styles.heroImageContainer}>
-              <Image
-                source={require('@/assets/images/auto-pilot.png')}
-                style={styles.heroImage}
-                resizeMode="contain"
-              />
+             <Logo width={180} height={100} />
             </View>
 
             <View style={styles.titleSection}>
