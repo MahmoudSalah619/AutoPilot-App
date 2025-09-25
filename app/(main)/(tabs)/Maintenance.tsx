@@ -41,7 +41,7 @@ const sampleMaintenanceData: MaintenanceRecord[] = [
   },
 ];
 
-const Maintainance = () => {
+const Maintenance = () => {
   const [isUpdateModalVisible, setisUpdateModalVisible] = useState(false);
   const [newMaintenance, setNewMaintenance] = useState<any | null>(null);
   return (
@@ -56,7 +56,7 @@ const Maintainance = () => {
           }}
         />
       )}
-      {sampleMaintenanceData.length < 0 ? (
+      {sampleMaintenanceData.length > 0 ? (
         <>
           <MaintenanceSchedule initialData={sampleMaintenanceData} type="upcoming" />
           <MaintenanceSchedule initialData={sampleMaintenanceData} type="recent" />
@@ -86,4 +86,4 @@ const Maintainance = () => {
   );
 };
 
-export default Maintainance;
+export default Maintenance;
