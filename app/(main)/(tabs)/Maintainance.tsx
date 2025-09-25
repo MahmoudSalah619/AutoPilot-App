@@ -67,7 +67,7 @@ const Maintainance = () => {
             oops, no maintenance records found.
           </Text>
           <Text size={24} weight={800} isCentered>
-            حط حجتك هنا يا معرص
+            your data will appear here
           </Text>
           <Button
             onPress={() => {

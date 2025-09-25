@@ -44,7 +44,7 @@ export default function AddMaintenanceModal({
       <View>
         <View style={[GLOBAL_STYLES.vhCentering, GLOBAL_STYLES.gap16]}>
           <Text color="black" size={18} weight={700}>
-            زبي زبي يابنتالمتناكه
+            neawwwwwwwwwwwwwww{' '}
           </Text>
           <Text color="grey70" size={14}>
             Add a new maintenance record to your vehicle's history.
