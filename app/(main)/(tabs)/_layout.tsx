@@ -16,15 +16,21 @@ export default function _layout() {
       }}
     >
       <Tabs.Screen
-        name="Home"
+        name="Maintenance"
         options={{
-          title: 'Home',
+          title: 'Maintenance',
         }}
       />
       <Tabs.Screen
-        name="Maintainance"
+        name="Calendar"
         options={{
-          title: 'Maintainance',
+          title: 'Calendar',
+        }}
+      />
+      <Tabs.Screen
+        name="Home"
+        options={{
+          title: 'Home',
         }}
       />
       <Tabs.Screen

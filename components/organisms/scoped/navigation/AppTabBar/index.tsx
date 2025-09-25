@@ -9,15 +9,24 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 const getIcon = (routeName: string, isFocused: boolean) => {
   const icons = {
     Home: 'home',
-    Maintainance: 'build',
-    Favourites: 'favorite',
+    Maintenance: 'build',
+    Calendar: 'event',
     Services: 'checklist',
     Profile: 'person',
   } as const;
   const iconName = icons[routeName as keyof typeof icons] || 'home';
-  return (
-    <MaterialIcons name={iconName} size={26} color={isFocused ? COLORS.light.primary : 'black'} />
-  );
+  const iconSize = routeName === 'Home' ? 28 : 24;
+
+  let iconColor: string;
+  if (routeName === 'Home') {
+    // Home tab: white icon when focused (blue background), blue icon when not focused (white background)
+    iconColor = isFocused ? COLORS.light.white : COLORS.light.primary;
+  } else {
+    // Other tabs: blue when focused, black when not focused
+    iconColor = isFocused ? COLORS.light.primary : 'black';
+  }
+
+  return <MaterialIcons name={iconName} size={iconSize} color={iconColor} />;
 };
 
 // TabBar component
@@ -45,18 +54,27 @@ const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
               : typeof options.title === 'string'
                 ? options.title
                 : route.name;
-          const isFocused = state.index === index;
 
+          const isFocused = state.index === index;
+          const isHomeTab = route.name === 'Home';
           return (
             <TouchableOpacity
               key={route.key}
               onPress={() => handlePress(route, isFocused)}
-              style={styles.tab}
+              style={[
+                styles.tab,
+                isHomeTab && styles.homeTab,
+                isHomeTab && isFocused && styles.homeTabFocused,
+              ]}
             >
-              {getIcon(route.name, isFocused)}
-              <Text color={isFocused ? 'primary' : 'text'} size={12}>
-                {label}
-              </Text>
+              <View style={isHomeTab ? styles.homeIconContainer : undefined}>
+                {getIcon(route.name, isFocused)}
+              </View>
+              {!isHomeTab && (
+                <Text color={isFocused ? 'primary' : 'text'} size={10} numberOfLines={1}>
+                  {label}
+                </Text>
+              )}
             </TouchableOpacity>
           );
         })}
@@ -71,23 +89,61 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 70,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
   },
   tabbar: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end',
     borderTopWidth: 1,
     borderTopColor: '#ccc',
+    paddingBottom: 15,
+    // paddingTop: 10,
+    // backgroundColor: 'red',
+    width: '100%',
+    // paddingHorizontal: 16,
     // backgroundColor: "#fff",
   },
   tab: {
-    flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 8,
+    // paddingHorizontal: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 75,
+    // backgroundColor: "yellow",
+    // minWidth: 60,
+    // maxWidth: 100,
+  },
+  homeTab: {
+    position: 'relative',
+    top: -34,
+    backgroundColor: COLORS.light.white,
+    borderRadius: 32,
+    width: 64,
+    height: 64,
+    elevation: 12,
+    shadowColor: COLORS.light.primary,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    borderWidth: 2,
+    borderColor: COLORS.light.primary,
+  },
+  homeTabFocused: {
+    backgroundColor: COLORS.light.primary,
+    borderColor: COLORS.light.white,
+    transform: [{ scale: 1.05 }],
+  },
+  homeIconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
   },
 });
 
