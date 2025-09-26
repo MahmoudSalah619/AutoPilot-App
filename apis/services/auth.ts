@@ -1,5 +1,7 @@
 import api from '@/apis';
 import { AuthTokenResponse, LoginBody, User } from '../@types/auth';
+import { SignUpFormData } from '@/app/(auth)/signup/types';
+import { VehicleFormData } from '@/app/(auth)/addVehicle/types';
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -15,7 +17,6 @@ export const authApi = api.injectEndpoints({
 
     login: build.mutation<AuthTokenResponse, LoginBody>({
       query: (body) => {
-        console.log('Login query body:', body);
         return {
           url: '/auth/signin',
           method: 'POST',
@@ -25,13 +26,20 @@ export const authApi = api.injectEndpoints({
       invalidatesTags: ['User'],
     }),
 
-    // signup: build.mutation<AuthTokenResponse, SignupBody>({
-    //   query: (body) => ({
-    //     url: '/store-users/me/',
-    //     method: 'POST',
-    //     body,
-    //   }),
-    // }),
+    signup: build.mutation<AuthTokenResponse, SignUpFormData>({
+      query: (body) => ({
+        url: '/auth/signup',
+        method: 'POST',
+        body,
+      }),
+    }),
+    addVehicle: build.mutation<AuthTokenResponse, VehicleFormData>({
+      query: (body) => ({
+        url: '/vehicles',
+        method: 'POST',
+        body,
+      }),
+    }),
 
     logout: build.mutation({
       query: () => ({
@@ -72,7 +80,8 @@ export const authApi = api.injectEndpoints({
 export const {
   useLazyGetUserInfoQuery,
   useLoginMutation,
-  // useSignupMutation,
+  useSignupMutation,
+  useAddVehicleMutation,
   useLogoutMutation,
   useFacebookLoginMutation,
   useGoogleLoginMutation,

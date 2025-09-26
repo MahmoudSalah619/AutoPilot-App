@@ -9,9 +9,9 @@ export default function HandleErrors(err: any) {
     });
   };
   console.log('err=>:', err);
-  // if (err?.code?.includes("token_not_valid")) {
-  //   store.dispatch(logout());
-  // }
+  if (err?.error) {
+    showErrorToast(err?.message);
+  }
   if (err.details?.reason) {
     showErrorToast(err.details?.reason);
   } else if (err.message) {
