@@ -30,7 +30,7 @@ const baseQuery = async (args: FetchArgs, api: BaseQueryApi, extraOptions: objec
   const lang = await AsyncStorage.getItem('lang');
   const languageText = lang?.includes('ar') ? 'ar' : 'en';
 
-  const baseUrl = `${DomainUrl}/${languageText}/api`;
+  const baseUrl = `${DomainUrl}/${languageText}/api/v1`;
 
   return rawBaseQuery(baseUrl)(args, api, extraOptions);
 };
