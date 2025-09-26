@@ -11,7 +11,6 @@ import DomainUrl from '@/apis/Domain';
 import { login, logout } from '@/redux/authReducer';
 import { RootState } from '@/redux';
 import tagTypes from './tagTypes';
-import { AuthTokenResponse } from './@types/auth';
 
 const rawBaseQuery = (baseUrl: string) =>
   fetchBaseQuery({
@@ -19,19 +18,16 @@ const rawBaseQuery = (baseUrl: string) =>
     prepareHeaders: (headers, { getState }) => {
       const { token } = (getState() as RootState).auth;
       if (token && !headers.has('Authorization')) {
-        headers.set('Authorization', `Token ${token}`);
+        headers.set('Authorization', `Bearer ${token}`);
       }
+      headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
 // Create our baseQuery instance
 const baseQuery = async (args: FetchArgs, api: BaseQueryApi, extraOptions: object) => {
-  const lang = await AsyncStorage.getItem('lang');
-  const languageText = lang?.includes('ar') ? 'ar' : 'en';
-
-  const baseUrl = `${DomainUrl}/${languageText}/api/v1`;
-
+  const baseUrl = `${DomainUrl}/api/v1`;
   return rawBaseQuery(baseUrl)(args, api, extraOptions);
 };
 
@@ -45,13 +41,13 @@ const baseQueryWithReauth = async (args: FetchArgs, api: BaseQueryApi, extraOpti
 
     const refreshResult = (await baseQueryWithRetry(
       {
-        url: '/token/refresh/',
+        url: '/auth/refresh-token',
         method: 'post',
         body: { refresh: refreshToken },
       },
       api,
       extraOptions
-    )) as { data: AuthTokenResponse };
+    )) as { data: { access_token: string; refresh_token: string } };
 
     return refreshResult;
   };
@@ -64,14 +60,18 @@ const baseQueryWithReauth = async (args: FetchArgs, api: BaseQueryApi, extraOpti
     };
   };
 
-  // @ts-ignore
-  const isTokenExpire = result?.error?.data?.code?.includes('token_not_valid');
+  // Check if token expired (401 Unauthorized)
+  const isTokenExpired = result?.error?.status === 401;
 
-  if (isTokenExpire) {
+  if (isTokenExpired) {
     const refreshResult = await getNewAccessToken();
 
-    if (refreshResult.data?.access) {
-      await saveTheNewAccessTokenAndRetrySameRequest(refreshResult.data?.access);
+    if (refreshResult.data?.access_token) {
+      await saveTheNewAccessTokenAndRetrySameRequest(refreshResult.data.access_token);
+      // Also update the refresh token if provided
+      if (refreshResult.data.refresh_token) {
+        AsyncStorage.setItem('refreshToken', refreshResult.data.refresh_token);
+      }
     } else {
       AsyncStorage.removeItem('token');
       AsyncStorage.removeItem('refreshToken');

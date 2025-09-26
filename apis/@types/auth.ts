@@ -1,6 +1,8 @@
 export interface AuthTokenResponse {
-  refresh: string;
-  access: string;
+  message: string;
+  user: User;
+  access_token: string;
+  refresh_token: string;
 }
 
 export interface GetStoreUserParams {
@@ -12,15 +14,41 @@ export interface LoginBody {
   password: string;
 }
 
-export interface User {
-  first_name: string;
-  last_name: string;
-  image: string;
-  birth_date: string;
+export interface Vehicle {
+  vehicleId: string;
+  userId: string;
+  make: string;
+  model: string;
+  year: number;
+  kilometers: number;
+  isPrimary: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-type CombinedBody = Partial<User> & LoginBody;
-export interface SignupBody extends CombinedBody {}
+export interface User {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  passwordHash: string;
+  isAdmin: boolean;
+  created_at: string;
+  updated_at: string;
+  vehicle: Vehicle;
+}
+
+export interface UserProfileResponse {
+  message: string;
+  user: User;
+}
+
+export interface SignupBody {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
 
 export interface UserInfoBody {
   name: string;

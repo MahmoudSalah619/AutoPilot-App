@@ -1,31 +1,37 @@
 import api from '@/apis';
-import { AuthTokenResponse, LoginBody, SignupBody, User } from '../@types/auth';
+import { AuthTokenResponse, LoginBody, User } from '../@types/auth';
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
-    getUserInfo: build.query<User, void>({
-      query: () => ({
-        url: '/store-users/me/',
+    getUserInfo: build.query<User, string>({
+      query: (token) => ({
+        url: '/users/me',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
       providesTags: ['User'],
     }),
 
     login: build.mutation<AuthTokenResponse, LoginBody>({
-      query: (body) => ({
-        url: '/auth/login/',
-        method: 'POST',
-        body: { ...body, user_type: 'store_user' },
-      }),
+      query: (body) => {
+        console.log('Login query body:', body);
+        return {
+          url: '/auth/signin',
+          method: 'POST',
+          body,
+        };
+      },
       invalidatesTags: ['User'],
     }),
 
-    signup: build.mutation<AuthTokenResponse, SignupBody>({
-      query: (body) => ({
-        url: '/store-users/me/',
-        method: 'POST',
-        body,
-      }),
-    }),
+    // signup: build.mutation<AuthTokenResponse, SignupBody>({
+    //   query: (body) => ({
+    //     url: '/store-users/me/',
+    //     method: 'POST',
+    //     body,
+    //   }),
+    // }),
 
     logout: build.mutation({
       query: () => ({
@@ -64,9 +70,9 @@ export const authApi = api.injectEndpoints({
 });
 
 export const {
-  useGetUserInfoQuery,
+  useLazyGetUserInfoQuery,
   useLoginMutation,
-  useSignupMutation,
+  // useSignupMutation,
   useLogoutMutation,
   useFacebookLoginMutation,
   useGoogleLoginMutation,

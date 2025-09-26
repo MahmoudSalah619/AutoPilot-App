@@ -6,27 +6,69 @@ import { Controller, useForm } from 'react-hook-form';
 import { Checkbox, FormInput } from '@/components/molecules/common';
 import { Button, Text } from '@/components/atoms';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-// import GoogleRegisterationButton from '@/components/organisms/scoped/auth/social/GoogleRegisterationButton';
-// import FacebookRegisterationButton from '@/components/organisms/scoped/auth/social/FacebookRegisterationButton';
-// import AppleRegistarationButton from '@/components/organisms/scoped/auth/social/AppleRegistarationButton';
+import { useLazyGetUserInfoQuery, useLoginMutation } from '@/apis/services/auth';
 import Biometric from '@/components/organisms/scoped/auth/biometric';
 import styles from './styles';
+import loginHandler from '@/utils/loginHandler';
 
 const Login = () => {
-  const { control } = useForm({});
+  const {
+    control,
+    getValues,
+    formState: { errors },
+    handleSubmit,
+  } = useForm({});
   const router = useRouter();
+  const [login, { isLoading }] = useLoginMutation();
+  const [getUserInfo] = useLazyGetUserInfoQuery();
+
+  const handleGetMe = (token: string) => {
+    getUserInfo(token)
+      .unwrap()
+      .then((response) => {
+        console.log('User info retrieved successfully:', response);
+        loginHandler({ userInfo: response, token, rememberMe: getValues('remember_me') });
+      })
+      .catch((error) => {
+        console.error('Failed to retrieve user info:', error);
+      });
+  };
+
+  const onSubmit = () => {
+    const { email, password } = getValues();
+
+    login({ email, password })
+      .unwrap()
+      .then((response) => {
+        console.log('Login successful:', response);
+        handleGetMe(response.access_token);
+        router.replace('/(main)/(tabs)/Home');
+      })
+      .catch((error) => {
+        console.error('Login failed:', error);
+      });
+  };
 
   return (
     <AuthScreenWrapper justifyContent="space-between" isScrollable>
       <View>
         <View style={{ marginBottom: 24 }}>
-          <FormInput name="username" placeholder="Email" control={control} required />
+          <FormInput
+            name="email"
+            placeholder="Email"
+            control={control}
+            required
+            error={typeof errors.email?.message === 'string' ? errors.email.message : undefined}
+          />
           <FormInput
             name="password"
             placeholder="Password"
             secureTextEntry
             control={control}
             required
+            error={
+              typeof errors.password?.message === 'string' ? errors.password.message : undefined
+            }
           />
           <View style={GLOBAL_STYLES.rowJustifyBetween}>
             <Controller
@@ -44,8 +86,9 @@ const Login = () => {
           </View>
         </View>
         <Button
-          title="Login"
-          onPress={() => router.replace('/(main)/(tabs)/Home')} // Navigate to the home page and replace the current route
+          title={isLoading ? 'Signing in...' : 'Login'}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isLoading}
         />
       </View>
       <Biometric />
