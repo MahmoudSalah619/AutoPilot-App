@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import { useForm } from 'react-hook-form';
@@ -15,6 +15,8 @@ interface AddGasEntryModalProps {
   onClose: () => void;
   onAdd: (entry: AddEntryFormData) => void;
   lastEntry?: GasConsumptionEntry;
+  editingEntry?: GasConsumptionEntry | null;
+  isEditMode?: boolean;
 }
 
 const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
@@ -22,22 +24,25 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
   onClose,
   onAdd,
   lastEntry,
+  editingEntry = null,
+  isEditMode = false,
 }) => {
+  // Create a unique key to force form remount when switching modes
+  const formKey = `${isEditMode ? 'edit' : 'add'}-${editingEntry?.gasId || 'new'}`;
   const {
     control,
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<AddEntryFormData>({
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
-      kilometersDriven: 0,
-      litersConsumed: 45.0,
+      date: (isEditMode && editingEntry) ? editingEntry.date : new Date().toISOString().split('T')[0],
+      kilometersDriven: (isEditMode && editingEntry) ? editingEntry.kilometersDriven : 0,
+      litersConsumed: (isEditMode && editingEntry) ? editingEntry.litersConsumed : 45.0,
     },
   });
-
-  const { vehicle } = useGetUserInfo();
 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -51,13 +56,11 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
   };
 
   const handleClose = () => {
-    reset({
-      date: new Date().toISOString().split('T')[0],
-      kilometersDriven: 0,
-      litersConsumed: 45.0,
-    });
+    reset({});
     onClose();
   };
+
+
 
   return (
     <Modal
@@ -65,19 +68,18 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
       onBackdropPress={handleClose}
       backdropOpacity={0.5}
       animationIn="fadeIn"
-      animationOut="fadeOut"
-      useNativeDriverForBackdrop
+      // useNativeDriverForBackdrop
     >
-      <View style={[styles.container, { backgroundColor }]}>
+      <View key={formKey} style={[styles.container, { backgroundColor }]}>
         {/* Header */}
         <View style={styles.header}>
+          <View style={styles.headerSpacer} />
+          <Text size={18} weight={700} style={styles.headerTitle} autoTranslate={false}>
+            {isEditMode ? 'Edit Fuel Entry' : 'Add Fuel Entry'}
+          </Text>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
             <Feather name="x" size={24} color={textColor} />
           </TouchableOpacity>
-          <Text size={18} weight={700} style={styles.headerTitle} autoTranslate={false}>
-            Add Fuel Entry
-          </Text>
-          <View style={styles.headerSpacer} />
         </View>
 
         <View style={styles.content}>
@@ -103,9 +105,14 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
                 Distance Driven (km)
               </Text>
-              {lastEntry && (
+              {(lastEntry || (isEditMode && editingEntry)) && (
                 <Text size={12} color="grey70" style={styles.hintText} autoTranslate={false}>
-                  Last trip: {lastEntry.kilometersDriven?.toLocaleString() || 'N/A'} km
+                  {isEditMode ? 'Current' : 'Last'} trip:{' '}
+                  {(isEditMode && editingEntry
+                    ? editingEntry.kilometersDriven
+                    : lastEntry?.kilometersDriven
+                  )?.toLocaleString() || 'N/A'}{' '}
+                  km
                 </Text>
               )}
               <ControllableInput
@@ -164,7 +171,8 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
                     Estimated efficiency:
                   </Text>
                   <Text size={12} weight={600} color="primary" autoTranslate={false}>
-                    {(watchedValues.kilometersDriven / watchedValues.litersConsumed).toFixed(1)} KM/L
+                    {(watchedValues.kilometersDriven / watchedValues.litersConsumed).toFixed(1)}{' '}
+                    KM/L
                   </Text>
                 </View>
               </View>
@@ -176,7 +184,12 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
         <View style={styles.footer}>
           <Button title="Cancel" variant="outlined" onPress={handleClose} isFullWidth />
           <View style={styles.buttonSpacer} />
-          <Button title="Add Entry" variant="filled" onPress={handleSubmit(onSubmit)} isFullWidth />
+          <Button
+            title={isEditMode ? 'Update' : 'Add'}
+            variant="filled"
+            onPress={handleSubmit(onSubmit)}
+            isFullWidth
+          />
         </View>
       </View>
     </Modal>
@@ -191,14 +204,6 @@ const styles = StyleSheet.create({
     // maxHeight: '80%',
     minHeight: 400,
     paddingVertical: 0,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   header: {
     flexDirection: 'row',

@@ -7,3 +7,7 @@ export interface GasConsumptionRequest {
   litersConsumed: number;
 }
 
+export interface GasConsumptionUpdateRequest extends GasConsumptionRequest {
+  gasId: string;
+}
+

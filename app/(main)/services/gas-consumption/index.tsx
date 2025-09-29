@@ -28,6 +28,8 @@ const GasConsumption = () => {
   const [deleteGasConsumption, { isLoading: isDeleting }] = useDeleteGasConsumptionMutation();
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<GasConsumptionEntry | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Use API data directly
   const gasData = apiData?.data || [];
@@ -58,21 +60,47 @@ const GasConsumption = () => {
   };
 
   const handleAddEntry = () => {
+    setIsEditMode(false);
+    setEditingEntry(null);
     setShowAddModal(true);
   };
 
-  const handleAddGasEntry = async (newEntry: AddEntryFormData) => {
+  const handleEditEntry = (entry: GasConsumptionEntry) => {
+    setIsEditMode(true);
+    setEditingEntry(entry);
+    setShowAddModal(true);
+  };
+
+  const handleAddGasEntry = async (entryData: AddEntryFormData) => {
     try {
-      // API request format matches form data directly
-      const result = await addGasConsumption(newEntry).unwrap(); // Show success message
-      Alert.alert('Success', 'Fuel consumption record added successfully!');
+      if (isEditMode && editingEntry) {
+        // Update existing entry - include gasId
+        const updateData = { ...entryData, gasId: editingEntry.gasId };
+        const result = await updateGasConsumption(updateData).unwrap();
+        Alert.alert('Success', 'Fuel consumption record updated successfully!');
+      } else {
+        // Add new entry
+        const result = await addGasConsumption(entryData).unwrap();
+        Alert.alert('Success', 'Fuel consumption record added successfully!');
+      }
+
+      // Reset edit state
+      setIsEditMode(false);
+      setEditingEntry(null);
     } catch (error) {
-      console.error('Failed to add gas consumption:', error);
-      Alert.alert('Error', 'Failed to add fuel consumption record. Please try again.');
+      console.error('Failed to save gas consumption:', error);
+      const action = isEditMode ? 'update' : 'add';
+      Alert.alert('Error', `Failed to ${action} fuel consumption record. Please try again.`);
     }
   };
 
-  const handleDeleteEntry = (entryId: string) => {
+  const handleCloseModal = () => {
+    setShowAddModal(false);
+    setIsEditMode(false);
+    setEditingEntry(null);
+  };
+
+  const handleDeleteEntry = (entry: GasConsumptionEntry) => {
     Alert.alert(
       'Delete Entry',
       'Are you sure you want to delete this fuel consumption record? This action cannot be undone.',
@@ -87,13 +115,15 @@ const GasConsumption = () => {
           onPress: async () => {
             try {
               // Find the entry to get the required data for deletion
-              const entryToDelete = gasData.find((entry: any) => entry.gasId === entryId);
-              if (!entryToDelete) return;
+              console.log('Entry to delete:', entry);
+
+              if (!entry) return;
 
               const deleteRequest = {
-                date: entryToDelete.date,
-                kilometersDriven: entryToDelete.kilometersDriven || 0,
-                litersConsumed: entryToDelete.litersConsumed,
+                date: entry.date,
+                kilometersDriven: entry.kilometersDriven || 0,
+                litersConsumed: entry.litersConsumed,
+                gasId: entry.gasId,
               };
 
               await deleteGasConsumption(deleteRequest).unwrap();
@@ -184,8 +214,19 @@ const GasConsumption = () => {
         </View>
         <View style={styles.entryActions}>
           <TouchableOpacity
+            style={[styles.editButton, { opacity: isUpdating ? 0.5 : 1 }]}
+            onPress={() => handleEditEntry(item)}
+            disabled={isUpdating}
+          >
+            <Feather name="edit-2" size={16} color={COLORS.light.primary} />
+            <Text size={12} color="primary" style={styles.editText} autoTranslate={false}>
+              {isUpdating ? 'Updating...' : 'Edit'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.deleteButton, { opacity: isDeleting ? 0.5 : 1 }]}
-            onPress={() => handleDeleteEntry(item.gasId)}
+            onPress={() => handleDeleteEntry(item)}
             disabled={isDeleting}
           >
             <Feather name="trash-2" size={16} color={COLORS.light.danger} />
@@ -294,13 +335,17 @@ const GasConsumption = () => {
         <Feather name={isAdding ? 'loader' : 'plus'} size={24} color="white" />
       </TouchableOpacity>
 
-      {/* Add Entry Modal */}
-      <AddGasEntryModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAdd={handleAddGasEntry}
-        lastEntry={gasData.length > 0 ? gasData[0] : undefined}
-      />
+      {/* Add/Edit Entry Modal */}
+      {showAddModal && (
+        <AddGasEntryModal
+          visible={showAddModal}
+          onClose={handleCloseModal}
+          onAdd={handleAddGasEntry}
+          lastEntry={gasData.length > 0 ? gasData[0] : undefined}
+          editingEntry={editingEntry}
+          isEditMode={isEditMode}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -365,8 +410,21 @@ const styles = {
     alignItems: 'center' as const,
   },
   entryActions: {
+    flexDirection: 'row' as const,
     alignItems: 'flex-end' as const,
+    justifyContent: 'flex-end' as const,
     marginTop: 8,
+    gap: 8,
+  },
+  editButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: 'rgba(74, 144, 226, 0.1)',
+  },
+  editText: {
+    marginLeft: 4,
   },
   deleteButton: {
     flexDirection: 'row' as const,

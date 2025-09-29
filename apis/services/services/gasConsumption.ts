@@ -1,48 +1,61 @@
 import api from '@/apis';
-import { GasConsumptionRequest, GasConsumptionResponse } from '@/apis/@types/gas';
+import { GasConsumptionRequest, GasConsumptionResponse, GasConsumptionUpdateRequest } from '@/apis/@types/gas';
 import { getVehicleId } from '@/utils/getVehicleId';
 
 export const gasApi = api.injectEndpoints({
-  endpoints: (build) => {
-    // Get vehicle ID once when endpoints are being built (at runtime, not module load time)
-    const vehicleId = getVehicleId();
-    
-    return {
-      getGasConsumption: build.query<GasConsumptionResponse, void>({
-        query: () => ({
+  endpoints: (build) => ({
+    getGasConsumption: build.query<GasConsumptionResponse, void>({
+      query: () => {
+        const vehicleId = getVehicleId();
+        console.log('Vehicle ID in getGasConsumption:', vehicleId);
+        return {
           url: `/vehicles/${vehicleId}/gas/`,
-        }),
-        providesTags: ['gas'],
-      }),
+        };
+      },
+      providesTags: ['gas'],
+    }),
 
-      addGasConsumption: build.mutation<GasConsumptionResponse, GasConsumptionRequest>({
-        query: (body) => ({
+    addGasConsumption: build.mutation<GasConsumptionResponse, GasConsumptionRequest>({
+      query: (body) => {
+        const vehicleId = getVehicleId();
+        console.log('Vehicle ID in addGasConsumption:', vehicleId);
+        return {
           url: `/vehicles/${vehicleId}/gas/`,
           method: 'POST',
-          body: { ...body, user_type: 'store_user' },
-        }),
-        invalidatesTags: ['gas'],
-      }),
+          body: { ...body },
+        };
+      },
+      invalidatesTags: ['gas'],
+    }),
 
-      updateGasConsumption: build.mutation<GasConsumptionResponse, GasConsumptionRequest>({
-        query: (body) => ({
-          url: `/vehicles/${vehicleId}/gas/`,
+    updateGasConsumption: build.mutation<GasConsumptionResponse, GasConsumptionUpdateRequest>({
+      query: (body) => {
+        const vehicleId = getVehicleId();
+        console.log('Vehicle ID in updateGasConsumption:', vehicleId);
+        const { gasId, ...requestBody } = body;
+        return {
+          url: `/vehicles/${vehicleId}/gas/${gasId}`,
           method: 'PUT',
-          body: { ...body, user_type: 'store_user' },
-        }),
-        invalidatesTags: ['gas'],
-      }),
+          body: requestBody,
+        };
+      },
+      invalidatesTags: ['gas'],
+    }),
 
-      deleteGasConsumption: build.mutation<GasConsumptionResponse, GasConsumptionRequest>({
-        query: (body) => ({
-          url: `/vehicles/${vehicleId}/gas/`,
+    deleteGasConsumption: build.mutation<GasConsumptionResponse, GasConsumptionUpdateRequest>({
+      query: (body) => {
+        const vehicleId = getVehicleId();
+        console.log('Vehicle ID in deleteGasConsumption:', vehicleId);
+        const { gasId, ...requestBody } = body;
+        return {
+          url: `/vehicles/${vehicleId}/gas/${gasId}`,
           method: 'DELETE',
-          body: { ...body, user_type: 'store_user' },
-        }),
-        invalidatesTags: ['gas'],
-      }),
-    };
-  },
+          body: requestBody,
+        };
+      },
+      invalidatesTags: ['gas'],
+    }),
+  }),
 });
 
 export const {
