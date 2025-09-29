@@ -1,17 +1,9 @@
-export interface GasConsumptionResponse {
-  message: string;
-  gasRecord: {
-    efficiencyKmPerLiter: number;
-    gasId: string;
-    vehicleId: string;
-    date: string;
-    kilometersDriven: number;
-    litersConsumed: number;
-    created_at: string;
-  };
-}
+// Re-export types from the local gas consumption types file
+export type { GasConsumptionResponse, GasConsumptionEntry } from '@/app/(main)/services/gas-consumption/types';
+
 export interface GasConsumptionRequest {
   date: string;
   kilometersDriven: number;
   litersConsumed: number;
 }
+

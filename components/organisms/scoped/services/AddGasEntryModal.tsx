@@ -7,12 +7,13 @@ import { Text, Button } from '@/components/atoms';
 import ControllableInput from '@/components/molecules/common/FormInput';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { AddEntryFormData, GasConsumptionEntry } from '@/@types/gasConsumption';
+import { AddEntryFormData, GasConsumptionEntry } from '@/app/(main)/services/gas-consumption/types';
+import useGetUserInfo from '@/utils/getUserInfo';
 
 interface AddGasEntryModalProps {
   visible: boolean;
   onClose: () => void;
-  onAdd: (entry: GasConsumptionEntry) => void;
+  onAdd: (entry: AddEntryFormData) => void;
   lastEntry?: GasConsumptionEntry;
 }
 
@@ -31,10 +32,12 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
   } = useForm<AddEntryFormData>({
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
-      kilometersTotal: lastEntry ? lastEntry.kilometersTotal + 100 : 50000,
-      litersFilled: 45.0,
+      kilometersDriven: 0,
+      litersConsumed: 45.0,
     },
   });
+
+  const { vehicle } = useGetUserInfo();
 
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
@@ -43,35 +46,15 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
   const watchedValues = watch();
 
   const onSubmit = (data: AddEntryFormData) => {
-    // Calculate KM/L and distance driven
-    let kmPerLiter: number | undefined;
-    let kilometersDriven: number | undefined;
-
-    if (lastEntry) {
-      kilometersDriven = data.kilometersTotal - lastEntry.kilometersTotal;
-      if (kilometersDriven > 0) {
-        kmPerLiter = kilometersDriven / data.litersFilled;
-      }
-    }
-
-    const newEntry: GasConsumptionEntry = {
-      id: Date.now().toString(),
-      date: data.date,
-      kilometersTotal: data.kilometersTotal,
-      litersFilled: data.litersFilled,
-      kmPerLiter,
-      kilometersDriven,
-    };
-
-    onAdd(newEntry);
+    onAdd(data);
     handleClose();
   };
 
   const handleClose = () => {
     reset({
       date: new Date().toISOString().split('T')[0],
-      kilometersTotal: lastEntry ? lastEntry.kilometersTotal + 100 : 50000,
-      litersFilled: 45.0,
+      kilometersDriven: 0,
+      litersConsumed: 45.0,
     });
     onClose();
   };
@@ -115,28 +98,26 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
               />
             </View>
 
-            {/* Odometer Reading Input */}
+            {/* Distance Driven Input */}
             <View style={styles.inputGroup}>
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
-                Odometer Reading (km)
+                Distance Driven (km)
               </Text>
               {lastEntry && (
                 <Text size={12} color="grey70" style={styles.hintText} autoTranslate={false}>
-                  Last reading: {lastEntry.kilometersTotal.toLocaleString()} km
+                  Last trip: {lastEntry.kilometersDriven?.toLocaleString() || 'N/A'} km
                 </Text>
               )}
               <ControllableInput
                 control={control as any}
-                name="kilometersTotal"
-                placeholder="50000"
+                name="kilometersDriven"
+                placeholder="500"
                 keyboardType="numeric"
                 rules={{
-                  required: 'Valid odometer reading is required',
+                  required: 'Distance driven is required',
                   min: {
-                    value: lastEntry ? lastEntry.kilometersTotal + 1 : 1,
-                    message: lastEntry 
-                      ? 'Odometer reading must be higher than last entry'
-                      : 'Valid odometer reading is required',
+                    value: 1,
+                    message: 'Distance must be greater than 0',
                   },
                   setValueAs: (value: string) => parseInt(value) || 0,
                 }}
@@ -146,11 +127,11 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
             {/* Fuel Amount Input */}
             <View style={styles.inputGroup}>
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
-                Fuel Filled (Liters)
+                Fuel Consumed (Liters)
               </Text>
               <ControllableInput
                 control={control as any}
-                name="litersFilled"
+                name="litersConsumed"
                 placeholder="45.0"
                 keyboardType="numeric"
                 rules={{
@@ -165,35 +146,29 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
             </View>
 
             {/* Preview Calculation */}
-            {lastEntry &&
-              watchedValues.kilometersTotal > lastEntry.kilometersTotal &&
-              watchedValues.litersFilled > 0 && (
-                <View style={styles.previewContainer}>
-                  <Text size={14} weight={600} color="grey70" autoTranslate={false}>
-                    Preview Calculation:
+            {watchedValues.kilometersDriven > 0 && watchedValues.litersConsumed > 0 && (
+              <View style={styles.previewContainer}>
+                <Text size={14} weight={600} color="grey70" autoTranslate={false}>
+                  Preview Calculation:
+                </Text>
+                <View style={styles.previewRow}>
+                  <Text size={12} color="grey70" autoTranslate={false}>
+                    Distance driven:
                   </Text>
-                  <View style={styles.previewRow}>
-                    <Text size={12} color="grey70" autoTranslate={false}>
-                      Distance driven:
-                    </Text>
-                    <Text size={12} weight={600} autoTranslate={false}>
-                      {(watchedValues.kilometersTotal - lastEntry.kilometersTotal).toLocaleString()} km
-                    </Text>
-                  </View>
-                  <View style={styles.previewRow}>
-                    <Text size={12} color="grey70" autoTranslate={false}>
-                      Fuel efficiency:
-                    </Text>
-                    <Text size={12} weight={600} color="primary" autoTranslate={false}>
-                      {(
-                        (watchedValues.kilometersTotal - lastEntry.kilometersTotal) /
-                        watchedValues.litersFilled
-                      ).toFixed(1)}{' '}
-                      KM/L
-                    </Text>
-                  </View>
+                  <Text size={12} weight={600} autoTranslate={false}>
+                    {watchedValues.kilometersDriven.toLocaleString()} km
+                  </Text>
                 </View>
-              )}
+                <View style={styles.previewRow}>
+                  <Text size={12} color="grey70" autoTranslate={false}>
+                    Estimated efficiency:
+                  </Text>
+                  <Text size={12} weight={600} color="primary" autoTranslate={false}>
+                    {(watchedValues.kilometersDriven / watchedValues.litersConsumed).toFixed(1)} KM/L
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
 

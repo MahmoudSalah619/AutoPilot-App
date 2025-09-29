@@ -7,95 +7,41 @@ import { Text, Badge } from '@/components/atoms';
 import CardWrapper from '@/components/wrappers/Card';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { GasConsumptionEntry, GasConsumptionStats } from '@/@types/gasConsumption';
+import {
+  GasConsumptionEntry,
+  GasConsumptionStats,
+  AddEntryFormData,
+  GasConsumptionResponse,
+} from './types';
 import AddGasEntryModal from '@/components/organisms/scoped/services/AddGasEntryModal';
-
-// Sample data for demonstration
-const sampleGasData: GasConsumptionEntry[] = [
-  {
-    id: '1',
-    date: '2025-09-20',
-    kilometersTotal: 50000,
-    litersFilled: 45.2,
-    kmPerLiter: 12.5,
-    kilometersDriven: 565,
-  },
-  {
-    id: '2',
-    date: '2025-09-10',
-    kilometersTotal: 49435,
-    litersFilled: 42.8,
-    kmPerLiter: 13.1,
-    kilometersDriven: 561,
-  },
-  {
-    id: '3',
-    date: '2025-08-28',
-    kilometersTotal: 48874,
-    litersFilled: 41.5,
-    kmPerLiter: 11.8,
-    kilometersDriven: 490,
-  },
-  {
-    id: '4',
-    date: '2025-08-15',
-    kilometersTotal: 48384,
-    litersFilled: 39.7,
-    kmPerLiter: 13.8,
-    kilometersDriven: 548,
-  },
-  {
-    id: '5',
-    date: '2025-08-01',
-    kilometersTotal: 47836,
-    litersFilled: 44.1,
-    kmPerLiter: 12.2,
-    kilometersDriven: 538,
-  },
-];
+import {
+  useAddGasConsumptionMutation,
+  useDeleteGasConsumptionMutation,
+  useGetGasConsumptionQuery,
+  useUpdateGasConsumptionMutation,
+} from '@/apis/services/services/gasConsumption';
 
 const GasConsumption = () => {
-  const [gasData, setGasData] = useState<GasConsumptionEntry[]>(sampleGasData);
+  const { data: apiData, isLoading: isLoadingData, error } = useGetGasConsumptionQuery();
+  const [addGasConsumption, { isLoading: isAdding }] = useAddGasConsumptionMutation();
+  const [updateGasConsumption, { isLoading: isUpdating }] = useUpdateGasConsumptionMutation();
+  const [deleteGasConsumption, { isLoading: isDeleting }] = useDeleteGasConsumptionMutation();
+
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const textColor = useThemeColor({}, 'text');
+  // Use API data directly
+  const gasData = apiData?.data || [];
   const mutedColor = useThemeColor({}, 'grey70');
   const backgroundColor = useThemeColor({}, 'background');
-  const primaryColor = useThemeColor({}, 'primary');
 
-  // Calculate statistics
-  const calculateStats = (): GasConsumptionStats => {
-    if (gasData.length === 0) {
-      return {
-        averageKmPerLiter: 0,
-        totalKilometersDriven: 0,
-        totalLitersConsumed: 0,
-        bestEfficiency: 0,
-        worstEfficiency: 0,
-      };
-    }
-
-    const validEntries = gasData.filter((entry) => entry.kmPerLiter && entry.kmPerLiter > 0);
-    const totalKilometersDriven = gasData.reduce(
-      (sum, entry) => sum + (entry.kilometersDriven || 0),
-      0
-    );
-    const totalLitersConsumed = gasData.reduce((sum, entry) => sum + entry.litersFilled, 0);
-    const kmPerLiterValues = validEntries.map((entry) => entry.kmPerLiter!);
-
-    return {
-      averageKmPerLiter:
-        kmPerLiterValues.length > 0
-          ? kmPerLiterValues.reduce((sum, val) => sum + val, 0) / kmPerLiterValues.length
-          : 0,
-      totalKilometersDriven,
-      totalLitersConsumed,
-      bestEfficiency: kmPerLiterValues.length > 0 ? Math.max(...kmPerLiterValues) : 0,
-      worstEfficiency: kmPerLiterValues.length > 0 ? Math.min(...kmPerLiterValues) : 0,
-    };
+  // Get statistics from API response (backend-calculated)
+  const stats = apiData?.statistics || {
+    averageKmPerLiter: 0,
+    totalKilometersDriven: 0,
+    totalLitersConsumed: 0,
+    bestEfficiency: 0,
+    worstEfficiency: 0,
   };
-
-  const stats = calculateStats();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -115,8 +61,15 @@ const GasConsumption = () => {
     setShowAddModal(true);
   };
 
-  const handleAddGasEntry = (newEntry: GasConsumptionEntry) => {
-    setGasData((prevData) => [newEntry, ...prevData]);
+  const handleAddGasEntry = async (newEntry: AddEntryFormData) => {
+    try {
+      // API request format matches form data directly
+      const result = await addGasConsumption(newEntry).unwrap(); // Show success message
+      Alert.alert('Success', 'Fuel consumption record added successfully!');
+    } catch (error) {
+      console.error('Failed to add gas consumption:', error);
+      Alert.alert('Error', 'Failed to add fuel consumption record. Please try again.');
+    }
   };
 
   const handleDeleteEntry = (entryId: string) => {
@@ -131,26 +84,43 @@ const GasConsumption = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            setGasData((prevData) => prevData.filter((entry) => entry.id !== entryId));
+          onPress: async () => {
+            try {
+              // Find the entry to get the required data for deletion
+              const entryToDelete = gasData.find((entry: any) => entry.gasId === entryId);
+              if (!entryToDelete) return;
+
+              const deleteRequest = {
+                date: entryToDelete.date,
+                kilometersDriven: entryToDelete.kilometersDriven || 0,
+                litersConsumed: entryToDelete.litersConsumed,
+              };
+
+              await deleteGasConsumption(deleteRequest).unwrap();
+
+              Alert.alert('Success', 'Fuel consumption record deleted successfully!');
+            } catch (error) {
+              console.error('Failed to delete gas consumption:', error);
+              Alert.alert('Error', 'Failed to delete fuel consumption record. Please try again.');
+            }
           },
         },
       ]
     );
   };
 
-  const renderGasEntry = ({ item }: { item: GasConsumptionEntry }) => (
+  const renderGasEntry = ({ item }: { item: any }) => (
     <CardWrapper customStyles={styles.entryCard}>
       <View style={styles.entryContainer}>
         <View style={styles.entryHeader}>
           <Text size={16} weight={600} autoTranslate={false}>
             {formatDate(item.date)}
           </Text>
-          {item.kmPerLiter && (
+          {item.efficiencyKmPerLiter && (
             <View
               style={{
-                backgroundColor: getEfficiencyColor(item.kmPerLiter),
-                borderColor: getEfficiencyColor(item.kmPerLiter),
+                backgroundColor: getEfficiencyColor(item.efficiencyKmPerLiter),
+                borderColor: getEfficiencyColor(item.efficiencyKmPerLiter),
                 paddingHorizontal: 8,
                 paddingVertical: 4,
                 borderRadius: 12,
@@ -158,34 +128,14 @@ const GasConsumption = () => {
               }}
             >
               <Text size={12} weight={600} color="white" autoTranslate={false}>
-                {item.kmPerLiter.toFixed(1)} KM/L
+                {item.efficiencyKmPerLiter.toFixed(1)} KM/L
               </Text>
             </View>
           )}
         </View>
 
-        {/* <View style={styles.entryActions}>
-          <TouchableOpacity 
-            style={styles.deleteButton}
-            onPress={() => handleDeleteEntry(item.id)}
-          >
-            <Feather name="trash-2" size={16} color={COLORS.light.danger} />
-            <Text size={12} color="danger" style={styles.deleteText} autoTranslate={false}>
-              Delete
-            </Text>
-          </TouchableOpacity>
-        </View> */}
-
         <View style={styles.entryDetails}>
           <View style={styles.detailRow}>
-            <View style={styles.detailItem}>
-              <Text size={12} color="grey70" autoTranslate={false}>
-                Odometer
-              </Text>
-              <Text size={14} weight={600} autoTranslate={false}>
-                {item.kilometersTotal.toLocaleString()} km
-              </Text>
-            </View>
             <View style={styles.detailItem}>
               <Text size={12} color="grey70" autoTranslate={false}>
                 Distance Driven
@@ -194,17 +144,17 @@ const GasConsumption = () => {
                 {item.kilometersDriven?.toLocaleString() || 'N/A'} km
               </Text>
             </View>
+            <View style={styles.detailItem}>
+              <Text size={12} color="grey70" autoTranslate={false}>
+                Fuel Consumed
+              </Text>
+              <Text size={14} weight={600} autoTranslate={false}>
+                {item.litersConsumed.toFixed(1)} L
+              </Text>
+            </View>
           </View>
 
           <View style={styles.detailRow}>
-            <View style={styles.detailItem}>
-              <Text size={12} color="grey70" autoTranslate={false}>
-                Fuel Filled
-              </Text>
-              <Text size={14} weight={600} autoTranslate={false}>
-                {item.litersFilled.toFixed(1)} L
-              </Text>
-            </View>
             <View style={styles.detailItem}>
               <Text size={12} color="grey70" autoTranslate={false}>
                 Efficiency
@@ -213,14 +163,36 @@ const GasConsumption = () => {
                 size={14}
                 weight={600}
                 style={{
-                  color: item.kmPerLiter ? getEfficiencyColor(item.kmPerLiter) : mutedColor,
+                  color: item.efficiencyKmPerLiter
+                    ? getEfficiencyColor(item.efficiencyKmPerLiter)
+                    : mutedColor,
                 }}
                 autoTranslate={false}
               >
-                {item.kmPerLiter ? `${item.kmPerLiter.toFixed(1)} KM/L` : 'N/A'}
+                {item.efficiencyKmPerLiter ? `${item.efficiencyKmPerLiter.toFixed(1)} KM/L` : 'N/A'}
+              </Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Text size={12} color="grey70" autoTranslate={false}>
+                Date Added
+              </Text>
+              <Text size={14} weight={600} autoTranslate={false}>
+                {new Date(item.created_at).toLocaleDateString()}
               </Text>
             </View>
           </View>
+        </View>
+        <View style={styles.entryActions}>
+          <TouchableOpacity
+            style={[styles.deleteButton, { opacity: isDeleting ? 0.5 : 1 }]}
+            onPress={() => handleDeleteEntry(item.gasId)}
+            disabled={isDeleting}
+          >
+            <Feather name="trash-2" size={16} color={COLORS.light.danger} />
+            <Text size={12} color="danger" style={styles.deleteText} autoTranslate={false}>
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </CardWrapper>
@@ -294,10 +266,16 @@ const GasConsumption = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       {/* Content */}
-      {gasData.length > 0 ? (
+      {isLoadingData ? (
+        <View style={styles.loadingContainer}>
+          <Text size={16} color="grey70" autoTranslate={false}>
+            Loading fuel consumption data...
+          </Text>
+        </View>
+      ) : gasData.length > 0 ? (
         <FlatList
           data={gasData}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.gasId}
           renderItem={renderGasEntry}
           ListHeaderComponent={renderStatsCard}
           showsVerticalScrollIndicator={false}
@@ -308,8 +286,12 @@ const GasConsumption = () => {
       )}
 
       {/* Floating Add Button */}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddEntry}>
-        <Feather name="plus" size={24} color="white" />
+      <TouchableOpacity
+        style={[styles.addButton, { opacity: isAdding ? 0.7 : 1 }]}
+        onPress={handleAddEntry}
+        disabled={isAdding}
+      >
+        <Feather name={isAdding ? 'loader' : 'plus'} size={24} color="white" />
       </TouchableOpacity>
 
       {/* Add Entry Modal */}
@@ -440,6 +422,12 @@ const styles = {
   emptyStateSubtitle: {
     textAlign: 'center' as const,
     lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    paddingHorizontal: 20,
   },
 };
 

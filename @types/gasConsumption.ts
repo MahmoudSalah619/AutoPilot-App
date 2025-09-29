@@ -1,22 +1,2 @@
-export interface GasConsumptionEntry {
-  id: string;
-  date: string;
-  kilometersTotal: number; // Total odometer reading
-  litersFilled: number; // Liters consumed/filled
-  kmPerLiter?: number; // Calculated efficiency (optional, will be calculated)
-  kilometersDriven?: number; // Distance driven since last entry
-}
-
-export interface GasConsumptionStats {
-  averageKmPerLiter: number;
-  totalKilometersDriven: number;
-  totalLitersConsumed: number;
-  bestEfficiency: number;
-  worstEfficiency: number;
-}
-
-export interface AddEntryFormData {
-  date: string;
-  kilometersTotal: number;
-  litersFilled: number;
-}
+// Gas consumption types have been moved to app/(main)/services/gas-consumption/types.ts
+// This file is kept for backward compatibility if other files still reference it
