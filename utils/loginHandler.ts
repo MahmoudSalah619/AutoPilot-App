@@ -10,16 +10,24 @@ export default function loginHandler({
   rememberMe = false,
   userInfo = {} as User,
 } = {}) {
-  if (rememberMe) {
-    // we here check if the user got token and pressed remember me
-    if (token) AsyncStorage.setItem('token', token);
-    if (refreshToken) AsyncStorage.setItem('refreshToken', refreshToken);
-    AsyncStorage.setItem('remember_me', `${rememberMe}`);
-    AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
-  } else {
-    AsyncStorage.clear();
-  }
+  // Always set the token and user info for this session
   store.dispatch(api.util.resetApiState());
   store.dispatch(login(token));
   store.dispatch(setUserInfo(userInfo));
+
+  // Handle persistent storage based on remember me preference
+  if (rememberMe) {
+    // Store credentials persistently when user chooses to be remembered
+    if (token) AsyncStorage.setItem('token', token);
+    if (refreshToken) AsyncStorage.setItem('refreshToken', refreshToken);
+    AsyncStorage.setItem('remember_me', 'true');
+    AsyncStorage.setItem('userInfo', JSON.stringify(userInfo));
+  } else {
+    // Don't store credentials persistently, but keep current session
+    // Only remove remember_me flag and persistent data, not current session
+    AsyncStorage.removeItem('remember_me');
+    AsyncStorage.removeItem('token');
+    AsyncStorage.removeItem('refreshToken');
+    AsyncStorage.removeItem('userInfo');
+  }
 }

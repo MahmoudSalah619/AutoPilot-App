@@ -14,9 +14,6 @@ export default function AddVehicle() {
   const route = useRoute();
   const params = route?.params?.res;
   const token = JSON.parse(params).access_token;
-  console.log(token, 'token');
-  const ttt =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0MmEwYzYxZC02NDdlLTRiZWQtOTE5Ni01YjZlNGU5NTRkZTEiLCJlbWFpbCI6InVzNDQ1ZXJAZXhhbXBsZS5jb20iLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzU5MTY4Njc4LCJleHAiOjE3NTkyNTUwNzh9.GJWJM1-RhP5J6D1-BqyyKoEQ7skLbhHSIyf9MmZBPZM';
 
   const [addVehicle] = useAddVehicleMutation();
 
