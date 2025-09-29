@@ -87,6 +87,17 @@ export default function Calendar() {
       marked: true,
       dotColor: color,
       selectedColor: color,
+      // Add light background color shadow
+      customStyles: {
+        container: {
+          backgroundColor: `${color}15`, // Very light version of the status color
+          borderRadius: 16,
+        },
+        text: {
+          color: '#2d4150',
+          fontWeight: '400',
+        },
+      },
     };
     return acc;
   }, {} as any);
@@ -96,6 +107,17 @@ export default function Calendar() {
       ...markedDates[selected],
       selected: true,
       selectedColor: markedDates[selected]?.dotColor || '#4682c2',
+      // Remove the light background when selected
+      customStyles: {
+        container: {
+          backgroundColor: markedDates[selected]?.dotColor || '#4682c2',
+          borderRadius: 16,
+        },
+        text: {
+          color: '#ffffff',
+          fontWeight: '500',
+        },
+      },
     };
   }
   return (
@@ -108,6 +130,30 @@ export default function Calendar() {
           Your schedule and appointments
         </Text>
       </View>
+      {/* Color Legend */}
+      <View style={styles.legendContainer}>
+        <View style={styles.legendItems}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#999999' }]} />
+            <Text style={styles.legendText} size={12}>
+              Upcoming
+            </Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#4682c2' }]} />
+            <Text style={styles.legendText} size={12}>
+              Completed
+            </Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: '#FF193B' }]} />
+            <Text style={styles.legendText} size={12}>
+              Overdue
+            </Text>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.calendarContainer}>
         <RNCalendar
           style={styles.calendar}
@@ -116,6 +162,7 @@ export default function Calendar() {
             else setSelected(day.dateString);
           }}
           markedDates={markedDates}
+          markingType={'custom'}
           theme={{
             calendarBackground: 'transparent',
             textSectionTitleColor: '#b6c1cd',
@@ -194,13 +241,7 @@ export default function Calendar() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
   header: {
-    paddingBottom: 4,
     alignItems: 'center',
   },
   title: {
@@ -279,5 +320,30 @@ const styles = StyleSheet.create({
   noEventsText: {
     opacity: 0.6,
     fontStyle: 'italic',
+  },
+  legendContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    marginHorizontal: 10,
+  },
+  legendItems: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  legendText: {
+    opacity: 0.8,
   },
 });

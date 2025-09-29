@@ -22,7 +22,10 @@ export default function ControllableInput({
     <Controller
       control={control}
       name={name}
-      rules={{ required: required, ...rules }}
+      rules={{
+        required: { value: required || false, message: 'This field is required' },
+        ...rules,
+      }}
       render={({ field: { onChange, onBlur, value }, fieldState }) => (
         <Input
           onChangeText={onChange}
