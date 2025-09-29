@@ -88,7 +88,7 @@ const Login = () => {
         <Button
           title={isLoading ? 'Signing in...' : 'Login'}
           onPress={handleSubmit(onSubmit)}
-          disabled={isLoading}
+          // disabled={isLoading}
         />
       </View>
       <Biometric />

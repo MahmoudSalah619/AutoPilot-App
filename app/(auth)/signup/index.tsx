@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import styles from './styles';
 import { useForm } from 'react-hook-form';
-// import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { FormInput } from '@/components/molecules/common';
 import { Button } from '@/components/atoms';
 import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
 import { useSignupMutation } from '@/apis/services/auth';
 
 const SignUp = () => {
-  // const router = useRouter();
+  const router = useRouter();
   const [signup] = useSignupMutation();
   const {
     control,
@@ -26,7 +26,7 @@ const SignUp = () => {
       .unwrap()
       .then((res) => {
         console.log(res, 'signup res');
-        // router.push('/(auth)/addVehicle');
+        router.push({ pathname: '/(auth)/addVehicle', params: { res: JSON.stringify(res) } });
       })
       .catch((error) => {
         console.error('Signup failed:', error.data.message);

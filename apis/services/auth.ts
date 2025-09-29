@@ -1,6 +1,6 @@
 import api from '@/apis';
 import { AuthTokenResponse, LoginBody, User } from '../@types/auth';
-import { SignUpFormData } from '@/app/(auth)/signup/types';
+// import { SignUpFormData } from '@/app/(auth)/signup/types';
 import { VehicleFormData } from '@/app/(auth)/addVehicle/types';
 
 export const authApi = api.injectEndpoints({
@@ -26,19 +26,24 @@ export const authApi = api.injectEndpoints({
       invalidatesTags: ['User'],
     }),
 
-    signup: build.mutation<AuthTokenResponse, SignUpFormData>({
+    signup: build.mutation<AuthTokenResponse, AuthTokenResponse>({
       query: (body) => ({
         url: '/auth/signup',
         method: 'POST',
         body,
       }),
     }),
-    addVehicle: build.mutation<AuthTokenResponse, VehicleFormData>({
-      query: (body) => ({
-        url: '/vehicles',
-        method: 'POST',
-        body,
-      }),
+    addVehicle: build.mutation<AuthTokenResponse, string>({
+      query: ({ data, token }) => {
+        return {
+          url: '/vehicles',
+          method: 'POST',
+          body: data,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+      },
     }),
 
     logout: build.mutation({

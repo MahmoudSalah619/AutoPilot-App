@@ -7,9 +7,17 @@ import { useForm } from 'react-hook-form';
 import { View } from 'react-native';
 import styles from './styles';
 import { useAddVehicleMutation } from '@/apis/services/auth';
+import { useRoute } from '@react-navigation/native';
 
 export default function AddVehicle() {
   const router = useRouter();
+  const route = useRoute();
+  const params = route?.params?.res;
+  const token = JSON.parse(params).access_token;
+  console.log(token, 'token');
+  const ttt =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI0MmEwYzYxZC02NDdlLTRiZWQtOTE5Ni01YjZlNGU5NTRkZTEiLCJlbWFpbCI6InVzNDQ1ZXJAZXhhbXBsZS5jb20iLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNzU5MTY4Njc4LCJleHAiOjE3NTkyNTUwNzh9.GJWJM1-RhP5J6D1-BqyyKoEQ7skLbhHSIyf9MmZBPZM';
+
   const [addVehicle] = useAddVehicleMutation();
 
   const {
@@ -18,15 +26,15 @@ export default function AddVehicle() {
     handleSubmit,
   } = useForm({});
   const onSubmit = (data: any) => {
-    console.log(data);
-    addVehicle(data)
+    console.log(data, 'daataaaaaaaaaaaaaaaaaaaaa');
+    addVehicle({ data, token })
       .unwrap()
       .then((res) => {
         router.replace('/(main)/(tabs)/Home');
-        console.log(res);
+        console.log(res, 'add vehicle response');
       })
       .catch((err) => {
-        console.error(err);
+        console.error(err, 'add vehicle error');
       });
   };
 
