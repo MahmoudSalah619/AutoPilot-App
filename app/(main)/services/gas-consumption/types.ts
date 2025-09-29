@@ -18,8 +18,8 @@ export interface GasConsumptionStats {
 
 export interface AddEntryFormData {
   date: string;
-  kilometersDriven: number;
-  litersConsumed: number;
+  kilometersDriven: number | string;
+  litersConsumed: number | string;
 }
 
 export interface GasConsumptionResponse {

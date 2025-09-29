@@ -38,9 +38,9 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
     formState: { errors },
   } = useForm<AddEntryFormData>({
     defaultValues: {
-      date: (isEditMode && editingEntry) ? editingEntry.date : new Date().toISOString().split('T')[0],
-      kilometersDriven: (isEditMode && editingEntry) ? editingEntry.kilometersDriven : 0,
-      litersConsumed: (isEditMode && editingEntry) ? editingEntry.litersConsumed : 45.0,
+      date: isEditMode && editingEntry ? editingEntry.date : new Date().toISOString().split('T')[0],
+      kilometersDriven: isEditMode && editingEntry ? editingEntry.kilometersDriven + '' : '0',
+      litersConsumed: isEditMode && editingEntry ? editingEntry.litersConsumed + '' : '45.0',
     },
   });
 
@@ -59,8 +59,6 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
     reset({});
     onClose();
   };
-
-
 
   return (
     <Modal
@@ -153,7 +151,7 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
             </View>
 
             {/* Preview Calculation */}
-            {watchedValues.kilometersDriven > 0 && watchedValues.litersConsumed > 0 && (
+            {+watchedValues.kilometersDriven > 0 && +watchedValues.litersConsumed > 0 && (
               <View style={styles.previewContainer}>
                 <Text size={14} weight={600} color="grey70" autoTranslate={false}>
                   Preview Calculation:
@@ -171,7 +169,7 @@ const AddGasEntryModal: React.FC<AddGasEntryModalProps> = ({
                     Estimated efficiency:
                   </Text>
                   <Text size={12} weight={600} color="primary" autoTranslate={false}>
-                    {(watchedValues.kilometersDriven / watchedValues.litersConsumed).toFixed(1)}{' '}
+                    {(+watchedValues.kilometersDriven / +watchedValues.litersConsumed).toFixed(1)}{' '}
                     KM/L
                   </Text>
                 </View>
