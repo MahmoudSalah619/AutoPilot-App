@@ -3,6 +3,7 @@ import { View, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Text, Badge } from '@/components/atoms';
 import CardWrapper from '@/components/wrappers/Card';
 import { COLORS } from '@/constants/Colors';
@@ -20,14 +21,22 @@ import {
   useGetGasConsumptionQuery,
   useUpdateGasConsumptionMutation,
 } from '@/apis/services/services/gasConsumption';
+import styles from './styles/styles';
+import FilterGasModal from '@/components/organisms/scoped/services/FilterGasModal';
 
 const GasConsumption = () => {
-  const { data: apiData, isLoading: isLoadingData, error } = useGetGasConsumptionQuery();
+  const [currentFilter, setCurrentFilter] = useState<{ startDate?: string; endDate?: string }>({});
+  const {
+    data: apiData,
+    isLoading: isLoadingData,
+    error,
+  } = useGetGasConsumptionQuery(Object.keys(currentFilter).length > 0 ? currentFilter : undefined);
   const [addGasConsumption, { isLoading: isAdding }] = useAddGasConsumptionMutation();
   const [updateGasConsumption, { isLoading: isUpdating }] = useUpdateGasConsumptionMutation();
   const [deleteGasConsumption, { isLoading: isDeleting }] = useDeleteGasConsumptionMutation();
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [editingEntry, setEditingEntry] = useState<GasConsumptionEntry | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -73,14 +82,27 @@ const GasConsumption = () => {
 
   const handleAddGasEntry = async (entryData: AddEntryFormData) => {
     try {
+      // Convert form data to proper types
+      const formattedData = {
+        date: entryData.date,
+        kilometersDriven:
+          typeof entryData.kilometersDriven === 'string'
+            ? parseInt(entryData.kilometersDriven)
+            : entryData.kilometersDriven,
+        litersConsumed:
+          typeof entryData.litersConsumed === 'string'
+            ? parseFloat(entryData.litersConsumed)
+            : entryData.litersConsumed,
+      };
+
       if (isEditMode && editingEntry) {
         // Update existing entry - include gasId
-        const updateData = { ...entryData, gasId: editingEntry.gasId };
+        const updateData = { ...formattedData, gasId: editingEntry.gasId };
         const result = await updateGasConsumption(updateData).unwrap();
         Alert.alert('Success', 'Fuel consumption record updated successfully!');
       } else {
         // Add new entry
-        const result = await addGasConsumption(entryData).unwrap();
+        const result = await addGasConsumption(formattedData).unwrap();
         Alert.alert('Success', 'Fuel consumption record added successfully!');
       }
 
@@ -98,6 +120,37 @@ const GasConsumption = () => {
     setShowAddModal(false);
     setIsEditMode(false);
     setEditingEntry(null);
+  };
+
+  const handleApplyFilter = (filters: { startDate?: string; endDate?: string }) => {
+    const newFilter: { startDate?: string; endDate?: string } = {};
+
+    if (filters.startDate && filters.startDate.trim()) {
+      newFilter.startDate = filters.startDate;
+    }
+    if (filters.endDate && filters.endDate.trim()) {
+      newFilter.endDate = filters.endDate;
+    }
+
+    setCurrentFilter(newFilter);
+    console.log('Applied filters:', newFilter);
+  };
+
+  const handleResetFilter = () => {
+    setCurrentFilter({});
+    console.log('Reset filters');
+  };
+
+  const getFilterDisplayText = () => {
+    const { startDate, endDate } = currentFilter;
+    if (startDate && endDate) {
+      return `${startDate} to ${endDate}`;
+    } else if (startDate) {
+      return `From ${startDate}`;
+    } else if (endDate) {
+      return `Until ${endDate}`;
+    }
+    return null;
   };
 
   const handleDeleteEntry = (entry: GasConsumptionEntry) => {
@@ -306,11 +359,44 @@ const GasConsumption = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text size={28} weight={800} style={styles.pageTitle}>
+          Fuel Consumption
+        </Text>
+        <Text size={16} color="grey70" style={styles.pageSubtitle}>
+          Track and analyze your vehicle's fuel efficiency
+        </Text>
+      </View>
+
+      {/* Filter Button */}
+      <TouchableOpacity 
+        style={styles.filterModalButton}
+        onPress={() => setIsFilterModalVisible(true)}
+      >
+        <MaterialIcons name="filter-list" size={20} color={COLORS.light.primary} />
+        <Text size={14} weight={500} style={{ color: COLORS.light.primary }}>Filters</Text>
+        {(currentFilter.startDate || currentFilter.endDate) && (
+          <View style={styles.filterBadge} />
+        )}
+      </TouchableOpacity>
+
+      {/* Filter Display Text */}
+      {getFilterDisplayText() && (
+        <View style={{ marginBottom: 16 }}>
+          <Text size={12} color="grey70" autoTranslate={false}>
+            Filtered: {getFilterDisplayText()}
+          </Text>
+        </View>
+      )}
+
       {/* Content */}
       {isLoadingData ? (
         <View style={styles.loadingContainer}>
           <Text size={16} color="grey70" autoTranslate={false}>
-            Loading fuel consumption data...
+            {Object.keys(currentFilter).length > 0
+              ? 'Filtering fuel consumption data...'
+              : 'Loading fuel consumption data...'}
           </Text>
         </View>
       ) : gasData.length > 0 ? (
@@ -346,147 +432,18 @@ const GasConsumption = () => {
           isEditMode={isEditMode}
         />
       )}
+
+      {/* Filter Modal */}
+      {isFilterModalVisible && (
+        <FilterGasModal
+          isVisible={isFilterModalVisible}
+          setVisible={setIsFilterModalVisible}
+          filters={currentFilter}
+          onApplyFilters={handleApplyFilter}
+        />
+      )}
     </SafeAreaView>
   );
-};
-
-const styles = {
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  header: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    paddingVertical: 16,
-    paddingBottom: 8,
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center' as const,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  listContainer: {
-    paddingBottom: 100, // Space for floating button
-  },
-  statsCard: {
-    marginBottom: 16,
-    padding: 20,
-  },
-  statsContainer: {
-    alignItems: 'center' as const,
-  },
-  statsTitle: {
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
-    justifyContent: 'space-between' as const,
-    width: '100%' as const,
-  },
-  statItem: {
-    alignItems: 'center' as const,
-    width: '48%' as const,
-    marginBottom: 16,
-  },
-  entryCard: {
-    marginBottom: 12,
-    padding: 16,
-  },
-  entryContainer: {
-    gap: 12,
-  },
-  entryHeader: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-  },
-  entryActions: {
-    flexDirection: 'row' as const,
-    alignItems: 'flex-end' as const,
-    justifyContent: 'flex-end' as const,
-    marginTop: 8,
-    gap: 8,
-  },
-  editButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(74, 144, 226, 0.1)',
-  },
-  editText: {
-    marginLeft: 4,
-  },
-  deleteButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-  },
-  deleteText: {
-    marginLeft: 4,
-  },
-  entryDetails: {
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-  },
-  detailItem: {
-    flex: 1,
-    alignItems: 'flex-start' as const,
-  },
-  addButton: {
-    position: 'absolute' as const,
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.light.primary,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-  },
-  emptyStateContainer: {
-    flex: 1,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    paddingHorizontal: 20,
-  },
-  emptyStateTitle: {
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: 'center' as const,
-  },
-  emptyStateSubtitle: {
-    textAlign: 'center' as const,
-    lineHeight: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    paddingHorizontal: 20,
-  },
 };
 
 export default GasConsumption;

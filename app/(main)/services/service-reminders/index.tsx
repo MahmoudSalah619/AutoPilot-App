@@ -9,6 +9,9 @@ import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ServiceReminderEntry, ServiceReminderStats } from '@/@types/serviceReminder';
 import AddServiceReminderModal from '@/components/organisms/scoped/services/AddServiceReminderModal';
+import { MaterialIcons } from '@expo/vector-icons';
+import styles from './styles/styles';
+import FilterServiceReminderModal from '@/components/organisms/scoped/services/FilterServiceReminderModal';
 
 // Sample data for demonstration
 const sampleReminderData: ServiceReminderEntry[] = [
@@ -57,6 +60,10 @@ const sampleReminderData: ServiceReminderEntry[] = [
 const ServiceReminders = () => {
   const [reminderData, setReminderData] = useState<ServiceReminderEntry[]>(sampleReminderData);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<ServiceReminderEntry | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [filters, setFilters] = useState<{ startDate?: string; endDate?: string }>({});
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'grey70');
@@ -135,6 +142,12 @@ const ServiceReminders = () => {
 
   const handleAddServiceReminder = (newReminder: ServiceReminderEntry) => {
     setReminderData((prevData) => [newReminder, ...prevData]);
+  };
+
+  const handleApplyFilters = (newFilters: { startDate?: string; endDate?: string }) => {
+    setFilters(newFilters);
+    // TODO: Pass filters to API when backend integration is ready
+    console.log('Applied filters:', newFilters);
   };
 
   const handleDeleteReminder = (reminderId: string) => {
@@ -328,6 +341,30 @@ const ServiceReminders = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text size={28} weight={800} style={styles.pageTitle}>
+          Service Reminders
+        </Text>
+        <Text size={16} color="grey70" style={styles.pageSubtitle}>
+          Manage and track your vehicle service schedule
+        </Text>
+      </View>
+
+      {/* Filter Button */}
+      <TouchableOpacity 
+        style={styles.filterModalButton}
+        onPress={() => setIsFilterModalVisible(true)}
+      >
+        <MaterialIcons name="filter-list" size={20} color={COLORS.light.primary} />
+        <Text size={14} weight={500} style={{ color: COLORS.light.primary }}>Filters</Text>
+        {(filters.startDate || filters.endDate) && (
+          <View style={styles.filterBadge}>
+            <Text size={10} weight={600} color="white">•</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
       {/* Content */}
       {reminderData.length > 0 ? (
         <FlatList
@@ -353,128 +390,16 @@ const ServiceReminders = () => {
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddServiceReminder}
       />
+
+      {/* Filter Modal */}
+      <FilterServiceReminderModal
+        isVisible={isFilterModalVisible}
+        setVisible={setIsFilterModalVisible}
+        filters={filters}
+        onApplyFilters={handleApplyFilters}
+      />
     </SafeAreaView>
   );
-};
-
-const styles = {
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  listContainer: {
-    paddingBottom: 100, // Space for floating button
-  },
-  statsCard: {
-    marginBottom: 16,
-    padding: 20,
-  },
-  statsContainer: {
-    alignItems: 'center' as const,
-  },
-  statsTitle: {
-    marginBottom: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
-    justifyContent: 'space-between' as const,
-    width: '100%' as const,
-  },
-  statItem: {
-    alignItems: 'center' as const,
-    width: '48%' as const,
-    marginBottom: 16,
-  },
-  entryCard: {
-    marginBottom: 12,
-    padding: 16,
-  },
-  entryContainer: {
-    gap: 12,
-  },
-  entryHeader: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
-  },
-  entryDetails: {
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-  },
-  detailItem: {
-    flex: 1,
-    alignItems: 'flex-start' as const,
-  },
-  notesSection: {
-    marginTop: 8,
-  },
-  notesText: {
-    marginTop: 4,
-    lineHeight: 20,
-  },
-  entryActions: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    marginTop: 8,
-  },
-  actionButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(69, 183, 209, 0.1)',
-  },
-  actionText: {
-    marginLeft: 4,
-  },
-  deleteButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-  },
-  deleteText: {
-    marginLeft: 4,
-  },
-  addButton: {
-    position: 'absolute' as const,
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.light.primary,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-  },
-  emptyStateContainer: {
-    flex: 1,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    paddingHorizontal: 20,
-  },
-  emptyStateTitle: {
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: 'center' as const,
-  },
-  emptyStateSubtitle: {
-    textAlign: 'center' as const,
-    lineHeight: 20,
-  },
 };
 
 export default ServiceReminders;

@@ -1,15 +1,30 @@
 import api from '@/apis';
-import { GasConsumptionRequest, GasConsumptionResponse, GasConsumptionUpdateRequest } from '@/apis/@types/gas';
+import { GasConsumptionRequest, GasConsumptionResponse, GasConsumptionUpdateRequest, GasConsumptionFilter } from '@/apis/@types/gas';
 import { getVehicleId } from '@/utils/getVehicleId';
 
 export const gasApi = api.injectEndpoints({
   endpoints: (build) => ({
-    getGasConsumption: build.query<GasConsumptionResponse, void>({
-      query: () => {
+    getGasConsumption: build.query<GasConsumptionResponse, GasConsumptionFilter | void>({
+      query: (filters) => {
         const vehicleId = getVehicleId();
         console.log('Vehicle ID in getGasConsumption:', vehicleId);
+        
+        // Build query parameters for filtering
+        const params = new URLSearchParams();
+        if (filters?.startDate) {
+          params.append('from', filters.startDate);
+        }
+        if (filters?.endDate) {
+          params.append('to', filters.endDate);
+        }
+        
+        const queryString = params.toString();
+        const url = `/vehicles/${vehicleId}/gas/${queryString ? `?${queryString}` : ''}`;
+        
+        console.log('Gas consumption query URL:', url);
+        
         return {
-          url: `/vehicles/${vehicleId}/gas/`,
+          url,
         };
       },
       providesTags: ['gas'],

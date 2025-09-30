@@ -11,3 +11,8 @@ export interface GasConsumptionUpdateRequest extends GasConsumptionRequest {
   gasId: string;
 }
 
+export interface GasConsumptionFilter {
+  startDate?: string;
+  endDate?: string;
+}
+
