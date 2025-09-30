@@ -3,8 +3,8 @@ import { View, FlatList, TouchableOpacity, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Sharing from 'expo-sharing';
 import Feather from '@expo/vector-icons/Feather';
-import { Text } from '@/shared/components/ui';
-import { CardWrapper } from '@/shared/components/ui';
+import { Text, CardWrapper, Button } from '@/shared/components/ui';
+import { ModalWrapper } from '@/shared/components/layout';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { DocumentItem, DocumentStatistics } from '@/apis/@types/document';
@@ -16,9 +16,13 @@ import {
 
 const VehicleDocuments = () => {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState<{ fileType?: string }>({});
 
   // API hooks
-  const { data: documentsData, isLoading, error } = useGetDocumentsQuery();
+  const { data: documentsData, isLoading, error } = useGetDocumentsQuery(
+    Object.keys(currentFilter).length > 0 ? currentFilter : undefined
+  );
   const [deleteDocument] = useDeleteDocumentMutation();
 
   const documents = documentsData?.data || [];
@@ -88,6 +92,24 @@ const VehicleDocuments = () => {
 
   const handleAddDocument = () => {
     setShowAddModal(true);
+  };
+
+  const handleApplyFilter = (filters: { fileType?: string }) => {
+    const newFilter: { fileType?: string } = {};
+    
+    if (filters.fileType && filters.fileType !== 'all') {
+      newFilter.fileType = filters.fileType;
+    }
+    
+    setCurrentFilter(newFilter);
+  };
+
+  const getFilterDisplayText = () => {
+    const { fileType } = currentFilter;
+    if (fileType) {
+      return `File Type: ${fileType.toUpperCase()}`;
+    }
+    return null;
   };
 
   const handleDeleteDocument = (documentId: string) => {
@@ -244,6 +266,36 @@ const VehicleDocuments = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text size={28} weight={800} style={styles.pageTitle} autoTranslate={false}>
+          Vehicle Documents
+        </Text>
+        <Text size={16} color="grey70" style={styles.pageSubtitle} autoTranslate={false}>
+          Organize and manage your vehicle documentation
+        </Text>
+      </View>
+
+      {/* Filter Button */}
+      <TouchableOpacity 
+        style={styles.filterModalButton}
+        onPress={() => setIsFilterModalVisible(true)}
+      >
+        <Feather name="filter" size={20} color={COLORS.light.primary} />
+        <Text size={14} weight={500} style={{ color: COLORS.light.primary }} autoTranslate={false}>Filters</Text>
+        {currentFilter.fileType && (
+          <View style={styles.filterBadge} />
+        )}
+      </TouchableOpacity>
+
+      {/* Filter Display Text */}
+      {getFilterDisplayText() && (
+        <View style={{ marginBottom: 16 }}>
+          <Text size={12} color="grey70" autoTranslate={false}>
+            Filtered: {getFilterDisplayText()}
+          </Text>
+        </View>
+      )}
       {/* Content */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -295,7 +347,126 @@ const VehicleDocuments = () => {
         onClose={() => setShowAddModal(false)}
         onAdd={() => setShowAddModal(false)}
       />
+
+      {/* Filter Modal - Inline Component */}
+      {isFilterModalVisible && (
+        <FilterDocumentsModalComponent
+          isVisible={isFilterModalVisible}
+          setVisible={setIsFilterModalVisible}
+          filters={currentFilter}
+          onApplyFilters={handleApplyFilter}
+          availableFileTypes={stats.documentTypes}
+        />
+      )}
     </SafeAreaView>
+  );
+};
+
+// Filter Documents Modal Component
+interface FilterDocumentsModalProps {
+  isVisible: boolean;
+  setVisible: (visible: boolean) => void;
+  filters: { fileType?: string };
+  onApplyFilters: (filters: { fileType?: string }) => void;
+  availableFileTypes: string[];
+}
+
+const FilterDocumentsModalComponent: React.FC<FilterDocumentsModalProps> = ({
+  isVisible,
+  setVisible,
+  filters,
+  onApplyFilters,
+  availableFileTypes,
+}) => {
+  const [selectedFileType, setSelectedFileType] = useState<string>(filters.fileType || 'all');
+
+  React.useEffect(() => {
+    if (isVisible) {
+      setSelectedFileType(filters.fileType || 'all');
+    }
+  }, [isVisible, filters.fileType]);
+
+  const handleApplyFilters = () => {
+    const newFilters = {
+      fileType: selectedFileType === 'all' ? undefined : selectedFileType,
+    };
+    onApplyFilters(newFilters);
+    setVisible(false);
+  };
+
+  const handleResetFilters = () => {
+    setSelectedFileType('all');
+    onApplyFilters({});
+    setVisible(false);
+  };
+
+  const handleClose = () => {
+    setVisible(false);
+  };
+
+  const fileTypeOptions = ['all', ...availableFileTypes];
+
+  return (
+    <ModalWrapper
+      isVisible={isVisible}
+      setVisible={setVisible}
+      height="auto"
+      containerStyle={{
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 16,
+        margin: 20,
+      }}
+    >
+      <View style={{ gap: 20 }}>
+        <Text size={20} weight={700} autoTranslate={false}>
+          Filter Documents
+        </Text>
+
+        <View style={{ gap: 12 }}>
+          <Text size={16} weight={600} autoTranslate={false}>
+            File Type
+          </Text>
+          <View style={{ 
+            flexDirection: 'row', 
+            flexWrap: 'wrap', 
+            gap: 8 
+          }}>
+            {fileTypeOptions.map((fileType) => {
+              const isSelected = selectedFileType === fileType;
+              return (
+                <TouchableOpacity
+                  key={fileType}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: COLORS.light.primary,
+                    backgroundColor: isSelected ? COLORS.light.primary : 'transparent',
+                  }}
+                  onPress={() => setSelectedFileType(fileType)}
+                >
+                  <Text
+                    size={14}
+                    color={isSelected ? "white" : "primary"}
+                    autoTranslate={false}
+                  >
+                    {fileType === 'all' ? 'All Files' : fileType.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={{ gap: 12 }}>
+          <Button title="Apply Filter" onPress={handleApplyFilters} />
+          <Button title="Reset Filter" variant="outlined" onPress={handleResetFilters} />
+          <Button title="Cancel" variant="outlined" onPress={handleClose} />
+        </View>
+      </View>
+    </ModalWrapper>
   );
 };
 
@@ -304,8 +475,34 @@ const styles = {
     flex: 1,
     paddingHorizontal: 16,
   },
+  header: {
+    gap: 4,
+    marginBottom: 20,
+  },
+  pageTitle: {
+    // Spacing handled by header gap
+  },
+  pageSubtitle: {
+    lineHeight: 22,
+  },
   listContainer: {
     paddingBottom: 100, // Space for floating button
+  },
+  filterModalButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 8,
+    gap: 8,
+  },
+  filterBadge: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.light.primary,
   },
   statsCard: {
     marginBottom: 16,
