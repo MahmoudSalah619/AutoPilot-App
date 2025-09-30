@@ -10,7 +10,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { ServiceReminderEntry, ServiceReminderStats } from '@/@types/serviceReminder';
 import AddServiceReminderModal from '@/components/organisms/scoped/services/AddServiceReminderModal';
 import { MaterialIcons } from '@expo/vector-icons';
-import styles from './styles/styles';
+import styles from './styles';
 import FilterServiceReminderModal from '@/components/organisms/scoped/services/FilterServiceReminderModal';
 
 // Sample data for demonstration

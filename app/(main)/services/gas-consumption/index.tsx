@@ -21,7 +21,7 @@ import {
   useGetGasConsumptionQuery,
   useUpdateGasConsumptionMutation,
 } from '@/apis/services/services/gasConsumption';
-import styles from './styles/styles';
+import styles from './styles';
 import FilterGasModal from '@/components/organisms/scoped/services/FilterGasModal';
 
 const GasConsumption = () => {

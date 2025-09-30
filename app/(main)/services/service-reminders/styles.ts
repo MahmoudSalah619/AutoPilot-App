@@ -91,7 +91,8 @@ const styles = StyleSheet.create({
   },
   entryActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
+    gap: 8,
     marginTop: 8,
   },
   actionButton: {
