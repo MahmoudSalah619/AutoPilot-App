@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import { Text } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 
 const styles = StyleSheet.create({

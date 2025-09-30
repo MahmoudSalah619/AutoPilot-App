@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
+import { AuthScreenWrapper } from '@/shared/components/layout';
 import { Controller, useForm } from 'react-hook-form';
-import { Checkbox, FormInput } from '@/components/molecules/common';
-import { Button, Text } from '@/components/atoms';
+import { Checkbox, FormInput } from '@/shared/components/ui';
+import { Button, Text } from '@/shared/components/ui';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
 import { useLazyGetUserInfoQuery, useLoginMutation } from '@/apis/services/auth';
-import Biometric from '@/components/organisms/scoped/auth/biometric';
+import { BiometricAuth } from '@/features/auth';
 import styles from './styles';
 import loginHandler from '@/utils/loginHandler';
 
@@ -91,7 +91,7 @@ const Login = () => {
           // disabled={isLoading}
         />
       </View>
-      <Biometric />
+      <BiometricAuth />
       {/* <SeperateLine /> */}
       {/* <View style={GLOBAL_STYLES.gap8}>
         <AppleRegistarationButton />

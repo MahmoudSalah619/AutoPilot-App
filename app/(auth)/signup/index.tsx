@@ -3,9 +3,9 @@ import { View, Text } from 'react-native';
 import styles from './styles';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'expo-router';
-import { FormInput } from '@/components/molecules/common';
-import { Button } from '@/components/atoms';
-import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
+import { FormInput } from '@/shared/components/ui';
+import { Button } from '@/shared/components/ui';
+import { AuthScreenWrapper } from '@/shared/components/layout';
 import { useSignupMutation } from '@/apis/services/auth';
 
 const SignUp = () => {

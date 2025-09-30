@@ -1,6 +1,7 @@
 // UI Components - Basic reusable components
 export { default as Badge } from './Badge';
 export { default as Button } from './Button';
+export { default as CardWrapper } from './CardWrapper';
 export { default as Checkbox } from './Checkbox';
 export { default as Collapsible } from './Collapsible';
 export { default as ExternalLink } from './ExternalLink';

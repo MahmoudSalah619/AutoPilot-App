@@ -1,4 +1,5 @@
-import { Text, ThemedView } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
+import { ThemedView } from '@/shared/components/layout';
 import { Link, Stack } from 'expo-router';
 import { StyleSheet } from 'react-native';
 

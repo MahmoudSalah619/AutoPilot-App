@@ -1,4 +1,4 @@
-import { Input, Text } from '@/components/atoms';
+import { Input, Text } from '@/shared/components/ui';
 import React from 'react';
 import { View } from 'react-native';
 

@@ -1,6 +1,6 @@
 import { View, ViewStyle } from 'react-native';
 import styles from './style';
-import { Text } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
 
 export default function UnreadMessages({
   number,

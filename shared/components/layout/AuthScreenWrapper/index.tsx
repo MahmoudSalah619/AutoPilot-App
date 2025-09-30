@@ -5,7 +5,8 @@ import GLOBAL_STYLES from '@/constants/GlobalStyles';
 import METRICS from '@/constants/Metrics';
 import { ScreenWrapperProps } from './types';
 import styles from './styles';
-import { Logo, ThemedView } from '@/components/atoms';
+import { Logo } from '@/shared/components/ui';
+import { ThemedView } from '@/shared/components/layout';
 // import i18n from "@/locale";
 
 export default function AuthScreenWrapper({

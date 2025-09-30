@@ -8,7 +8,7 @@ import store from '@/redux';
 import { SheetProvider } from 'react-native-actions-sheet';
 import Toast from 'react-native-toast-message';
 import useCheckNewUpdates from '@/hooks/useCheckNewUpdate';
-// import NotificationListnerContainer from "@/components/templates/NotificationListnerContainer";
+// import NotificationListnerContainer from "@/shared/components/layout/NotificationListnerContainer";
 import useLoadResources from '@/hooks/useLoadResources';
 
 /**

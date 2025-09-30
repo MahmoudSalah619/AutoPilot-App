@@ -4,11 +4,11 @@ import * as Google from 'expo-auth-session/providers/google';
 
 import * as WebBrowser from 'expo-web-browser';
 import GOOGLE_ICON from '@/assets/images/google-logo.png';
-import Button from '@/components/atoms/Button';
+import Button from '@/shared/components/ui/Button';
 import { useGoogleLoginMutation } from '@/apis/services/auth';
 import showSuccessMsg from '@/utils/showSuccessMsg';
 import loginHandler from '@/utils/loginHandler';
-import Img from '@/components/atoms/Image';
+import Img from '@/shared/components/ui/Image';
 import { COLORS } from '@/constants/Colors';
 
 const styles = StyleSheet.create({

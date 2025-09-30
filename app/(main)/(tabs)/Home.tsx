@@ -1,14 +1,13 @@
 import React from 'react';
 import { View } from 'react-native';
-import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
-import VehicleCardOrganism from '@/components/organisms/scoped/VehicleCard';
-import LastGasConsumption from '@/components/organisms/scoped/LastGasConsumption';
+import { MainScreenWrapper } from '@/shared/components/layout';
+import { VehicleCard, LastGasConsumption } from '@/features/home';
 
 const Home = () => {
   return (
     <MainScreenWrapper customStyle={{ paddingTop: 0, flex: 1 }}>
       <View>
-        <VehicleCardOrganism />
+        <VehicleCard />
       </View>
       <View>
         <LastGasConsumption />

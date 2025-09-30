@@ -3,9 +3,9 @@ import { useForm, Controller } from 'react-hook-form';
 import { View } from 'react-native';
 import ModalWrapper from '../modalWrapper';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import Text from '@/components/atoms/Text';
-import Button from '@/components/atoms/Button';
-import { Input } from '@/components/atoms';
+import Text from '@/shared/components/ui/Text';
+import Button from '@/shared/components/ui/Button';
+import { Input } from '@/shared/components/ui';
 import SelectDropdown from 'react-native-select-dropdown';
 
 export default function AddMaintenanceModal({

@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import Feather from '@expo/vector-icons/Feather';
-import { Text } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
+import { Text } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { VehicleDocumentEntry, VehicleDocumentStats } from '@/@types/vehicleDocuments';
-import AddVehicleDocumentModal from '@/components/organisms/scoped/services/AddVehicleDocumentModal';
+import { AddVehicleDocumentModal } from '@/features/services';
 
 // Sample data for demonstration
 const sampleDocuments: VehicleDocumentEntry[] = [

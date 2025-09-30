@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
-import { Text } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
+import { Text } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';

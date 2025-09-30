@@ -2,8 +2,8 @@ import React from 'react';
 import { View } from 'react-native';
 import ModalWrapper from '../modalWrapper';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import Text from '@/components/atoms/Text';
-import Button from '@/components/atoms/Button';
+import Text from '@/shared/components/ui/Text';
+import Button from '@/shared/components/ui/Button';
 
 export default function RandomModal({
   isVisible,

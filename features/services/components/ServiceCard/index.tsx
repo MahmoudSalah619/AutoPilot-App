@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
-import { Text } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { ServiceCardProps } from './types';
 import styles from './styles';

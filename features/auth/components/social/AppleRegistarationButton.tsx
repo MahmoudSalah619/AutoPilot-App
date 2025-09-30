@@ -1,7 +1,7 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { StyleSheet } from 'react-native';
 import { useAppleLoginMutation } from '@/apis/services/auth';
-import Button from '@/components/atoms/Button';
+import Button from '@/shared/components/ui/Button';
 import loginHandler from '@/utils/loginHandler';
 import showSuccessMsg from '@/utils/showSuccessMsg';
 import HandleErrors from '@/utils/handleErrors';

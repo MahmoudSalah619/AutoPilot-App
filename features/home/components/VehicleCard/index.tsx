@@ -1,13 +1,13 @@
-import { Button, SeperateLine, Text } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
+import { Button, SeperateLine, Text } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import styles from './styles';
 import Feather from '@expo/vector-icons/Feather';
-import ControllableInput from '@/components/molecules/common/FormInput';
+import { FormInput as ControllableInput } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import UpdateKiloModal from '../../common/modals/updateKiloModal';
+import { UpdateKiloModal } from '@/shared/components/layout';
 
 export default function VehicleCardOrganism() {
   const [isEditing, setisEditing] = useState(false);

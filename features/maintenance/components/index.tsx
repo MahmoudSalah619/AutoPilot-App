@@ -2,11 +2,10 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
-import { Text, Button, Badge } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
-import { COLORS } from '@/constants/Colors';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { MaintenanceScheduleProps, MaintenanceRecord } from '@/@types/maintenance';
+import { Text, Button, Badge, CardWrapper } from '../../../shared/components/ui';
+import { COLORS } from '../../../constants/Colors';
+import { useThemeColor } from '../../../hooks/useThemeColor';
+import { MaintenanceScheduleProps, MaintenanceRecord } from '../../../@types/maintenance';
 import styles from './styles';
 
 export function MaintenanceSchedule({ initialData, type = 'all' }: MaintenanceScheduleProps) {

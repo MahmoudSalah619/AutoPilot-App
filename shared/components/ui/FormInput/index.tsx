@@ -1,5 +1,5 @@
-import { Input } from '@/components/atoms';
-import { InputFieldProps } from '@/components/atoms/Input/types';
+import { Input } from '@/shared/components/ui';
+import { InputFieldProps } from '@/shared/components/ui/Input/types';
 import { Controller, Control, FieldError, FieldErrorsImpl, Merge } from 'react-hook-form';
 
 interface ControllableInputProps extends InputFieldProps {

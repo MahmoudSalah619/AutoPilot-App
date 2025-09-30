@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
-import { ThemedView } from '@/components/atoms';
-import { Text } from '@/components/atoms';
+import { ThemedView } from '@/shared/components/layout';
+import { Text } from '@/shared/components/ui';
 import { Calendar as RNCalendar } from 'react-native-calendars';
-import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
+import MainScreenWrapper from '@/shared/components/layout/MainScreenWrapper';
 
 export default function Calendar() {
   const [selected, setSelected] = useState('');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Text } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { BadgeProps } from './types';
 import styles from './styles';

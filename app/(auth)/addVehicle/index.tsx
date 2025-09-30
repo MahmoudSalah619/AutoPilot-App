@@ -1,6 +1,6 @@
-import { Button, Text } from '@/components/atoms';
-import { FormInput } from '@/components/molecules/common';
-import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
+import { Button, Text } from '@/shared/components/ui';
+import { FormInput } from '@/shared/components/ui';
+import { AuthScreenWrapper } from '@/shared/components/layout';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useForm } from 'react-hook-form';

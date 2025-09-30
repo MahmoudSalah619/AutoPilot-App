@@ -3,8 +3,8 @@ import { View, TouchableOpacity, StyleSheet, FlatList, Pressable } from 'react-n
 import Modal from 'react-native-modal';
 import { useForm, Controller } from 'react-hook-form';
 import Feather from '@expo/vector-icons/Feather';
-import { Text, Button } from '@/components/atoms';
-import ControllableInput from '@/components/molecules/common/FormInput';
+import { Text, Button } from '@/shared/components/ui';
+import { FormInput as ControllableInput } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { AddReminderFormData, ServiceReminderEntry } from '@/@types/serviceReminder';

@@ -1,5 +1,5 @@
 import FingerPrint from '@/assets/icons/FingerPrint';
-import { Button } from '@/components/atoms';
+import { Button } from '@/shared/components/ui';
 import useBiometricLogin from '@/hooks/useBiometricLogin';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';

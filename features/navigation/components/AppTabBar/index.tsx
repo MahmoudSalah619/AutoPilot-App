@@ -1,6 +1,7 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
-import { Text, ThemedView } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
+import { ThemedView } from '@/shared/components/layout';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { COLORS } from '@/constants/Colors';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';

@@ -1,7 +1,7 @@
 import { View, ViewStyle } from 'react-native';
 import ActionSheet from 'react-native-actions-sheet';
-import Text from '@/components/atoms/Text';
-import SeperateLine from '@/components/atoms/SeperateLine';
+import Text from '@/shared/components/ui/Text';
+import SeperateLine from '@/shared/components/ui/SeperateLine';
 import { SheetWrapperProps } from './types';
 import styles from './styles';
 

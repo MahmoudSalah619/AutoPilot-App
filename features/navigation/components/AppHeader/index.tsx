@@ -4,9 +4,9 @@ import { COLORS } from '@/constants/Colors';
 
 import { Feather } from '@expo/vector-icons';
 import { useColorScheme } from '@/hooks/useColorScheme.web';
-import { Logo, Text, ThemedView } from '@/components/atoms';
-import UnreadMessages from '@/components/molecules/scoped/notifications/UnreadMessages';
-import NotificationBell from '@/components/molecules/scoped/notifications/NotificationBell';
+import { Logo, Text } from '@/shared/components/ui';
+import { ThemedView } from '@/shared/components/layout';
+import { UnreadMessages, NotificationBell } from '@/features/notifications';
 import styles from './styles';
 
 export default function NavigationHeader({

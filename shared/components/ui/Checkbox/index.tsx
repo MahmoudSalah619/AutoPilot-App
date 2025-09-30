@@ -1,6 +1,6 @@
 import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Text from '@/components/atoms/Text';
+import Text from '@/shared/components/ui/Text';
 import styles from './styles';
 
 type CheckboxProps = {

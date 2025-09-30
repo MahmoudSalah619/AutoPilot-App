@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Text, Badge } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
+import { Text, Badge } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import {
@@ -14,7 +14,7 @@ import {
   AddEntryFormData,
   GasConsumptionResponse,
 } from './types';
-import AddGasEntryModal from '@/components/organisms/scoped/services/AddGasEntryModal';
+import { AddGasEntryModal } from '@/features/services';
 import {
   useAddGasConsumptionMutation,
   useDeleteGasConsumptionMutation,
@@ -22,7 +22,7 @@ import {
   useUpdateGasConsumptionMutation,
 } from '@/apis/services/services/gasConsumption';
 import styles from './styles';
-import FilterGasModal from '@/components/organisms/scoped/services/FilterGasModal';
+import { FilterGasModal } from '@/features/services';
 
 const GasConsumption = () => {
   const [currentFilter, setCurrentFilter] = useState<{ startDate?: string; endDate?: string }>({});

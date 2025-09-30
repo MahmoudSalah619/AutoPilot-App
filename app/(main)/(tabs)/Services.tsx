@@ -1,9 +1,9 @@
 import React from 'react';
 import { FlatList, StyleSheet, ListRenderItem } from 'react-native';
 import { router } from 'expo-router';
-import { Text } from '@/components/atoms';
-import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
-import ServiceCard from '@/components/molecules/scoped/ServiceCard';
+import { Text } from '@/shared/components/ui';
+import { MainScreenWrapper } from '@/shared/components/layout';
+import { ServiceCard } from '@/features/services';
 import { COLORS } from '@/constants/Colors';
 
 interface ServiceData {

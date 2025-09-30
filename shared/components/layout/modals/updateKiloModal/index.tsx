@@ -2,9 +2,9 @@ import React from 'react';
 import { View } from 'react-native';
 import ModalWrapper from '../modalWrapper';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import Text from '@/components/atoms/Text';
-import Button from '@/components/atoms/Button';
-import { Input } from '@/components/atoms';
+import Text from '@/shared/components/ui/Text';
+import Button from '@/shared/components/ui/Button';
+import { Input } from '@/shared/components/ui';
 
 export default function UpdateKiloModal({
   isVisible,

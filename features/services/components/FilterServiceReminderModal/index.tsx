@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import ModalWrapper from '@/components/organisms/common/modals/modalWrapper';
-import { Text, Button } from '@/components/atoms';
-import ControllableInput from '@/components/molecules/common/FormInput';
+import { ModalWrapper } from '@/shared/components/layout';
+import { Text, Button } from '@/shared/components/ui';
+import { FormInput as ControllableInput } from '@/shared/components/ui';
 import { useForm } from 'react-hook-form';
 import styles from './styles';
 

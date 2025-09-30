@@ -3,7 +3,7 @@ import { TextInput, TouchableOpacity, View } from 'react-native';
 
 import { useState } from 'react';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import Text from '@/components/atoms/Text';
+import Text from '@/shared/components/ui/Text';
 import styles from './styles';
 import { InputFieldProps } from './types';
 import { COLORS } from '@/constants/Colors';

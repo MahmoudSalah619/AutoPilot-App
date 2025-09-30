@@ -3,7 +3,7 @@ import { View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
-import { Text } from '@/components/atoms';
+import { Text } from '@/shared/components/ui';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 const RoadtripPlanner = () => {

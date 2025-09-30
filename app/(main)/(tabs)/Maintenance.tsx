@@ -3,14 +3,15 @@ import { View, TouchableOpacity } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
-import { Button, Text, Badge } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
-import AddMaintenanceModal from '@/components/organisms/common/modals/addMaintainance';
+import MainScreenWrapper from '@/shared/components/layout/MainScreenWrapper';
+import { Button, Text, Badge } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
+import { AddMaintainanceModal } from '@/shared/components/layout/modals';
 
 import { MaintenanceRecord } from '@/@types/maintenance';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import AddMaintenanceModal from '@/shared/components/layout/modals/addMaintainance';
 
 // ===== SAMPLE DATA =====
 const sampleMaintenanceData: MaintenanceRecord[] = [
@@ -148,7 +149,7 @@ const Maintenance = () => {
           </Text>
         )}
       </View>
-      <AddMaintenanceModal
+      <AddMaintainanceModal
         isVisible={isUpdateModalVisible}
         setVisible={setisUpdateModalVisible}
         onSubmit={(data) => {

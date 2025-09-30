@@ -1,5 +1,5 @@
-import { Text } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
+import { Text } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
 import React from 'react';
 import { View } from 'react-native';
 

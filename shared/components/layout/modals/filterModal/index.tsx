@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, ScrollView } from 'react-native';
 import ModalWrapper from '../modalWrapper';
-import { Text, Button } from '@/components/atoms';
+import { Text, Button } from '@/shared/components/ui';
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
 import { FilterModalProps, FilterType, DateFilterType, FilterState } from './types';
 import styles from './styles';

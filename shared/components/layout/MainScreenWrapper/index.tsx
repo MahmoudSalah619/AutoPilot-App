@@ -4,7 +4,7 @@ import GLOBAL_STYLES from '@/constants/GlobalStyles';
 import METRICS from '@/constants/Metrics';
 import { ScreenWrapperProps } from './types';
 import styles from './styles';
-import { ThemedView } from '@/components/atoms';
+import ThemedView from '../ThemedView';
 
 export default function MainScreenWrapper({
   children,

@@ -4,11 +4,11 @@ import * as Facebook from 'expo-auth-session/providers/facebook';
 import { ResponseType } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import FB_ICON from '@/assets/images/fb-icon.png';
-import Button from '@/components/atoms/Button';
+import Button from '@/shared/components/ui/Button';
 import { useFacebookLoginMutation } from '@/apis/services/auth';
 import loginHandler from '@/utils/loginHandler';
 import showSuccessMsg from '@/utils/showSuccessMsg';
-import Img from '@/components/atoms/Image';
+import Img from '@/shared/components/ui/Image';
 import { COLORS } from '@/constants/Colors';
 
 const styles = StyleSheet.create({

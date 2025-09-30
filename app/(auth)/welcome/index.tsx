@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Text, Logo } from '@/components/atoms';
-import AuthScreenWrapper from '@/components/templates/AuthScreenWrapper';
+import { Button, Text, Logo } from '@/shared/components/ui';
+import { AuthScreenWrapper } from '@/shared/components/layout';
 import { styles } from './styles';
 
 const Welcome = () => {

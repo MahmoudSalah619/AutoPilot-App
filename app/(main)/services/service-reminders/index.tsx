@@ -3,15 +3,14 @@ import { View, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
-import { Text, Badge } from '@/components/atoms';
-import CardWrapper from '@/components/wrappers/Card';
+import { Text, Badge } from '@/shared/components/ui';
+import { CardWrapper } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ServiceReminderEntry, ServiceReminderStats } from '@/@types/serviceReminder';
-import AddServiceReminderModal from '@/components/organisms/scoped/services/AddServiceReminderModal';
+import { AddServiceReminderModal, FilterServiceReminderModal } from '@/features/services';
 import { MaterialIcons } from '@expo/vector-icons';
 import styles from './styles';
-import FilterServiceReminderModal from '@/components/organisms/scoped/services/FilterServiceReminderModal';
 import {
   useGetRemindersQuery,
   useAddReminderMutation,

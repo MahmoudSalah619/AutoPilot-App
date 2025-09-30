@@ -1,9 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
-import { Text } from '@/components/atoms';
-import MainScreenWrapper from '@/components/templates/MainScreenWrapper';
-import ProfileHeader from '@/components/molecules/scoped/ProfileHeader';
-import ProfileItem from '@/components/molecules/scoped/ProfileItem';
+import { Text } from '@/shared/components/ui';
+import { MainScreenWrapper } from '@/shared/components/layout';
+import { ProfileHeader, ProfileItem } from '@/features/profile';
 import { COLORS } from '@/constants/Colors';
 import i18n from '@/locale';
 import { useRouter } from 'expo-router';
