@@ -1,29 +1,38 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, StyleSheet, FlatList, Pressable } from 'react-native';
 import Modal from 'react-native-modal';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import Feather from '@expo/vector-icons/Feather';
 import { Text, Button } from '@/components/atoms';
 import ControllableInput from '@/components/molecules/common/FormInput';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { AddReminderFormData, ServiceReminderEntry } from '@/@types/serviceReminder';
+import { TypeItem } from '@/apis/@types/serviceTypes';
 
 interface AddServiceReminderModalProps {
   visible: boolean;
   onClose: () => void;
   onAdd: (entry: ServiceReminderEntry) => void;
+  serviceTypes: TypeItem[];
+  isLoading?: boolean;
 }
 
 const AddServiceReminderModal: React.FC<AddServiceReminderModalProps> = ({
   visible,
   onClose,
   onAdd,
+  serviceTypes,
+  isLoading = false,
 }) => {
+  const [showServicePicker, setShowServicePicker] = useState(false);
+  
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<AddReminderFormData>({
     defaultValues: {
@@ -33,6 +42,7 @@ const AddServiceReminderModal: React.FC<AddServiceReminderModalProps> = ({
     },
   });
 
+  const selectedService = watch('service');
   const backgroundColor = useThemeColor({}, 'background');
   const textColor = useThemeColor({}, 'text');
 
@@ -98,24 +108,42 @@ const AddServiceReminderModal: React.FC<AddServiceReminderModalProps> = ({
               />
             </View>
 
-            {/* Service Type Input */}
+            {/* Service Type Picker */}
             <View style={styles.inputGroup}>
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
                 Service Type
               </Text>
-              <ControllableInput
-                control={control as any}
+              <Controller
+                control={control}
                 name="service"
-                placeholder="e.g., Oil Change, Tire Rotation, Brake Inspection"
-                keyboardType="default"
                 rules={{
                   required: 'Service type is required',
-                  minLength: {
-                    value: 3,
-                    message: 'Service type must be at least 3 characters',
-                  },
                 }}
+                render={({ field: { value } }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.servicePickerButton,
+                      errors.service && styles.servicePickerError,
+                    ]}
+                    onPress={() => setShowServicePicker(true)}
+                    disabled={isLoading || serviceTypes.length === 0}
+                  >
+                    <Text
+                      size={16}
+                      color={value ? 'text' : 'grey70'}
+                      autoTranslate={false}
+                    >
+                      {value || 'Select a service type'}
+                    </Text>
+                    <Feather name="chevron-down" size={20} color={textColor} />
+                  </TouchableOpacity>
+                )}
               />
+              {errors.service && (
+                <Text size={12} color="danger" autoTranslate={false}>
+                  {errors.service.message}
+                </Text>
+              )}
             </View>
 
             {/* Notes Input */}
@@ -140,9 +168,67 @@ const AddServiceReminderModal: React.FC<AddServiceReminderModalProps> = ({
         <View style={styles.footer}>
           <Button title="Cancel" variant="outlined" onPress={handleClose} isFullWidth />
           <View style={styles.buttonSpacer} />
-          <Button title="Add Reminder" variant="filled" onPress={handleSubmit(onSubmit)} isFullWidth />
+          <Button 
+            title="Add" 
+            variant="filled" 
+            onPress={handleSubmit(onSubmit)} 
+            isFullWidth 
+            disabled={isLoading}
+          />
         </View>
       </View>
+
+      {/* Service Type Picker Modal */}
+      <Modal
+        isVisible={showServicePicker}
+        onBackdropPress={() => setShowServicePicker(false)}
+        backdropOpacity={0.5}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        useNativeDriverForBackdrop
+      >
+        <View style={[styles.pickerContainer, { backgroundColor }]}>
+          <View style={styles.pickerHeader}>
+            <Text size={18} weight={700} autoTranslate={false}>
+              Select Service Type
+            </Text>
+            <TouchableOpacity onPress={() => setShowServicePicker(false)}>
+              <Feather name="x" size={24} color={textColor} />
+            </TouchableOpacity>
+          </View>
+          
+          <FlatList
+            data={serviceTypes}
+            keyExtractor={(item) => item.serviceTypeId}
+            renderItem={({ item }) => (
+              <Pressable
+                style={[
+                  styles.serviceOption,
+                  selectedService === item.name && styles.selectedServiceOption,
+                ]}
+                onPress={() => {
+                  setValue('service', item.name);
+                  setShowServicePicker(false);
+                }}
+              >
+                <Text
+                  size={16}
+                  weight={selectedService === item.name ? 600 : 400}
+                  color={selectedService === item.name ? 'primary' : 'text'}
+                  autoTranslate={false}
+                >
+                  {item.name}
+                </Text>
+                {selectedService === item.name && (
+                  <Feather name="check" size={20} color={COLORS.light.primary} />
+                )}
+              </Pressable>
+            )}
+            style={styles.serviceList}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      </Modal>
     </Modal>
   );
 };
@@ -204,6 +290,58 @@ const styles = StyleSheet.create({
   },
   buttonSpacer: {
     width: 12,
+  },
+  servicePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: COLORS.light.greyE5,
+    borderRadius: 8,
+    backgroundColor: COLORS.light.background,
+  },
+  servicePickerError: {
+    borderColor: COLORS.light.danger,
+  },
+  pickerContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    margin: 20,
+    maxHeight: 400,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.light.greyF5,
+  },
+  serviceList: {
+    maxHeight: 280,
+  },
+  serviceOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.light.greyF5,
+  },
+  selectedServiceOption: {
+    backgroundColor: COLORS.light.primary + '10',
   },
 });
 
