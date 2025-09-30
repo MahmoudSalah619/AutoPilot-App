@@ -1,71 +1,37 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { View, FlatList, TouchableOpacity, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import Feather from '@expo/vector-icons/Feather';
 import { Text } from '@/shared/components/ui';
 import { CardWrapper } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { VehicleDocumentEntry, VehicleDocumentStats } from '@/@types/vehicleDocuments';
+import { DocumentItem, DocumentStatistics } from '@/apis/@types/document';
 import { AddVehicleDocumentModal } from '@/features/services';
-
-// Sample data for demonstration
-const sampleDocuments: VehicleDocumentEntry[] = [
-  {
-    id: '1',
-    name: 'Vehicle Registration',
-    fileName: 'vehicle_registration.pdf',
-    fileUri: 'file://documents/vehicle_registration.pdf',
-    fileSize: 245760,
-    fileType: 'application/pdf',
-    uploadDate: '2025-09-20T10:30:00.000Z',
-  },
-  {
-    id: '2',
-    name: 'Insurance Certificate',
-    fileName: 'insurance_2025.pdf',
-    fileUri: 'file://documents/insurance_2025.pdf',
-    fileSize: 456789,
-    fileType: 'application/pdf',
-    uploadDate: '2025-09-15T14:20:00.000Z',
-  },
-  {
-    id: '3',
-    name: 'Driver License',
-    fileName: 'license_scan.jpg',
-    fileUri: 'file://documents/license_scan.jpg',
-    fileSize: 1024000,
-    fileType: 'image/jpeg',
-    uploadDate: '2025-09-10T09:45:00.000Z',
-  },
-];
+import {
+  useGetDocumentsQuery,
+  useDeleteDocumentMutation,
+} from '@/apis/services/services/documents';
 
 const VehicleDocuments = () => {
-  const [documents, setDocuments] = useState<VehicleDocumentEntry[]>(sampleDocuments);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // API hooks
+  const { data: documentsData, isLoading, error } = useGetDocumentsQuery();
+  const [deleteDocument] = useDeleteDocumentMutation();
+
+  const documents = documentsData?.data || [];
+  const stats = documentsData?.statistics || {
+    totalDocuments: 0,
+    totalSize: 0,
+    recent: 0,
+    documentTypes: [],
+  };
 
   const textColor = useThemeColor({}, 'text');
   const mutedColor = useThemeColor({}, 'grey70');
   const backgroundColor = useThemeColor({}, 'background');
-
-  // Calculate statistics
-  const calculateStats = (): VehicleDocumentStats => {
-    const totalSize = documents.reduce((sum, doc) => sum + doc.fileSize, 0);
-    const documentTypes = [...new Set(documents.map(doc => doc.fileType))];
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const recentUploads = documents.filter(doc => new Date(doc.uploadDate) > oneWeekAgo).length;
-
-    return {
-      totalDocuments: documents.length,
-      totalSize,
-      recentUploads,
-      documentTypes,
-    };
-  };
-
-  const stats = calculateStats();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -84,7 +50,7 @@ const VehicleDocuments = () => {
   };
 
   const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+    const extension = fileName?.split('.').pop()?.toLowerCase();
     switch (extension) {
       case 'pdf':
         return 'file-text';
@@ -102,7 +68,7 @@ const VehicleDocuments = () => {
   };
 
   const getFileIconColor = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+    const extension = fileName?.split('.').pop()?.toLowerCase();
     switch (extension) {
       case 'pdf':
         return COLORS.light.danger;
@@ -123,10 +89,6 @@ const VehicleDocuments = () => {
     setShowAddModal(true);
   };
 
-  const handleAddDocumentEntry = (newDocument: VehicleDocumentEntry) => {
-    setDocuments((prevDocs) => [newDocument, ...prevDocs]);
-  };
-
   const handleDeleteDocument = (documentId: string) => {
     Alert.alert(
       'Delete Document',
@@ -139,20 +101,25 @@ const VehicleDocuments = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            setDocuments((prevDocs) => prevDocs.filter((doc) => doc.id !== documentId));
+          onPress: async () => {
+            try {
+              await deleteDocument({ documentId }).unwrap();
+              Alert.alert('Success', 'Document deleted successfully');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete document');
+            }
           },
         },
       ]
     );
   };
 
-  const handleDownloadDocument = async (document: VehicleDocumentEntry) => {
+  const handleDownloadDocument = async (document: DocumentItem) => {
     try {
       // In a real app, you would implement actual file download/sharing
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(document.fileUri, {
-          mimeType: document.fileType,
+        await Sharing.shareAsync(document.fileUrl, {
+          mimeType: document.mimeType,
           dialogTitle: `Share ${document.name}`,
         });
       } else {
@@ -163,16 +130,16 @@ const VehicleDocuments = () => {
     }
   };
 
-  const renderDocument = ({ item }: { item: VehicleDocumentEntry }) => (
+  const renderDocument = ({ item }: { item: DocumentItem }) => (
     <CardWrapper customStyles={styles.documentCard}>
       <View style={styles.documentContainer}>
         <View style={styles.documentHeader}>
           <View style={styles.documentInfo}>
             <View style={styles.fileIconContainer}>
-              <Feather 
-                name={getFileIcon(item.fileName)} 
-                size={24} 
-                color={getFileIconColor(item.fileName)} 
+              <Feather
+                name={getFileIcon(item.fileName)}
+                size={24}
+                color={getFileIconColor(item.fileName)}
               />
             </View>
             <View style={styles.documentDetails}>
@@ -183,14 +150,14 @@ const VehicleDocuments = () => {
                 {item.fileName} • {formatFileSize(item.fileSize)}
               </Text>
               <Text size={12} color="grey70" autoTranslate={false}>
-                Uploaded: {formatDate(item.uploadDate)}
+                Uploaded: {formatDate(item.dateAdded)}
               </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.documentActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDownloadDocument(item)}
           >
@@ -199,10 +166,10 @@ const VehicleDocuments = () => {
               Download
             </Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={[styles.actionButton, styles.deleteActionButton]}
-            onPress={() => handleDeleteDocument(item.id)}
+            onPress={() => handleDeleteDocument(item.documentId)}
           >
             <Feather name="trash-2" size={16} color={COLORS.light.danger} />
             <Text size={12} color="danger" style={styles.actionText} autoTranslate={false}>
@@ -242,7 +209,7 @@ const VehicleDocuments = () => {
 
           <View style={styles.statItem}>
             <Text size={20} weight={700} autoTranslate={false}>
-              {stats.recentUploads}
+              {stats.recent}
             </Text>
             <Text size={12} color="grey70" autoTranslate={false}>
               Recent Uploads
@@ -277,10 +244,36 @@ const VehicleDocuments = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       {/* Content */}
-      {documents.length > 0 ? (
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Text size={16} autoTranslate={false}>
+            Loading documents...
+          </Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Feather name="alert-circle" size={48} color={COLORS.light.danger} />
+          <Text size={16} weight={600} style={styles.errorTitle} autoTranslate={false}>
+            Failed to load documents
+          </Text>
+          <Text size={14} color="grey70" style={styles.errorSubtitle} autoTranslate={false}>
+            Please check your connection and try again
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              /* RTK Query will auto-retry */
+            }}
+          >
+            <Text size={14} color="primary" autoTranslate={false}>
+              Try Again
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : documents.length > 0 ? (
         <FlatList
           data={documents}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.documentId}
           renderItem={renderDocument}
           ListHeaderComponent={renderStatsCard}
           showsVerticalScrollIndicator={false}
@@ -299,7 +292,7 @@ const VehicleDocuments = () => {
       <AddVehicleDocumentModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onAdd={handleAddDocumentEntry}
+        onAdd={() => setShowAddModal(false)}
       />
     </SafeAreaView>
   );
@@ -414,6 +407,34 @@ const styles = {
   emptyStateSubtitle: {
     textAlign: 'center' as const,
     lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    paddingHorizontal: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    paddingHorizontal: 20,
+  },
+  errorTitle: {
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center' as const,
+  },
+  errorSubtitle: {
+    textAlign: 'center' as const,
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  retryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
   },
 };
 

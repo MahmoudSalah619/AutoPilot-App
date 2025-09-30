@@ -5,8 +5,13 @@ type NextFunction = (action: any) => void;
 
 const rtkQueryErrorLogger = () => (next: NextFunction) => (action: any) => {
   if (isRejectedWithValue(action)) {
-    // @ts-ignore
-    HandleErrors(action?.payload?.data);
+    // Handle different error payload structures
+    const errorData = action?.payload?.data || action?.payload || action?.error;
+    if (errorData) {
+      HandleErrors(errorData);
+    } else {
+      HandleErrors('Network or server error occurred');
+    }
   }
 
   return next(action);

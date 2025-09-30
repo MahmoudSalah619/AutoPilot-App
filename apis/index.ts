@@ -15,12 +15,14 @@ import tagTypes from './tagTypes';
 const rawBaseQuery = (baseUrl: string) =>
   fetchBaseQuery({
     baseUrl,
+    timeout: 30000, // 30 second timeout for file uploads
     prepareHeaders: (headers, { getState }) => {
       const { token } = (getState() as RootState).auth;
+      console.log('Auth token in prepareHeaders:', token ? 'Present' : 'Missing');
       if (token && !headers.has('Authorization')) {
         headers.set('Authorization', `Bearer ${token}`);
+        console.log('Authorization header set');
       }
-      headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
@@ -28,7 +30,19 @@ const rawBaseQuery = (baseUrl: string) =>
 // Create our baseQuery instance
 const baseQuery = async (args: FetchArgs, api: BaseQueryApi, extraOptions: object) => {
   const baseUrl = `${DomainUrl}/api/v1`;
-  return rawBaseQuery(baseUrl)(args, api, extraOptions);
+  console.log('Making request to:', baseUrl + (typeof args === 'string' ? args : args.url));
+  console.log('Request method:', typeof args === 'object' ? args.method : 'GET');
+  
+  try {
+    const result = await rawBaseQuery(baseUrl)(args, api, extraOptions);
+    if (result.error) {
+      console.log('Base query error:', result.error);
+    }
+    return result;
+  } catch (error) {
+    console.log('Base query exception:', error);
+    throw error;
+  }
 };
 
 const baseQueryWithRetry = retry(baseQuery, { maxRetries: 0 });

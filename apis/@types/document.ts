@@ -1,19 +1,35 @@
 export interface DocumentItem {
-  document_id: string;
-  vehicle_id: string;
+  documentId: string;
+  vehicleId: string;
   name: string;
-  file_name: string;
-  file_url: string;
-  file_size: number;
-  mime_type: string;
-  date_added: string;
+  fileName: string;
+  fileUrl: string;
+  fileSize: number;
+  mimeType: string;
+  dateAdded: string;
+  accessUrl: string;
+}
+
+export interface DocumentStatistics {
+  totalDocuments: number;
+  totalSize: number;
+  recent: number;
+  documentTypes: string[];
 }
 
 export interface DocumentResponse {
-  documents: DocumentItem[];
+  data: DocumentItem[];
+  statistics: DocumentStatistics;
 }
 
 export interface DocumentRequest {
   name: string;
-  file: File;
+  file: File | { uri: string; name: string; type: string };
+}
+
+export interface DocumentFilter {
+  startDate?: string;
+  endDate?: string;
+  fileType?: string;
+  search?: string;
 }

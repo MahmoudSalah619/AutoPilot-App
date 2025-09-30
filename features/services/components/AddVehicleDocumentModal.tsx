@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Modal from 'react-native-modal';
 import { useForm } from 'react-hook-form';
@@ -8,12 +8,13 @@ import { Text, Button } from '@/shared/components/ui';
 import { FormInput as ControllableInput } from '@/shared/components/ui';
 import { COLORS } from '@/constants/Colors';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { AddDocumentFormData, VehicleDocumentEntry } from '@/@types/vehicleDocuments';
+import { AddDocumentFormData } from '@/@types/vehicleDocuments';
+import { useAddDocumentMutation } from '@/apis/services/services/documents';
 
 interface AddVehicleDocumentModalProps {
   visible: boolean;
   onClose: () => void;
-  onAdd: (entry: VehicleDocumentEntry) => void;
+  onAdd: () => void;
 }
 
 const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
@@ -21,6 +22,9 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
   onClose,
   onAdd,
 }) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [addDocument] = useAddDocumentMutation();
+
   const {
     control,
     handleSubmit,
@@ -41,24 +45,63 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
   // Watch form values
   const watchedValues = watch();
 
-  const onSubmit = (data: AddDocumentFormData) => {
+  const onSubmit = async (data: AddDocumentFormData) => {
     if (!data.file) {
       Alert.alert('Error', 'Please select a file to upload');
       return;
     }
 
-    const newEntry: VehicleDocumentEntry = {
-      id: Date.now().toString(),
+    console.log('Starting upload with data:', {
       name: data.name,
-      fileName: data.file.name,
-      fileUri: data.file.uri,
-      fileSize: data.file.size,
-      fileType: data.file.type || 'application/octet-stream',
-      uploadDate: new Date().toISOString(),
-    };
+      file: {
+        uri: data.file.uri,
+        name: data.file.name,
+        type: data.file.type,
+        size: data.file.size,
+      }
+    });
 
-    onAdd(newEntry);
-    handleClose();
+    setIsUploading(true);
+    try {
+      // Create a file object compatible with React Native FormData
+      const file = {
+        uri: data.file.uri,
+        name: data.file.name,
+        type: data.file.type,
+      }; // React Native FormData format
+
+      console.log('Calling addDocument mutation...');
+      const result = await addDocument({
+        name: data.name,
+        file: file,
+      }).unwrap();
+      
+      console.log('Upload successful:', result);
+
+      handleClose();
+      Alert.alert('Success', 'Document uploaded successfully');
+      // invalidatesTags will automatically update the cache
+    } catch (error: any) {
+      console.log('err=>:', error);
+      console.error('Upload error:', error);
+      
+      let errorMessage = 'Failed to upload document. Please try again.';
+      
+      // Handle different error structures
+      if (error?.data?.message) {
+        errorMessage = error.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error?.error) {
+        errorMessage = error.error;
+      }
+      
+      Alert.alert('Upload Error', errorMessage);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleClose = () => {
@@ -84,7 +127,7 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
           type: file.mimeType || 'application/octet-stream',
           size: file.size || 0,
         });
-        
+
         // Auto-fill name if empty
         if (!watchedValues.name) {
           const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, '');
@@ -166,7 +209,7 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
               <Text size={16} weight={600} style={styles.label} autoTranslate={false}>
                 Document File
               </Text>
-              
+
               <TouchableOpacity style={styles.filePickerButton} onPress={handleFilePicker}>
                 <Feather name="upload" size={20} color={COLORS.light.primary} />
                 <Text size={14} color="primary" style={styles.filePickerText} autoTranslate={false}>
@@ -178,10 +221,10 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
               {watchedValues.file && (
                 <View style={styles.selectedFileContainer}>
                   <View style={styles.fileInfo}>
-                    <Feather 
-                      name={getFileIcon(watchedValues.file.name)} 
-                      size={20} 
-                      color={COLORS.light.primary} 
+                    <Feather
+                      name={getFileIcon(watchedValues.file.name)}
+                      size={20}
+                      color={COLORS.light.primary}
                     />
                     <View style={styles.fileDetails}>
                       <Text size={14} weight={600} autoTranslate={false}>
@@ -192,7 +235,7 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
                       </Text>
                     </View>
                   </View>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => setValue('file', undefined)}
                     style={styles.removeFileButton}
                   >
@@ -206,9 +249,21 @@ const AddVehicleDocumentModal: React.FC<AddVehicleDocumentModalProps> = ({
 
         {/* Footer Buttons */}
         <View style={styles.footer}>
-          <Button title="Cancel" variant="outlined" onPress={handleClose} isFullWidth />
+          <Button
+            title="Cancel"
+            variant="outlined"
+            onPress={handleClose}
+            isFullWidth
+            disabled={isUploading}
+          />
           <View style={styles.buttonSpacer} />
-          <Button title="Add Document" variant="filled" onPress={handleSubmit(onSubmit)} isFullWidth />
+          <Button
+            title={isUploading ? 'Uploading...' : 'Add'}
+            variant="filled"
+            onPress={handleSubmit(onSubmit)}
+            isFullWidth
+            disabled={isUploading}
+          />
         </View>
       </View>
     </Modal>
