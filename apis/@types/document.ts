@@ -14,6 +14,7 @@ export interface DocumentStatistics {
   totalDocuments: number;
   totalSize: number;
   recent: number;
+  uploads: number;
   documentTypes: string[];
 }
 

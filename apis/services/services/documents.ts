@@ -53,19 +53,18 @@ export const documentApi = api.injectEndpoints({
         if (body.file instanceof File) {
           formData.append('file', body.file);
         } else {
-          // React Native file format - try alternative approach
+          // React Native file format - use proper structure
           try {
-            // Method 1: Direct object (current approach)
+            // Create file object that React Native FormData expects
             const fileObject = {
               uri: body.file.uri,
               type: body.file.type,
               name: body.file.name,
-            };
+            } as any;
             
-            // Log the exact structure being sent
             console.log('File object structure:', JSON.stringify(fileObject, null, 2));
             
-            formData.append('file', fileObject as any);
+            formData.append('file', fileObject);
             console.log('File appended to FormData successfully');
           } catch (fileError) {
             console.error('Error appending file to FormData:', fileError);
@@ -79,7 +78,6 @@ export const documentApi = api.injectEndpoints({
         
         // Debug: Log all FormData entries
         try {
-          // Note: This might not work in all React Native versions
           for (let [key, value] of formData.entries()) {
             console.log(`${key}:`, typeof value === 'object' ? JSON.stringify(value) : value);
           }
@@ -91,6 +89,11 @@ export const documentApi = api.injectEndpoints({
           url,
           method: 'POST',
           body: formData,
+          prepareHeaders: (headers: Headers) => {
+            // Don't set Content-Type, let the browser/React Native set it automatically for FormData
+            headers.delete('Content-Type');
+            return headers;
+          },
         };
       },
       invalidatesTags: ['document'],

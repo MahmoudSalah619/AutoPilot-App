@@ -26,6 +26,7 @@ const VehicleDocuments = () => {
     totalDocuments: 0,
     totalSize: 0,
     recent: 0,
+    uploads: 0,
     documentTypes: [],
   };
 
@@ -218,7 +219,7 @@ const VehicleDocuments = () => {
 
           <View style={styles.statItem}>
             <Text size={20} weight={700} autoTranslate={false}>
-              {stats.documentTypes.length}
+              {stats.documentTypes?.length}
             </Text>
             <Text size={12} color="grey70" autoTranslate={false}>
               File Types
