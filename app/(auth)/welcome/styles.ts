@@ -1,108 +1,92 @@
-import { Dimensions, StyleSheet } from 'react-native';
-const { width } = Dimensions.get('window');
+import { StyleSheet } from 'react-native';
+import { COLORS, ZenithColors } from '@/constants/Colors';
+import { theme } from '@/utils/getTheme';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+  },
+
+  // Brand Header
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 40,
+    marginTop: 20,
+    gap: 8,
+  },
+  brandHeaderText: {
+    color: '#261813',
   },
 
   // Hero Section
   heroSection: {
-    marginBottom: 40,
-  },
-  gradientBackground: {
-    backgroundColor: 'rgba(70, 130, 194, 0.08)',
-    borderRadius: 20,
-    padding: 24,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(70, 130, 194, 0.15)',
+    marginBottom: 32,
   },
-  heroImageContainer: {
-    marginBottom: 20,
-  },
-  heroImage: {
-    width: width * 0.4,
-    height: width * 0.25,
-  },
-  titleSection: {
-    alignItems: 'center',
+  heroTitle: {
+    textAlign: 'center',
     marginBottom: 16,
-  },
-  welcomeText: {
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  brandText: {
-    textAlign: 'center',
+    color: '#261813',
+    lineHeight: 40,
   },
   heroDesc: {
     textAlign: 'center',
-    paddingHorizontal: 8,
-  },
-
-  // Features Section
-  featuresSection: {
-    marginBottom: 40,
-  },
-  sectionTitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-    color: '#333',
-  },
-  featuresContainer: {
-    gap: 16,
-  },
-  featureCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(70, 130, 194, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  featureContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  featureTitle: {
-    marginBottom: 4,
-    color: '#333',
-  },
-  featureDesc: {
-    lineHeight: 20,
+    paddingHorizontal: 16,
+    lineHeight: 24,
+    color: '#57534E',
   },
 
   // CTA Section
   ctaSection: {
     alignItems: 'center',
+    marginBottom: 48,
+    paddingHorizontal: 8,
   },
   ctaButton: {
-    borderRadius: 16,
-    marginBottom: 12,
+    borderRadius: 12,
     width: '100%',
   },
-  ctaSubtext: {
+
+  // Features Section
+  featuresSection: {
+    marginBottom: 20,
+  },
+  featuresContainer: {
+    gap: 16,
+  },
+  featureCard: {
+    backgroundColor: '#FAFAF9',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS[theme].brand.borderSoft,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS[theme].brand.borderSoft,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  featureTitle: {
+    marginBottom: 8,
+    color: '#261813',
     textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 8,
+  },
+  featureDesc: {
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

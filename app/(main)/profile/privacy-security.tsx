@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Switch, Alert } from 'react-native';
-import { Text, Button } from '@/shared/components/ui';
-import { CardWrapper } from '@/shared/components/ui';
+import { Text, Button, CardWrapper } from '@/shared/components/ui';
+
 import { COLORS } from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
@@ -15,11 +15,9 @@ export default function PrivacySecurity() {
   const [autoBackup, setAutoBackup] = useState(true);
 
   const handleChangePassword = () => {
-    Alert.alert(
-      'Change Password',
-      'You will be redirected to change your password',
-      [{ text: 'OK' }]
-    );
+    Alert.alert('Change Password', 'You will be redirected to change your password', [
+      { text: 'OK' },
+    ]);
   };
 
   const handleDeleteAccount = () => {
@@ -28,21 +26,19 @@ export default function PrivacySecurity() {
       'This action cannot be undone. All your data will be permanently deleted.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
-          onPress: () => console.log('Account deletion requested')
-        }
+          onPress: () => console.log('Account deletion requested'),
+        },
       ]
     );
   };
 
   const handleExportData = () => {
-    Alert.alert(
-      'Export Data',
-      'We will send your data export to your email address.',
-      [{ text: 'OK' }]
-    );
+    Alert.alert('Export Data', 'We will send your data export to your email address.', [
+      { text: 'OK' },
+    ]);
   };
 
   return (

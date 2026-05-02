@@ -57,6 +57,7 @@ export default function Button({
           alignSelf: 'center',
           height: 'auto',
         },
+        {... (backgroundColor&& { backgroundColor: COLORS[theme].brand.highEnergyPrimary })}
       ]}
       disabled={disabled || isLoading}
       activeOpacity={disabled ? 1 : 0.2}

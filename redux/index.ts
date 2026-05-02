@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import api from '@/apis';
+import { supabaseApi } from '@/apis/supabaseApi';
 import rtkQueryErrorLogger from '@/apis/middlewares/errorMiddleware';
 import appReducer from './appReducer';
 import authReducer from './authReducer';
@@ -7,11 +8,15 @@ import authReducer from './authReducer';
 const store = configureStore({
   reducer: {
     [api.reducerPath]: api.reducer,
+    [supabaseApi.reducerPath]: supabaseApi.reducer,
     auth: authReducer,
     app: appReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware).concat(rtkQueryErrorLogger),
+    getDefaultMiddleware()
+      .concat(api.middleware)
+      .concat(supabaseApi.middleware)
+      .concat(rtkQueryErrorLogger),
 });
 
 export default store;

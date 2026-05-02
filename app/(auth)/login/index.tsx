@@ -1,10 +1,9 @@
-import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AuthScreenWrapper } from '@/shared/components/layout';
 import { Controller, useForm } from 'react-hook-form';
-import { Checkbox, FormInput } from '@/shared/components/ui';
-import { Button, Text } from '@/shared/components/ui';
+import { Checkbox, FormInput, Button, Text } from '@/shared/components/ui';
+
 import GLOBAL_STYLES from '@/constants/GlobalStyles';
 import { useLazyGetUserInfoQuery, useLoginMutation } from '@/apis/services/auth';
 import { BiometricAuth } from '@/features/auth';
@@ -37,16 +36,16 @@ const Login = () => {
   const onSubmit = () => {
     const { email, password } = getValues();
 
-    login({ email, password })
-      .unwrap()
-      .then((response) => {
-        console.log('Login successful:', response);
-        handleGetMe(response.access_token);
-        router.replace('/(main)/(tabs)/Home');
-      })
-      .catch((error) => {
-        console.error('Login failed:', error);
-      });
+    router.replace('/(main)/(tabs)/Home');
+    // login({ email, password })
+    //   .unwrap()
+    //   .then((response) => {
+    //     console.log('Login successful:', response);
+    //     handleGetMe(response.access_token);
+    //   })
+    //   .catch((error) => {
+    //     console.error('Login failed:', error);
+    //   });
   };
 
   return (

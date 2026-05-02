@@ -1,9 +1,10 @@
-import React from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Button, Text, Logo } from '@/shared/components/ui';
-import { AuthScreenWrapper } from '@/shared/components/layout';
+import { Feather } from '@expo/vector-icons';
 import { styles } from './styles';
+import { AuthScreenWrapper, Button, Text } from '@/shared';
+import { COLORS } from '@/constants/Colors';
+import { theme } from '@/utils/getTheme';
 
 const Welcome = () => {
   const router = useRouter();
@@ -13,81 +14,46 @@ const Welcome = () => {
     title,
     description,
   }: {
-    icon: string;
+    icon: keyof typeof Feather.glyphMap;
     title: string;
     description: string;
   }) => (
     <View style={styles.featureCard}>
       <View style={styles.iconContainer}>
-        <Text size={24}>{icon}</Text>
+        <Feather name={icon} size={24} color={COLORS[theme].brand.highEnergyPrimary} />
       </View>
-      <View style={styles.featureContent}>
-        <Text size={16} weight={600} style={styles.featureTitle}>
-          {title}
-        </Text>
-        <Text size={14} color="grey70" lineHeight={20} style={styles.featureDesc}>
-          {description}
-        </Text>
-      </View>
+      <Text size={18} weight={600} style={styles.featureTitle}>
+        {title}
+      </Text>
+      <Text size={14} color="grey70" style={styles.featureDesc}>
+        {description}
+      </Text>
     </View>
   );
 
   return (
     <AuthScreenWrapper paddingSize="sm" isScrollable showHeader={false}>
       <View style={styles.container}>
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.gradientBackground}>
-            <View style={styles.heroImageContainer}>
-              <Logo width={180} height={100} />
-            </View>
-
-            <View style={styles.titleSection}>
-              <Text size={32} weight={800} style={styles.welcomeText}>
-                Welcome to
-              </Text>
-              <Text size={36} weight={800} color="primary" style={styles.brandText}>
-                AutoPilot
-              </Text>
-            </View>
-
-            <Text color="grey70" lineHeight={24} size={16} style={styles.heroDesc}>
-              Your intelligent car maintenance companion.
-            </Text>
-          </View>
+        {/* Brand Header */}
+        <View style={styles.brandHeader}>
+          <Feather 
+            name="activity" 
+            size={22} 
+            color={COLORS[theme].brand.highEnergyPrimary} 
+          />
+          <Text size={26} weight={700} style={styles.brandHeaderText}>
+            AutoPilot
+          </Text>
         </View>
 
-        {/* Features Section */}
-        <View style={styles.featuresSection}>
-          <Text size={24} weight={700} style={styles.sectionTitle}>
-            Why Choose AutoPilot?
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <Text size={32} weight={800} style={styles.heroTitle}>
+            Simplify Your Journey
           </Text>
-
-          <View style={styles.featuresContainer}>
-            <FeatureCard
-              icon="📊"
-              title="Smart Tracking"
-              description="Monitor your car's kilometers and get precise maintenance schedules."
-            />
-
-            <FeatureCard
-              icon="⚡"
-              title="Instant Reminders"
-              description="Never miss important maintenance with intelligent notifications."
-            />
-
-            <FeatureCard
-              icon="💰"
-              title="Save Money"
-              description="Prevent costly repairs by staying ahead of maintenance needs."
-            />
-
-            <FeatureCard
-              icon="🛡️"
-              title="Peace of Mind"
-              description="Drive confidently knowing your car is always well-maintained."
-            />
-          </View>
+          <Text size={16} color="grey70" style={styles.heroDesc}>
+            Experience calm automation for your vehicle. We handle the maintenance tracking and reminders, so you can enjoy the drive.
+          </Text>
         </View>
 
         {/* CTA Section */}
@@ -96,14 +62,33 @@ const Welcome = () => {
             title="Get Started"
             onPress={() => router.push('/(auth)/login')}
             buttonStyle={styles.ctaButton}
+            backgroundColor={COLORS[theme].brand.statusOverdueBg}
             showShadow={true}
             btnHeight={56}
             isFullWidth={true}
+            suffix={<Feather name="arrow-right" size={20} color="white" />}
           />
+        </View>
 
-          <Text size={12} color="grey70" style={styles.ctaSubtext}>
-            Join thousands of drivers who trust AutoPilot
-          </Text>
+        {/* Features Section */}
+        <View style={styles.featuresSection}>
+          <View style={styles.featuresContainer}>
+            <FeatureCard
+              icon="activity"
+              title="Predictive Maintenance"
+              description="Stay ahead of repairs with AI-driven insights tailored to your vehicle's history."
+            />
+            <FeatureCard
+              icon="bell"
+              title="Smart Alerts"
+              description="Receive timely, unobtrusive notifications only when it truly matters."
+            />
+            <FeatureCard
+              icon="file-text"
+              title="Effortless Logging"
+              description="Automatically record services and expenses without touching a spreadsheet."
+            />
+          </View>
         </View>
       </View>
     </AuthScreenWrapper>
