@@ -14,7 +14,7 @@ import type { TextProps } from './types';
  * odometer readings, dates).
  *
  * @example
- * <Text variant="h2" tx="home.yourVehicle" />
+ * <Text variant="h2" tx="vehicle.yourVehicle" />
  * <Text variant="metric" color="primary">{`${efficiency} km/L`}</Text>
  */
 export default function Text({

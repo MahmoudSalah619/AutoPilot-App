@@ -12,6 +12,7 @@ import { Screen } from '@/shared/components/layout';
 import { Button, FormInput, Text } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/Toast';
 import { EMAIL_RULES, NEW_PASSWORD_RULES } from '@/features/auth/validation';
+import { markFirstRunPending } from '@/features/onboarding';
 
 interface SignUpForm {
   firstName: string;
@@ -48,6 +49,11 @@ export default function SignUp() {
       }).unwrap();
 
       dispatch(sessionStarted(session));
+
+      // Only a newly created account is a first-time user, so this is the one
+      // place the guided tour is armed. Signing in never sets it.
+      await markFirstRunPending();
+
       // New accounts have no vehicle yet, so onboarding continues there.
       router.replace('/(auth)/addVehicle');
     } catch (error) {

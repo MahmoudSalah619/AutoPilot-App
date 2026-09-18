@@ -8,6 +8,7 @@ import { RADIUS, SPACING } from '@/constants/Layout';
 import { TAB_BAR_HEIGHT } from '@/constants/Metrics';
 import { useTheme } from '@/theme';
 import Text from '@/shared/components/ui/Text';
+import { TOUR_TARGETS, useTourTarget } from '@/features/onboarding';
 import type { FeatherIconName } from '@/shared/components/ui/IconButton';
 
 const TAB_META: Record<string, { icon: FeatherIconName; labelTx: string }> = {
@@ -28,6 +29,7 @@ const TAB_META: Record<string, { icon: FeatherIconName; labelTx: string }> = {
 export default function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, elevation } = useTheme();
   const insets = useSafeAreaInsets();
+  const tourTarget = useTourTarget(TOUR_TARGETS.tabs);
 
   const handlePress = (route: (typeof state.routes)[number], isFocused: boolean) => {
     const event = navigation.emit({
@@ -43,6 +45,7 @@ export default function AppTabBar({ state, descriptors, navigation }: BottomTabB
 
   return (
     <View
+      {...tourTarget}
       style={{
         backgroundColor: colors.surface,
         borderTopColor: colors.border,

@@ -1,11 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
 import { SPACING } from '@/constants/Layout';
-import { useGetFuelEntriesQuery, useGetProfileQuery } from '@/apis/autopilotApi';
+import {
+  useGetFuelEntriesQuery,
+  useGetProfileQuery,
+  useGetRemindersQuery,
+} from '@/apis/autopilotApi';
 import { useActiveVehicle } from '@/hooks/useActiveVehicle';
 import { Screen } from '@/shared/components/layout';
 import {
@@ -23,8 +27,9 @@ import {
   useAttentionItems,
   type QuickAction,
 } from '@/features/home';
-import { UpdateOdometerSheet, VehicleSummaryCard } from '@/features/vehicle';
+import { useOdometerNudge, UpdateOdometerSheet, VehicleSummaryCard } from '@/features/vehicle';
 import { NotificationBell } from '@/features/notifications';
+import { useTour } from '@/features/onboarding';
 
 /** Time-of-day greeting key. */
 function greetingKey(): string {
@@ -43,19 +48,62 @@ export default function Home() {
 
   const [isOdometerSheetOpen, setIsOdometerSheetOpen] = useState(false);
 
+  const { activeTour, isReady, startFirstRunTour, consumeRequestedTour } = useTour();
+
   const { items: attentionItems, isLoading: isAttentionLoading } = useAttentionItems(vehicle?.id);
 
   const { data: fuel } = useGetFuelEntriesQuery(vehicle ? { vehicleId: vehicle.id } : undefined, {
     skip: !vehicle,
   });
 
+  const { data: reminders = [] } = useGetRemindersQuery(
+    vehicle ? { vehicleId: vehicle.id } : undefined,
+    { skip: !vehicle }
+  );
+
+  /**
+   * The odometer prompt is suppressed while the tour runs so a first-time user
+   * never gets two overlays stacked on top of each other.
+   */
+  const { needsAttention, shouldPrompt, dismissPrompt } = useOdometerNudge({
+    vehicle,
+    isSuppressed: Boolean(activeTour) || isOdometerSheetOpen,
+  });
+
+  /**
+   * A brand-new account gets the tour once; the walkthrough screen can also
+   * queue a replay, which is picked up here because the tour's targets only
+   * exist on this screen.
+   */
+  useEffect(() => {
+    if (!isReady || !hasVehicle) return;
+    if (consumeRequestedTour('home')) return;
+
+    startFirstRunTour('home');
+  }, [isReady, hasVehicle, consumeRequestedTour, startFirstRunTour]);
+
+  // Opening the sheet counts as having asked, so it does not reappear today.
+  useEffect(() => {
+    if (!shouldPrompt) return;
+
+    setIsOdometerSheetOpen(true);
+    dismissPrompt();
+  }, [shouldPrompt, dismissPrompt]);
+
   const quickActions = useMemo<QuickAction[]>(
     () => [
+      {
+        key: 'odometer',
+        icon: 'edit-3',
+        labelTx: 'home.updateOdometer',
+        tone: 'primary',
+        onPress: () => setIsOdometerSheetOpen(true),
+      },
       {
         key: 'fuel',
         icon: 'droplet',
         labelTx: 'home.logFuel',
-        tone: 'primary',
+        tone: 'accentTeal',
         onPress: () => router.push('/(main)/services/gas-consumption'),
       },
       {
@@ -71,13 +119,6 @@ export default function Home() {
         labelTx: 'home.addReminder',
         tone: 'accentViolet',
         onPress: () => router.push('/(main)/services/service-reminders'),
-      },
-      {
-        key: 'odometer',
-        icon: 'edit-3',
-        labelTx: 'home.updateOdometer',
-        tone: 'accentTeal',
-        onPress: () => setIsOdometerSheetOpen(true),
       },
     ],
     []
@@ -122,6 +163,7 @@ export default function Home() {
       {!!vehicle && (
         <VehicleSummaryCard
           vehicle={vehicle}
+          reminders={reminders}
           onUpdateOdometer={() => setIsOdometerSheetOpen(true)}
           onSwitchVehicle={
             vehicles.length > 1
@@ -179,6 +221,9 @@ export default function Home() {
           isVisible={isOdometerSheetOpen}
           onClose={() => setIsOdometerSheetOpen(false)}
           vehicle={vehicle}
+          /* A stale reading means the sheet opened on its own, so it explains
+             why rather than just presenting an empty field. */
+          isPrompted={needsAttention}
         />
       )}
     </Screen>

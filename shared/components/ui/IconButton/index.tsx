@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { RADIUS } from '@/constants/Layout';
 import { useTheme } from '@/theme';
@@ -18,8 +19,13 @@ export interface IconButtonProps {
   /** Background token for the `soft` variant. Defaults to the surface tint. */
   backgroundColor?: ColorToken;
   disabled?: boolean;
-  /** Required: icon-only controls have no visible label for screen readers. */
-  accessibilityLabel: string;
+  /**
+   * Required: icon-only controls have no visible label for screen readers.
+   * Pass an already-resolved string, or use `accessibilityLabelTx` for a key.
+   */
+  accessibilityLabel?: string;
+  /** Translation key for the accessibility label. */
+  accessibilityLabelTx?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -40,9 +46,11 @@ export default function IconButton({
   backgroundColor = 'surfaceAlt',
   disabled = false,
   accessibilityLabel,
+  accessibilityLabelTx,
   style,
   testID,
 }: IconButtonProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { box, glyph } = DIMENSIONS[size];
 
@@ -53,7 +61,7 @@ export default function IconButton({
       disabled={disabled}
       hitSlop={8}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={accessibilityLabelTx ? t(accessibilityLabelTx) : accessibilityLabel}
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         {

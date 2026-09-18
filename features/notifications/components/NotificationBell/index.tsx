@@ -27,7 +27,7 @@ export default function NotificationBell() {
         variant="soft"
         color="text"
         onPress={() => router.push('/(main)/profile/notifications')}
-        accessibilityLabel="notifications.title"
+        accessibilityLabelTx="notifications.title"
       />
 
       {unreadCount > 0 && (

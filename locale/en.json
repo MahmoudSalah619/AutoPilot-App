@@ -227,7 +227,15 @@
       "dct": "Dual clutch"
     },
     "currentReading": "Current reading: {{value}}",
-    "select": "Use this car"
+    "select": "Use this car",
+    "odometerStale": "Needs updating",
+    "odometerNever": "Not set",
+    "odometerNeverBody": "No reading recorded yet",
+    "odometerWhy": "Reminders and fuel economy are calculated from this reading, so keeping it current keeps them accurate.",
+    "odometerPromptTitle": "How far have you driven?",
+    "odometerPromptBody": "Your last reading is a few weeks old. Updating it keeps your reminders honest.",
+    "odometerPromptLater": "Not now",
+    "odometerSavedDriven": "{{distance}} since your last reading"
   },
   "serviceTypes": {
     "oilChange": "Oil change",
@@ -726,5 +734,47 @@
     "website": "Website",
     "shareApp": "Share AutoPilot",
     "copyright": "© {{year}} AutoPilot"
+  },
+  "tour": {
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip tour",
+    "done": "Got it",
+    "home": {
+      "odometerTitle": "Start with your mileage",
+      "odometerBody": "This is the number everything else is built on. Services, reminders and fuel economy are all measured against it.",
+      "updateTitle": "Keep it current",
+      "updateBody": "Tap here whenever you notice the reading has moved. Takes five seconds, and AutoPilot recalculates what is due.",
+      "quickActionsTitle": "Log things as they happen",
+      "quickActionsBody": "Fill up, get a service done, or set a reminder — all from here, without digging through menus.",
+      "tabsTitle": "Everything else lives here",
+      "tabsBody": "Maintenance history, your calendar, and the full set of tools under Services."
+    }
+  },
+  "howItWorks": {
+    "title": "How AutoPilot works",
+    "subtitle": "A two-minute walkthrough",
+    "finish": "Done",
+    "replayTour": "Show me on the app instead",
+    "mileageTitle": "One number runs everything",
+    "mileageBody": "Your odometer reading is what AutoPilot measures against. Keep it current and the app works out the rest on its own.",
+    "mileagePoint1": "Update it from the home screen in about five seconds.",
+    "mileagePoint2": "The app asks for it only when the reading has gone stale.",
+    "remindersTitle": "Reminders that fit real driving",
+    "remindersBody": "Service schedules are written as \"10,000 km or 12 months\", so reminders here work the same way.",
+    "remindersPoint1": "Trigger by date, by distance, or whichever arrives first.",
+    "remindersPoint2": "Repeating reminders roll forward when you mark them done.",
+    "fuelTitle": "Fuel economy you can trust",
+    "fuelBody": "Log a fill-up and AutoPilot works out your real-world consumption, then tells you when it shifts.",
+    "fuelPoint1": "Only full fill-ups count, because a partial fill cannot tell you what the distance actually used.",
+    "fuelPoint2": "Two fill-ups is enough to get your first figure.",
+    "documentsTitle": "Papers you will not lose",
+    "documentsBody": "Insurance, registration and your licence, stored with their expiry dates attached.",
+    "documentsPoint1": "You get a warning 30 days before anything runs out.",
+    "documentsPoint2": "Attach the file once and open or share it from anywhere.",
+    "toolsTitle": "The rest of the toolkit",
+    "toolsBody": "Everything else sits under Services, ready when you need it.",
+    "toolsPoint1": "Look up a dashboard fault code and see whether it is safe to drive.",
+    "toolsPoint2": "Plan a trip and get the fuel cost from your own economy figure."
   }
 }

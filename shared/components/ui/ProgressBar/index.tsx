@@ -13,6 +13,8 @@ export interface ProgressBarProps {
   height?: number;
   /** Caption shown above the track, on the leading edge. */
   labelTx?: string;
+  /** Literal leading caption, for names that come from user data. */
+  label?: string;
   /** Caption shown above the track, on the trailing edge (usually a value). */
   valueLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -27,6 +29,7 @@ export default function ProgressBar({
   tone = 'primary',
   height = 8,
   labelTx,
+  label,
   valueLabel,
   style,
 }: ProgressBarProps) {
@@ -35,9 +38,26 @@ export default function ProgressBar({
 
   return (
     <View style={[{ rowGap: SPACING.xs, width: '100%' }, style]}>
-      {(!!labelTx || !!valueLabel) && (
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          {!!labelTx && <Text variant="caption" color="textSecondary" tx={labelTx} />}
+      {(!!labelTx || !!label || !!valueLabel) && (
+        <View
+          style={{
+            alignItems: 'center',
+            columnGap: SPACING.sm,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}
+        >
+          {(!!labelTx || !!label) && (
+            <Text
+              variant="caption"
+              color="textSecondary"
+              tx={labelTx}
+              numberOfLines={1}
+              style={{ flexShrink: 1 }}
+            >
+              {label}
+            </Text>
+          )}
           {!!valueLabel && (
             <Text variant="labelSm" color={tone}>
               {valueLabel}

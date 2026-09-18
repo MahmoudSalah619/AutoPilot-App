@@ -5,6 +5,7 @@
  * `View`/`Text`; every component here is theme-aware and token-driven.
  */
 
+export { default as AnimatedNumber } from './AnimatedNumber';
 export { default as Avatar } from './Avatar';
 export { default as Badge } from './Badge';
 export { default as Button } from './Button';
@@ -23,6 +24,7 @@ export { default as Loading } from './Loading';
 export { default as Logo } from './Logo';
 export { default as OptionGroup } from './OptionGroup';
 export { default as ProgressBar } from './ProgressBar';
+export { default as PulseHalo } from './PulseHalo';
 export { default as SectionHeader } from './SectionHeader';
 export { default as SegmentedControl } from './SegmentedControl';
 export { default as Skeleton, SkeletonCard } from './Skeleton';
@@ -31,6 +33,7 @@ export { default as Switch } from './Switch';
 export { default as Text } from './Text';
 export { default as toast, toastConfig } from './Toast';
 
+export type { AnimatedNumberProps } from './AnimatedNumber';
 export type { AvatarProps } from './Avatar';
 export type { BadgeProps, BadgeTone } from './Badge/types';
 export type { ButtonProps, ButtonSize, ButtonVariant } from './Button/types';
@@ -48,6 +51,7 @@ export type { ListRowProps } from './ListRow';
 export type { LoadingProps } from './Loading';
 export type { Option, OptionGroupProps } from './OptionGroup';
 export type { ProgressBarProps } from './ProgressBar';
+export type { PulseHaloProps } from './PulseHalo';
 export type { SectionHeaderProps } from './SectionHeader';
 export type { SegmentedControlProps, SegmentOption } from './SegmentedControl';
 export type { StatTileProps } from './StatTile';

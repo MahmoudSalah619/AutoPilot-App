@@ -20,7 +20,7 @@ import type {
   Vehicle,
   VehicleDocument,
 } from '@/@types/models';
-import { daysUntil } from './date';
+import { daysSince, daysUntil } from './date';
 
 /** A service falling due within this many days is flagged "due soon". */
 export const DUE_SOON_DAYS = 14;
@@ -30,6 +30,84 @@ export const DOCUMENT_EXPIRY_WARNING_DAYS = 30;
 
 /** Remaining kilometers below this fraction of the interval counts as due soon. */
 export const DUE_SOON_KM = 500;
+
+/* ── Odometer freshness ───────────────────────────────────────────────────── */
+
+/** A reading younger than this is current, and the UI stays calm. */
+export const ODOMETER_FRESH_DAYS = 7;
+
+/** At this age the reading is stale enough to actively ask for an update. */
+export const ODOMETER_STALE_DAYS = 21;
+
+/**
+ * How trustworthy the stored odometer reading is.
+ *
+ * This is the app's load-bearing number: distance-triggered reminders, service
+ * intervals and fuel economy are all measured against it, so a stale reading
+ * quietly degrades everything else. Surfacing its age is what lets the UI ask
+ * for an update only when asking is actually warranted.
+ */
+export type OdometerFreshness = 'never' | 'fresh' | 'aging' | 'stale';
+
+export function resolveOdometerFreshness(updatedAt?: string): OdometerFreshness {
+  if (!updatedAt) return 'never';
+
+  const age = daysSince(updatedAt);
+  if (!Number.isFinite(age)) return 'never';
+
+  if (age <= ODOMETER_FRESH_DAYS) return 'fresh';
+  if (age < ODOMETER_STALE_DAYS) return 'aging';
+
+  return 'stale';
+}
+
+/** True when the reading is old enough to justify interrupting the user. */
+export function isOdometerStale(updatedAt?: string): boolean {
+  const freshness = resolveOdometerFreshness(updatedAt);
+  return freshness === 'stale' || freshness === 'never';
+}
+
+/**
+ * The nearest distance-triggered reminder, as progress toward its due point.
+ *
+ * Powers the "next service in N km" line on the home card, which is what makes
+ * updating the odometer feel purposeful rather than like data entry.
+ */
+export interface DistanceMilestone {
+  title: string;
+  /** Kilometers left before it is due. Negative once overdue. */
+  remainingKm: number;
+  /** 0 to 1 through the interval. 1 means due now. */
+  progress: number;
+  isOverdue: boolean;
+}
+
+export function nextDistanceMilestone(
+  reminders: ServiceReminder[],
+  currentOdometer: number
+): DistanceMilestone | undefined {
+  const candidates = reminders
+    .filter((reminder) => reminder.isActive && reminder.dueOdometer != null)
+    .filter((reminder) => reminder.trigger !== 'date')
+    .map((reminder) => ({
+      reminder,
+      remainingKm: (reminder.dueOdometer as number) - currentOdometer,
+    }))
+    // Closest to due first, with already-overdue items ranking ahead.
+    .sort((a, b) => a.remainingKm - b.remainingKm);
+
+  const nearest = candidates[0];
+  if (!nearest) return undefined;
+
+  const span = nearest.reminder.repeatEveryKm ?? DUE_SOON_KM * 20;
+
+  return {
+    title: nearest.reminder.title,
+    remainingKm: nearest.remainingKm,
+    progress: Math.max(0, Math.min(1, 1 - nearest.remainingKm / span)),
+    isOverdue: nearest.remainingKm <= 0,
+  };
+}
 
 /* ── Maintenance ──────────────────────────────────────────────────────────── */
 

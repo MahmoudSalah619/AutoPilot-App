@@ -4,6 +4,7 @@ export * as Calendar from './calendar';
 export * as Home from './home';
 export * as Maintenance from './maintenance';
 export * as Navigation from './navigation';
+export * as Onboarding from './onboarding';
 export * as Notifications from './notifications';
 export * as Profile from './profile';
 export * as Services from './services';

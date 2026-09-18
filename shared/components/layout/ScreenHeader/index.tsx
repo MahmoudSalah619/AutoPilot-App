@@ -82,7 +82,7 @@ export default function ScreenHeader({
             icon={I18nManager.isRTL ? 'chevron-right' : 'chevron-left'}
             size="md"
             onPress={handleBack}
-            accessibilityLabel="common.back"
+            accessibilityLabelTx="common.back"
             style={{ marginStart: -SPACING.sm }}
           />
         ) : null}

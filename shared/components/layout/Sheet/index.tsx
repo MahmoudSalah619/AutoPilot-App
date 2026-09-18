@@ -115,7 +115,7 @@ export default function Sheet({
                 variant="soft"
                 color="textSecondary"
                 onPress={onClose}
-                accessibilityLabel="common.close"
+                accessibilityLabelTx="common.close"
               />
             )}
           </View>

@@ -75,7 +75,7 @@ rendered verbatim, which is what you want for user data.
 Switching to Arabic flips `I18nManager` to RTL, which React Native only applies
 after a reload — `useChangeLanguage` detects this and prompts for a restart.
 
-Keep `en.json` and `ar.json` in sync; both currently hold 626 keys.
+Keep `en.json` and `ar.json` in sync; both currently hold 670 keys.
 
 ## Data layer
 
@@ -127,6 +127,87 @@ rules, and they are pure functions with no i18n or React dependency:
 - `resolveDocumentStatus` — 30 days' warning before an expiry.
 - `estimateTrip` / `findTripBlockers` — fuel cost from measured economy, plus
   anything falling due before the return date.
+
+## Onboarding and the odometer
+
+The odometer reading is the app's load-bearing input — distance-triggered
+reminders, service intervals and fuel economy are all derived from it — so both
+the onboarding and the home screen are built around keeping it current.
+
+### Two ways to learn the app
+
+| Surface | What it is | When |
+|---|---|---|
+| **Spotlight tour** | Dims the screen and highlights the real UI, step by step | Once, automatically, for a brand-new account |
+| **Walkthrough carousel** | Five swipeable slides explaining the model | Any time, from **Profile → How AutoPilot works** |
+
+They are deliberately different things. The tour points at live UI, so it only
+makes sense on a screen that exists; the carousel is opened from Settings where
+there is nothing to point at, so it explains in prose. The carousel's last
+slide offers to replay the tour for anyone who wants the contextual version.
+
+#### First-timers only
+
+The tour auto-starts only when **both** hold:
+
+1. `markFirstRunPending()` was called — which happens *only* on sign-up, never
+   on sign-in. Someone restoring an existing account on a new phone is not a
+   first-time user and is left alone.
+2. The tour has never been completed or skipped on this device
+   (`autopilot.seen-tours`).
+
+Both flags clear when the tour ends, so it never reappears by itself.
+
+#### Spotlight mechanics
+
+Targets register a *measuring function* rather than a cached rectangle, so each
+step reads the element's real position when it becomes active:
+
+```tsx
+const odometerTarget = useTourTarget(TOUR_TARGETS.odometer);
+
+<View {...odometerTarget}>…</View>   // spreads ref + collapsable={false}
+```
+
+Two details that matter:
+
+- **`collapsable={false}`** — without it Android optimises the wrapper out of
+  the native hierarchy and it cannot be measured.
+- **The overlay is not a `Modal`.** A Modal is a separate native window, so its
+  coordinate space does not match the one `measureInWindow` reports, which
+  offset every cut-out by the status-bar height. The overlay renders as an
+  absolutely-positioned sibling of the app content instead, and additionally
+  subtracts its own measured window origin — so alignment holds even if
+  something above it introduces an inset.
+
+Steps are declared in `features/onboarding/tours.ts` and must all be visible
+without scrolling, because the tour does not drive the scroll position. To add
+one: register a target with `useTourTarget`, then add an entry to `TOURS`.
+
+### Odometer freshness
+
+`resolveOdometerFreshness` in `utils/domain.ts` grades the stored reading:
+
+| State | Age | UI |
+|---|---|---|
+| `fresh` | ≤ 7 days | Calm. No motion. |
+| `aging` | 8–20 days | Calm, slightly stronger caption. |
+| `stale` | ≥ 21 days | Amber card, "Needs updating" badge, pulsing halo on the update button. |
+| `never` | no reading | Same as `stale`. |
+
+Two rules keep this from becoming wallpaper:
+
+- **Motion is conditional.** `PulseHalo` only animates while `active`, and
+  `AnimatedNumber` only counts up on a genuine change, never on mount. Both
+  honour the OS reduce-motion setting.
+- **The prompt is earned.** `useOdometerNudge` opens the sheet on its own only
+  when the reading is stale, at most once per day, and never while the tour is
+  running. Suppression is sticky for the session, so the sheet cannot appear
+  the instant the tour closes.
+
+The seeded mock data demonstrates both states: *Daily driver* is fresh,
+*Weekend car* is stale. Switch between them under **Profile → Vehicle
+information** to see each treatment.
 
 ## Scripts
 

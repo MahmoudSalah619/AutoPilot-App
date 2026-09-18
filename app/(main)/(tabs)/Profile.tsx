@@ -105,6 +105,14 @@ export default function Profile() {
 
       <SettingsGroup titleTx="profile.sections.support">
         <ListRow
+          icon="compass"
+          iconTone="primary"
+          iconBackground="primarySoft"
+          titleTx="howItWorks.title"
+          subtitleTx="howItWorks.subtitle"
+          onPress={() => router.push('/(main)/profile/how-it-works')}
+        />
+        <ListRow
           icon="help-circle"
           iconTone="accentAmber"
           iconBackground="accentAmberSoft"

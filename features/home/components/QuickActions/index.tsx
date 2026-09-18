@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { RADIUS, SPACING } from '@/constants/Layout';
 import { useTheme } from '@/theme';
 import Text from '@/shared/components/ui/Text';
+import { TOUR_TARGETS, useTourTarget } from '@/features/onboarding';
 import type { ColorToken } from '@/constants/Colors';
 import type { FeatherIconName } from '@/shared/components/ui/IconButton';
 
@@ -26,9 +27,10 @@ const SOFT_BY_TONE = {
 /** Four-up row of the actions a driver takes most often. */
 export default function QuickActions({ actions }: { actions: QuickAction[] }) {
   const { colors } = useTheme();
+  const tourTarget = useTourTarget(TOUR_TARGETS.quickActions);
 
   return (
-    <View style={{ columnGap: SPACING.sm, flexDirection: 'row' }}>
+    <View {...tourTarget} style={{ columnGap: SPACING.sm, flexDirection: 'row' }}>
       {actions.map((action) => (
         <Pressable
           key={action.key}

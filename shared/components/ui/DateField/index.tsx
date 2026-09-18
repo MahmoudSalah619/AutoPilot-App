@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Calendar, type DateData } from 'react-native-calendars';
+import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 
 import { RADIUS, SPACING } from '@/constants/Layout';
@@ -51,6 +52,7 @@ export default function DateField({
   disabled = false,
   style,
 }: DateFieldProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const calendarTheme = useCalendarTheme();
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +119,7 @@ export default function DateField({
             onPress={() => onChange('')}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="common.clear"
+            accessibilityLabel={t('common.clear')}
           >
             <Feather name="x" size={16} color={colors.textMuted} />
           </Pressable>

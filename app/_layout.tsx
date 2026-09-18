@@ -12,6 +12,7 @@ import { ThemeProvider, useTheme } from '@/theme';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
 import { useLoadResources } from '@/hooks/useLoadResources';
 import { ConfirmDialog } from '@/shared/components/layout';
+import { TourProvider } from '@/features/onboarding';
 import { toastConfig } from '@/shared/components/ui/Toast';
 
 /**
@@ -77,7 +78,9 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <Provider store={store}>
           <ThemeProvider>
-            <ThemedRoot />
+            <TourProvider>
+              <ThemedRoot />
+            </TourProvider>
           </ThemeProvider>
         </Provider>
       </SafeAreaProvider>
