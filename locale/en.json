@@ -354,7 +354,10 @@
       "totalCost": "Total spent",
       "trendUp": "{{percent}}% better than before",
       "trendDown": "{{percent}}% worse than before",
-      "trendFlat": "Holding steady"
+      "trendFlat": "Holding steady",
+      "headline": "Average economy",
+      "basis": "Full fill-ups only · {{logged}} logged",
+      "rangeA11y": "Ranges from {{worst}} to {{best}} kilometers per liter"
     },
     "filter": {
       "title": "Filter fill-ups",
@@ -366,7 +369,12 @@
       "last3Months": "Last 3 months",
       "last6Months": "Last 6 months",
       "lastYear": "Last year"
-    }
+    },
+    "moreDetails": "Add details",
+    "moreDetailsHint": "Price per liter, station, notes",
+    "derivedPrice": "Price per liter works out to",
+    "derivedTotal": "Total for this fill-up",
+    "pricePerLiterHint": "Leave empty and it is worked out from the total"
   },
   "documents": {
     "title": "Documents",

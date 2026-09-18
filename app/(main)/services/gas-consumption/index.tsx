@@ -14,7 +14,6 @@ import {
   Fab,
   IconButton,
   SkeletonCard,
-  StatTile,
   Text,
 } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/Toast';
@@ -22,15 +21,10 @@ import {
   DateRangeSheet,
   FuelEntryCard,
   FuelEntrySheet,
+  FuelStatsSummary,
   type DateRange,
 } from '@/features/services/fuel';
-import {
-  formatCurrency,
-  formatDate,
-  formatDistance,
-  formatEfficiency,
-  formatVolume,
-} from '@/utils/format';
+import { formatDate } from '@/utils/format';
 
 export default function GasConsumption() {
   const { t } = useTranslation();
@@ -148,46 +142,7 @@ export default function GasConsumption() {
             )}
 
             {hasEnoughData && !!statistics ? (
-              <Card padding="lg" style={{ rowGap: SPACING.md }}>
-                <View style={{ columnGap: SPACING.sm, flexDirection: 'row' }}>
-                  <StatTile
-                    variant="plain"
-                    value={formatEfficiency(statistics.averageKmPerLiter)}
-                    labelTx="fuel.stats.average"
-                    tone="primary"
-                  />
-                  <StatTile
-                    variant="plain"
-                    value={formatEfficiency(statistics.bestKmPerLiter)}
-                    labelTx="fuel.stats.best"
-                    tone="success"
-                  />
-                  <StatTile
-                    variant="plain"
-                    value={formatEfficiency(statistics.worstKmPerLiter)}
-                    labelTx="fuel.stats.worst"
-                    tone="danger"
-                  />
-                </View>
-
-                <View style={{ columnGap: SPACING.sm, flexDirection: 'row' }}>
-                  <StatTile
-                    variant="plain"
-                    value={formatDistance(statistics.totalDistanceKm)}
-                    labelTx="fuel.stats.totalDistance"
-                  />
-                  <StatTile
-                    variant="plain"
-                    value={formatVolume(statistics.totalLiters)}
-                    labelTx="fuel.stats.totalLiters"
-                  />
-                  <StatTile
-                    variant="plain"
-                    value={formatCurrency(statistics.totalCost, 'EGP')}
-                    labelTx="fuel.stats.totalCost"
-                  />
-                </View>
-              </Card>
+              <FuelStatsSummary statistics={statistics} />
             ) : entries.length > 0 ? (
               <Card variant="flat">
                 <View style={{ rowGap: SPACING.xs }}>

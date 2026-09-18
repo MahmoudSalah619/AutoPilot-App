@@ -354,7 +354,10 @@
       "totalCost": "إجمالي الإنفاق",
       "trendUp": "أفضل بنسبة {{percent}}% عن السابق",
       "trendDown": "أسوأ بنسبة {{percent}}% عن السابق",
-      "trendFlat": "مستقر"
+      "trendFlat": "مستقر",
+      "headline": "متوسط الاستهلاك",
+      "basis": "التعبئة الكاملة فقط · {{logged}} مسجلة",
+      "rangeA11y": "يتراوح بين {{worst}} و {{best}} كيلومتر لكل لتر"
     },
     "filter": {
       "title": "تصفية عمليات التزويد",
@@ -366,7 +369,12 @@
       "last3Months": "آخر 3 شهور",
       "last6Months": "آخر 6 شهور",
       "lastYear": "آخر سنة"
-    }
+    },
+    "moreDetails": "إضافة تفاصيل",
+    "moreDetailsHint": "سعر اللتر، المحطة، ملاحظات",
+    "derivedPrice": "سعر اللتر يعادل",
+    "derivedTotal": "إجمالي هذه التعبئة",
+    "pricePerLiterHint": "اتركه فارغًا ليُحسب من الإجمالي"
   },
   "documents": {
     "title": "المستندات",

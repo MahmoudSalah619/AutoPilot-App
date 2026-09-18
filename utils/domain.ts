@@ -243,7 +243,13 @@ export function calculateFuelStatistics(entries: FuelEntry[]): FuelStatistics {
 
   const totalLiters = entries.reduce((sum, entry) => sum + entry.liters, 0);
   const totalDistanceKm = entries.reduce((sum, entry) => sum + entry.distanceKm, 0);
-  const totalCost = entries.reduce((sum, entry) => sum + (entry.totalCost ?? 0), 0);
+  // Older rows may carry only a unit price, so spend is reconstructed rather
+  // than silently counted as zero.
+  const totalCost = entries.reduce(
+    (sum, entry) =>
+      sum + (entry.totalCost ?? (entry.pricePerLiter ? entry.pricePerLiter * entry.liters : 0)),
+    0
+  );
 
   const measurable = entries
     .filter((entry) => entry.isFullTank && entry.liters > 0 && entry.distanceKm > 0)

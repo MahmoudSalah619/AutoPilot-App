@@ -75,7 +75,7 @@ rendered verbatim, which is what you want for user data.
 Switching to Arabic flips `I18nManager` to RTL, which React Native only applies
 after a reload — `useChangeLanguage` detects this and prompts for a restart.
 
-Keep `en.json` and `ar.json` in sync; both currently hold 670 keys.
+Keep `en.json` and `ar.json` in sync; both currently hold 678 keys.
 
 ## Data layer
 
@@ -124,6 +124,8 @@ rules, and they are pure functions with no i18n or React dependency:
   date or distance.
 - `calculateFuelStatistics` — only full fill-ups contribute to economy, because
   a partial fill does not tell you how much fuel the preceding distance used.
+  Spend is reconstructed from `pricePerLiter * liters` when a row has no
+  `totalCost`, so the total never reads short.
 - `resolveDocumentStatus` — 30 days' warning before an expiry.
 - `estimateTrip` / `findTripBlockers` — fuel cost from measured economy, plus
   anything falling due before the return date.
@@ -232,4 +234,13 @@ npx tsc --noEmit   # typecheck
   Validation messages are translation keys.
 - **Dialogs** use `ConfirmDialog`, not `Alert.alert` — the platform alert
   ignores the app's theme and typography.
+- **Sheets** use `Sheet`, which owns its own drag-to-dismiss. Do not add
+  `swipeDirection` to it: `react-native-modal` installs a PanResponder whose
+  `onStartShouldSetPanResponder` returns true for every touch on the sheet, so
+  it swallows the gesture before the body `ScrollView` sees it and any form
+  taller than the sheet becomes unscrollable. The drag is scoped to the grab
+  handle and title instead.
+- **Long forms** ask for the few fields the feature needs and put the rest
+  behind `Collapsible`. A form the user has to scroll on the common path is a
+  form with too many fields on the common path.
 - **Lists** always supply an `EmptyState` and a `SkeletonCard` loading state.
