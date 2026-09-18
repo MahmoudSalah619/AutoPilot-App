@@ -1,41 +1,25 @@
 import { StyleSheet } from 'react-native';
-import { COLORS } from '@/constants/Colors';
-import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import { theme } from '@/utils/getTheme';
 
-const styles = StyleSheet.create({
-  button: {
+export default StyleSheet.create({
+  base: {
     alignItems: 'center',
-    borderRadius: 8,
+    alignSelf: 'flex-start',
     flexDirection: 'row',
-    height: 40,
     justifyContent: 'center',
-    paddingHorizontal: 15,
   },
-  prefixSpacing: {
-    marginEnd: 8,
+  fullWidth: {
+    alignSelf: 'stretch',
+    width: '100%',
   },
-  smallSpaceEnd: { marginEnd: 4 },
-  suffixSpacing: {
-    marginStart: 10,
+  pressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.985 }],
   },
-  text: {
-    fontSize: 16,
-    lineHeight: 28,
-    textAlign: 'center',
-    ...GLOBAL_STYLES.font700,
+  disabled: {
+    opacity: 0.45,
   },
-  filled: {
-    backgroundColor: COLORS[theme].primary,
-  },
-  outlined: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-  },
-  underlined: {
-    backgroundColor: 'transparent',
-    borderBottomWidth: 1,
+  icon: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
-
-export default styles;

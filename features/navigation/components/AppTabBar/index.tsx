@@ -1,37 +1,34 @@
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
-import { Text } from '@/shared/components/ui';
-import { ThemedView } from '@/shared/components/layout';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { COLORS } from '@/constants/Colors';
+import { Platform, Pressable, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-// Icon mapping for routes
-const getIcon = (routeName: string, isFocused: boolean) => {
-  const icons = {
-    Home: 'home',
-    Maintenance: 'build',
-    Calendar: 'event',
-    Services: 'checklist',
-    Profile: 'person',
-  } as const;
-  const iconName = icons[routeName as keyof typeof icons] || 'home';
-  const iconSize = routeName === 'Home' ? 28 : 24;
+import { RADIUS, SPACING } from '@/constants/Layout';
+import { TAB_BAR_HEIGHT } from '@/constants/Metrics';
+import { useTheme } from '@/theme';
+import Text from '@/shared/components/ui/Text';
+import type { FeatherIconName } from '@/shared/components/ui/IconButton';
 
-  let iconColor: string;
-  if (routeName === 'Home') {
-    // Home tab: white icon when focused (blue background), blue icon when not focused (white background)
-    iconColor = isFocused ? COLORS.light.white : COLORS.light.primary;
-  } else {
-    // Other tabs: blue when focused, black when not focused
-    iconColor = isFocused ? COLORS.light.primary : 'black';
-  }
-
-  return <MaterialIcons name={iconName} size={iconSize} color={iconColor} />;
+const TAB_META: Record<string, { icon: FeatherIconName; labelTx: string }> = {
+  Home: { icon: 'home', labelTx: 'tabs.home' },
+  Maintenance: { icon: 'tool', labelTx: 'tabs.maintenance' },
+  Calendar: { icon: 'calendar', labelTx: 'tabs.calendar' },
+  Services: { icon: 'grid', labelTx: 'tabs.services' },
+  Profile: { icon: 'user', labelTx: 'tabs.profile' },
 };
 
-// TabBar component
-const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+/**
+ * Bottom tab bar.
+ *
+ * Flat and evenly weighted — the previous version floated Home in a raised
+ * circle, which cost vertical space, clipped on small screens, and implied a
+ * hierarchy that does not exist between five peer destinations.
+ */
+export default function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors, elevation } = useTheme();
+  const insets = useSafeAreaInsets();
+
   const handlePress = (route: (typeof state.routes)[number], isFocused: boolean) => {
     const event = navigation.emit({
       type: 'tabPress',
@@ -45,107 +42,71 @@ const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   };
 
   return (
-    <ThemedView style={styles.tabbarContainer}>
-      <View style={styles.tabbar}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const label =
-            typeof options.tabBarLabel === 'string'
-              ? options.tabBarLabel
-              : typeof options.title === 'string'
-                ? options.title
-                : route.name;
+    <View
+      style={{
+        backgroundColor: colors.surface,
+        borderTopColor: colors.border,
+        borderTopWidth: 1,
+        flexDirection: 'row',
+        height: TAB_BAR_HEIGHT + insets.bottom,
+        paddingBottom: insets.bottom,
+        paddingHorizontal: SPACING.sm,
+        ...(Platform.OS === 'ios' ? elevation.md() : null),
+      }}
+    >
+      {state.routes.map((route: (typeof state.routes)[number], index: number) => {
+        const meta = TAB_META[route.name];
+        if (!meta) return null;
 
-          const isFocused = state.index === index;
-          const isHomeTab = route.name === 'Home';
-          return (
-            <TouchableOpacity
-              key={route.key}
-              onPress={() => handlePress(route, isFocused)}
-              style={[
-                styles.tab,
-                isHomeTab && styles.homeTab,
-                isHomeTab && isFocused && styles.homeTabFocused,
-              ]}
+        const isFocused = state.index === index;
+        const { options } = descriptors[route.key];
+
+        return (
+          <Pressable
+            key={route.key}
+            onPress={() => handlePress(route, isFocused)}
+            onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isFocused }}
+            accessibilityLabel={options.title ?? route.name}
+            style={({ pressed }) => [
+              {
+                alignItems: 'center',
+                flex: 1,
+                justifyContent: 'center',
+                paddingTop: SPACING.sm,
+                rowGap: SPACING.xs,
+              },
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <View
+              style={{
+                alignItems: 'center',
+                backgroundColor: isFocused ? colors.primarySoft : colors.transparent,
+                borderRadius: RADIUS.pill,
+                height: 30,
+                justifyContent: 'center',
+                width: 52,
+              }}
             >
-              <View style={isHomeTab ? styles.homeIconContainer : undefined}>
-                {getIcon(route.name, isFocused)}
-              </View>
-              {!isHomeTab && (
-                <Text color={isFocused ? 'primary' : 'text'} size={10} numberOfLines={1}>
-                  {label}
-                </Text>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </ThemedView>
+              <Feather
+                name={meta.icon}
+                size={20}
+                color={isFocused ? colors.primary : colors.textMuted}
+              />
+            </View>
+
+            <Text
+              variant="labelSm"
+              size={10}
+              color={isFocused ? 'primary' : 'textMuted'}
+              tx={meta.labelTx}
+              numberOfLines={1}
+            />
+          </Pressable>
+        );
+      })}
+    </View>
   );
-};
-
-const styles = StyleSheet.create({
-  tabbarContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 64 + 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tabbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    paddingBottom: 15,
-    // paddingTop: 10,
-    // backgroundColor: 'red',
-    width: '100%',
-    // paddingHorizontal: 16,
-    // backgroundColor: "#fff",
-  },
-  tab: {
-    paddingVertical: 8,
-    // paddingHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 75,
-    // backgroundColor: "yellow",
-    // minWidth: 60,
-    // maxWidth: 100,
-  },
-  homeTab: {
-    position: 'relative',
-    top: -34,
-    backgroundColor: COLORS.light.white,
-    borderRadius: 32,
-    width: 64,
-    height: 64,
-    elevation: 12,
-    shadowColor: COLORS.light.primary,
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.light.primary,
-  },
-  homeTabFocused: {
-    backgroundColor: COLORS.light.primary,
-    borderColor: COLORS.light.white,
-    transform: [{ scale: 1.05 }],
-  },
-  homeIconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-  },
-});
-
-export default TabBar;
+}

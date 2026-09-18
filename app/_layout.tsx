@@ -1,54 +1,86 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
-import { View } from 'react-native';
 import { Provider } from 'react-redux';
-import store from '@/redux';
-import { SheetProvider } from 'react-native-actions-sheet';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
-import useCheckNewUpdates from '@/hooks/useCheckNewUpdate';
-// import NotificationListnerContainer from "@/shared/components/layout/NotificationListnerContainer";
-import useLoadResources from '@/hooks/useLoadResources';
+
+import '@/locale';
+import store from '@/redux';
+import { ThemeProvider, useTheme } from '@/theme';
+import { useAppUpdates } from '@/hooks/useAppUpdates';
+import { useLoadResources } from '@/hooks/useLoadResources';
+import { ConfirmDialog } from '@/shared/components/layout';
+import { toastConfig } from '@/shared/components/ui/Toast';
 
 /**
- * RootLayout component that defines the main layout of the application.
- * It includes the StatusBar and the Stack navigator for handling different screens and routes.
+ * Renders the navigator once the theme exists above it, so the status bar and
+ * screen backgrounds can follow the active scheme.
  */
+function ThemedRoot() {
+  const { isDark, colors } = useTheme();
+  const { updateKind, isUpdateAvailable, isDismissible, dismiss, applyUpdate } = useAppUpdates();
 
-const RootLayout = () => {
-  // Load resources such as fonts, and handlers
-  useLoadResources();
-  // Check for new updates
-  useCheckNewUpdates();
+  const isStoreUpdate = updateKind === 'store';
 
   return (
-    <AppProviders>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(main)" options={{ headerShown: false }} />
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(main)" />
+        <Stack.Screen name="+not-found" />
       </Stack>
-    </AppProviders>
+
+      <ConfirmDialog
+        isVisible={isUpdateAvailable}
+        onClose={isDismissible ? dismiss : () => {}}
+        onConfirm={applyUpdate}
+        titleTx={isStoreUpdate ? 'app.updateRequiredTitle' : 'app.updateAvailableTitle'}
+        bodyTx={isStoreUpdate ? 'app.updateRequiredBody' : 'app.updateAvailableBody'}
+        confirmTx={isStoreUpdate ? 'app.updateGoToStore' : 'app.updateRestart'}
+        cancelTx="app.updateLater"
+        icon={isStoreUpdate ? 'download' : 'refresh-cw'}
+      />
+
+      <Toast config={toastConfig} topOffset={60} />
+    </>
   );
-};
+}
 
-const AppProviders = ({ children }: { children: React.ReactNode }) => (
-  <SafeAreaInsetsContext.Consumer>
-    {(insets) => (
-      <View style={{ flex: 1, paddingTop: insets?.top }}>
-        <StatusBar style="dark" backgroundColor="transparent" />
+/**
+ * Root layout.
+ *
+ * Provider order matters: `SafeAreaProvider` has to wrap `ThemeProvider`
+ * because themed screens read insets, and both sit inside
+ * `GestureHandlerRootView` so sheets and swipes work on Android.
+ */
+export default function RootLayout() {
+  const { areResourcesLoaded } = useLoadResources();
+
+  if (!areResourcesLoaded) {
+    // The native splash screen stays up until fonts resolve.
+    return null;
+  }
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
         <Provider store={store}>
-          <SheetProvider>
-            {/* <NotificationListnerContainer /> */}
-            <Toast />
-
-            {children}
-          </SheetProvider>
+          <ThemeProvider>
+            <ThemedRoot />
+          </ThemeProvider>
         </Provider>
-      </View>
-    )}
-  </SafeAreaInsetsContext.Consumer>
-);
-
-export default RootLayout;
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+}

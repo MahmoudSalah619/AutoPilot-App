@@ -1,11 +1,10 @@
-// Features Index - Export all features
+/** Feature modules. Import from the feature barrel, not from deep paths. */
 export * as Auth from './auth';
+export * as Calendar from './calendar';
 export * as Home from './home';
+export * as Maintenance from './maintenance';
 export * as Navigation from './navigation';
 export * as Notifications from './notifications';
 export * as Profile from './profile';
 export * as Services from './services';
-
-// TODO: Enable these exports once components are properly structured
-// export * as Calendar from './calendar';
-// export * as Maintenance from './maintenance';
+export * as Vehicle from './vehicle';

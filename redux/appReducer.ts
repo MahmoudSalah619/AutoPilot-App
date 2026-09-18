@@ -1,35 +1,35 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-interface IAppState {
-  isLoading: boolean;
+export interface AppState {
+  /** Vehicle the whole app is currently scoped to. */
+  activeVehicleId: string | null;
   deviceId: string | null;
+  /** Expo push token, registered once permissions are granted. */
+  pushToken: string | null;
 }
 
-const initialState: IAppState = {
-  isLoading: false,
+const initialState: AppState = {
+  activeVehicleId: null,
   deviceId: null,
+  pushToken: null,
 };
 
 export const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    showLoader: (state) => ({
-      ...state,
-      isLoading: true,
-    }),
-    hideLoader: (state) => ({
-      ...state,
-      isLoading: false,
-    }),
-    setDeviceId: (state, action: PayloadAction<string>) => ({
-      ...state,
-      deviceId: action.payload,
-    }),
+    setActiveVehicle: (state, action: PayloadAction<string | null>) => {
+      state.activeVehicleId = action.payload;
+    },
+    setDeviceId: (state, action: PayloadAction<string>) => {
+      state.deviceId = action.payload;
+    },
+    setPushToken: (state, action: PayloadAction<string | null>) => {
+      state.pushToken = action.payload;
+    },
   },
 });
 
-// Action creators are generated for each case reducer function
-export const { showLoader, hideLoader, setDeviceId } = appSlice.actions;
+export const { setActiveVehicle, setDeviceId, setPushToken } = appSlice.actions;
 
 export default appSlice.reducer;

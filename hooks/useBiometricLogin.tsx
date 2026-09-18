@@ -1,45 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import * as LocalAuthentication from 'expo-local-authentication';
-import HandleErrors from '@/utils/handleErrors';
+import { useTranslation } from 'react-i18next';
 
-const useBiometricLogin = () => {
-  const [isBiometricSupported, setIsBiometricSupported] = useState<boolean>(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+import { toast } from '@/shared/components/ui/Toast';
+
+/**
+ * Device biometric authentication.
+ *
+ * Reports support as hardware *and* enrolment — a phone with a fingerprint
+ * reader that has no finger registered cannot authenticate, so offering the
+ * button would be a dead end.
+ */
+export function useBiometricLogin() {
+  const { t } = useTranslation();
+  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
-    const checkDeviceForBiometrics = async () => {
-      const support = await LocalAuthentication.hasHardwareAsync(); // check if Biometric in device
-      setIsBiometricSupported(support);
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [hasHardware, isEnrolled] = await Promise.all([
+          LocalAuthentication.hasHardwareAsync(),
+          LocalAuthentication.isEnrolledAsync(),
+        ]);
+
+        if (!cancelled) setIsBiometricSupported(hasHardware && isEnrolled);
+      } catch {
+        if (!cancelled) setIsBiometricSupported(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
     };
-    checkDeviceForBiometrics();
   }, []);
 
-  const runBiometric = async () => {
-    try {
-      const biometricRecords = await LocalAuthentication.isEnrolledAsync(); // check if Biometric setup in device
-      if (!biometricRecords) {
-        return;
-      }
+  const runBiometric = useCallback(async () => {
+    setIsChecking(true);
 
-      const data = await LocalAuthentication.authenticateAsync({
-        // call Biometric
-        promptMessage: 'AUTHENTICATION_WITH_BIOMETRICS',
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: t('auth.biometricReason'),
+        cancelLabel: t('common.cancel'),
+        disableDeviceFallback: false,
       });
 
-      if (data?.success) {
+      if (result.success) {
         setIsAuthenticated(true);
       }
-    } catch (error) {
-      console.log(error);
-      HandleErrors(error);
+    } catch {
+      toast.error(t('errors.unexpected'));
+    } finally {
+      setIsChecking(false);
     }
-  };
+  }, [t]);
 
-  return {
-    isBiometricSupported,
-    isAuthenticated,
-    runBiometric,
-  };
-};
+  return { isBiometricSupported, isAuthenticated, isChecking, runBiometric };
+}
 
 export default useBiometricLogin;

@@ -1,136 +1,153 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import styles from './styles';
+import { Pressable, View } from 'react-native';
+import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'expo-router';
-import { FormInput } from '@/shared/components/ui';
-import { Button } from '@/shared/components/ui';
-import { AuthScreenWrapper } from '@/shared/components/layout';
-import { useSignupMutation } from '@/apis/services/auth';
+import { useTranslation } from 'react-i18next';
 
-const SignUp = () => {
-  const router = useRouter();
-  const [signup] = useSignupMutation();
-  const {
-    control,
-    formState: { errors },
-    handleSubmit,
-    watch,
-  } = useForm({});
+import { SPACING } from '@/constants/Layout';
+import { useSignUpMutation } from '@/apis/autopilotApi';
+import { sessionStarted } from '@/redux/authReducer';
+import { useAppDispatch } from '@/redux';
+import { Screen } from '@/shared/components/layout';
+import { Button, FormInput, Text } from '@/shared/components/ui';
+import { toast } from '@/shared/components/ui/Toast';
+import { EMAIL_RULES, NEW_PASSWORD_RULES } from '@/features/auth/validation';
+
+interface SignUpForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export default function SignUp() {
+  const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const [signUp, { isLoading }] = useSignUpMutation();
+
+  const { control, handleSubmit, watch } = useForm<SignUpForm>({
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
 
   const password = watch('password');
 
-  const onSubmit = (data: any) => {
-    console.log(data);
-    signup(data)
-      .unwrap()
-      .then((res) => {
-        console.log(res, 'signup res');
-        router.push({ pathname: '/(auth)/addVehicle', params: { res: JSON.stringify(res) } });
-      })
-      .catch((error) => {
-        console.error('Signup failed:', error.data.message);
-      });
+  const onSubmit = async (values: SignUpForm) => {
+    try {
+      const session = await signUp({
+        email: values.email,
+        password: values.password,
+        firstName: values.firstName,
+        lastName: values.lastName,
+      }).unwrap();
+
+      dispatch(sessionStarted(session));
+      // New accounts have no vehicle yet, so onboarding continues there.
+      router.replace('/(auth)/addVehicle');
+    } catch (error) {
+      const message = (error as { message?: string })?.message ?? 'errors.unexpected';
+      toast.error(t('errors.saveFailed'), t(message, { defaultValue: message }));
+    }
   };
+
   return (
-    <AuthScreenWrapper justifyContent="space-between" isScrollable>
-      <View style={styles.container}>
-        <Text style={styles.title}>Here we go!</Text>
-        <Text style={styles.title}>Fill in your details</Text>
-        <View style={styles.formContainer}>
+    <Screen
+      scroll
+      gap="xl"
+      header={{ titleTx: 'auth.signUp' }}
+      footer={
+        <View
+          style={{
+            alignItems: 'center',
+            columnGap: SPACING.xs,
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}
+        >
+          <Text variant="bodySm" color="textSecondary" tx="auth.haveAccount" />
+          <Pressable onPress={() => router.replace('/(auth)/login')} hitSlop={8}>
+            <Text variant="label" color="primary" tx="auth.signIn" />
+          </Pressable>
+        </View>
+      }
+    >
+      <View style={{ rowGap: SPACING.xs }}>
+        <Text variant="display" tx="auth.signUpTitle" />
+        <Text variant="body" color="textSecondary" tx="auth.signUpSubtitle" />
+      </View>
+
+      <View style={{ rowGap: SPACING.lg }}>
+        <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
           <FormInput
-            label="First Name"
+            control={control}
             name="firstName"
-            placeholder="First Name"
-            control={control}
+            labelTx="auth.firstName"
+            autoCapitalize="words"
+            textContentType="givenName"
             required
-            rules={{
-              required: 'Please Enter your first name',
-            }}
-            error={
-              typeof errors.firstName?.message === 'string' ? errors.firstName.message : undefined
-            }
+            containerStyle={{ flex: 1 }}
           />
           <FormInput
-            label="Last Name"
+            control={control}
             name="lastName"
-            placeholder="Last Name"
-            rules={{
-              required: 'Please Enter your last name',
-            }}
-            control={control}
+            labelTx="auth.lastName"
+            autoCapitalize="words"
+            textContentType="familyName"
             required
-            error={
-              typeof errors.lastName?.message === 'string' ? errors.lastName.message : undefined
-            }
-          />
-          <FormInput
-            label="Email"
-            name="email"
-            placeholder="Email"
-            control={control}
-            required
-            rules={{
-              required: 'Make sure to provide your email',
-              validate: (value: string) =>
-                (value.includes('@') && value.includes('.com')) || 'Invalid email address',
-            }}
-            error={typeof errors.email?.message === 'string' ? errors.email.message : undefined}
-          />
-          <FormInput
-            label="Password"
-            name="password"
-            placeholder="Password"
-            secureTextEntry
-            control={control}
-            required
-            rules={{
-              required: 'Please enter a password',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters long',
-              },
-              validate: (value: string) => {
-                if (!/[A-Z]/.test(value)) {
-                  return 'Password must contain at least one uppercase letter';
-                }
-                if (!/[a-z]/.test(value)) {
-                  return 'Password must contain at least one lowercase letter';
-                }
-                return true;
-              },
-              // Additional validation rules can be added here
-            }}
-            error={
-              typeof errors.password?.message === 'string' ? errors.password.message : undefined
-            }
-          />
-          <FormInput
-            label="Re enter your Password"
-            name="passwordconfirm"
-            placeholder="Password"
-            secureTextEntry
-            control={control}
-            required
-            rules={{
-              required: 'Please confirm your password',
-              validate: (value: string) => value === password || 'Passwords do not match',
-            }}
-            error={
-              typeof errors.passwordconfirm?.message === 'string'
-                ? errors.passwordconfirm.message
-                : undefined
-            }
-          />
-          <Button
-            title={'Sign Up'}
-            onPress={handleSubmit(onSubmit)}
-            // disabled={isLoading}
+            containerStyle={{ flex: 1 }}
           />
         </View>
-      </View>
-    </AuthScreenWrapper>
-  );
-};
 
-export default SignUp;
+        <FormInput
+          control={control}
+          name="email"
+          labelTx="auth.email"
+          placeholderTx="auth.emailPlaceholder"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          textContentType="emailAddress"
+          required
+          rules={EMAIL_RULES}
+        />
+
+        <FormInput
+          control={control}
+          name="password"
+          labelTx="auth.password"
+          placeholderTx="auth.passwordPlaceholder"
+          secureTextEntry
+          textContentType="newPassword"
+          required
+          rules={NEW_PASSWORD_RULES}
+        />
+
+        <FormInput
+          control={control}
+          name="confirmPassword"
+          labelTx="auth.confirmPassword"
+          secureTextEntry
+          textContentType="newPassword"
+          required
+          rules={{
+            validate: (value: string) => value === password || 'validation.passwordsDoNotMatch',
+          }}
+        />
+      </View>
+
+      <Button
+        tx="auth.signUp"
+        size="lg"
+        fullWidth
+        loading={isLoading}
+        onPress={handleSubmit(onSubmit)}
+      />
+    </Screen>
+  );
+}

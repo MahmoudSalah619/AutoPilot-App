@@ -1,7 +1,5 @@
-// Maintenance Feature Components
-// Main maintenance component was moved here from organisms/scoped/maintainance
+export { default as MaintenanceCard } from './MaintenanceCard';
+export { default as MaintenanceSheet } from './MaintenanceSheet';
 
-// Currently no named exports available
-// The maintenance components are in the current directory
-// Export them individually once they are properly structured
-export const MaintenanceComponents = {};
+export type { MaintenanceCardProps } from './MaintenanceCard';
+export type { MaintenanceSheetProps } from './MaintenanceSheet';

@@ -1,19 +1,15 @@
 import { StyleSheet } from 'react-native';
-import { COLORS } from '@/constants/Colors';
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    alignItems: 'center',
     alignSelf: 'flex-start',
+    borderWidth: 1,
+    flexDirection: 'row',
   },
-  default: {
-    backgroundColor: COLORS.light.primary,
-  },
-  secondary: {
-    backgroundColor: COLORS.light.greyE5,
+  dot: {
+    borderRadius: 3,
+    height: 6,
+    width: 6,
   },
 });
-
-export default styles;

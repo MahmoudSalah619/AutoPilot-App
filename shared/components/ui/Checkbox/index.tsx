@@ -1,24 +1,70 @@
-import { View, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import Text from '@/shared/components/ui/Text';
-import styles from './styles';
+import React from 'react';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
-type CheckboxProps = {
+import { RADIUS, SPACING } from '@/constants/Layout';
+import { useTheme } from '@/theme';
+import Text from '@/shared/components/ui/Text';
+
+export interface CheckboxProps {
   value: boolean;
   onChange: (value: boolean) => void;
-  label: string;
-  href?: string;
-};
+  label?: string;
+  labelTx?: string;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}
 
-export default function Checkbox({ value, onChange, label }: CheckboxProps) {
+/** Labelled checkbox. The whole row is the touch target. */
+export default function Checkbox({
+  value,
+  onChange,
+  label,
+  labelTx,
+  disabled = false,
+  style,
+}: CheckboxProps) {
+  const { colors } = useTheme();
+
   return (
-    <TouchableOpacity style={styles.container} onPress={() => onChange(!value)} activeOpacity={0.7}>
-      <View style={styles.checkboxContainer}>
-        <View style={[styles.checkbox, value && styles.checkedCheckbox]}>
-          {value && <Ionicons name="checkmark" size={12} color="white" style={styles.icon} />}
-        </View>
-        {label && <Text style={styles.label}>{label}</Text>}
+    <Pressable
+      onPress={() => onChange(!value)}
+      disabled={disabled}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: value, disabled }}
+      hitSlop={6}
+      style={({ pressed }) => [
+        {
+          alignItems: 'center',
+          columnGap: SPACING.sm,
+          flexDirection: 'row',
+          minHeight: 32,
+        },
+        pressed && { opacity: 0.7 },
+        disabled && { opacity: 0.4 },
+        style,
+      ]}
+    >
+      <View
+        style={{
+          alignItems: 'center',
+          backgroundColor: value ? colors.primary : colors.transparent,
+          borderColor: value ? colors.primary : colors.borderStrong,
+          borderRadius: RADIUS.xs,
+          borderWidth: 1.5,
+          height: 20,
+          justifyContent: 'center',
+          width: 20,
+        }}
+      >
+        {value ? <Feather name="check" size={13} color={colors.onPrimary} /> : null}
       </View>
-    </TouchableOpacity>
+
+      {(!!label || !!labelTx) && (
+        <Text variant="bodySm" color="textSecondary" tx={labelTx}>
+          {label}
+        </Text>
+      )}
+    </Pressable>
   );
 }

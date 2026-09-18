@@ -1,91 +1,133 @@
-import { ActivityIndicator, TouchableOpacity, View, ViewStyle } from 'react-native';
+import React, { useMemo } from 'react';
+import { ActivityIndicator, Pressable, View, type ViewStyle } from 'react-native';
 
-import GLOBAL_STYLES from '@/constants/GlobalStyles';
-import { COLORS } from '@/constants/Colors';
-import getShadowStyle from '@/utils/getShadowStyle';
-import { ButtonProps } from './types';
+import { RADIUS, SPACING } from '@/constants/Layout';
+import { useTheme } from '@/theme';
 import Text from '@/shared/components/ui/Text';
+import type { ButtonProps, ButtonSize, ButtonVariant } from './types';
 import styles from './styles';
-import { theme } from '@/utils/getTheme';
 
+const SIZES: Record<ButtonSize, { height: number; paddingHorizontal: number; gap: number }> = {
+  sm: { height: 36, paddingHorizontal: SPACING.md, gap: SPACING.xs },
+  md: { height: 48, paddingHorizontal: SPACING.xl, gap: SPACING.sm },
+  lg: { height: 56, paddingHorizontal: SPACING.xxl, gap: SPACING.sm },
+};
+
+const TEXT_VARIANT: Record<ButtonSize, 'labelSm' | 'label' | 'h3'> = {
+  sm: 'labelSm',
+  md: 'label',
+  lg: 'h3',
+};
+
+/**
+ * The app's only button.
+ *
+ * @example
+ * <Button tx="common.save" onPress={save} loading={isSaving} fullWidth />
+ * <Button variant="outline" tx="common.cancel" onPress={close} />
+ */
 export default function Button({
   title,
+  tx,
   onPress,
-  color,
-  backgroundColor = COLORS[theme].primary,
-  borderColor,
+  variant = 'primary',
+  size = 'md',
   disabled = false,
-  btnHeight = 48,
-  buttonStyle,
+  loading = false,
+  fullWidth = false,
+  leftIcon,
+  rightIcon,
+  iconOnly = false,
+  style,
   textStyle,
-  fontSize = 16,
-  prefix,
-  icon,
-  isLoading,
-  suffix,
-  isFullWidth = false,
-  fontFamily = 'cosmica_700',
-  showShadow = false,
-  variant = 'filled',
+  accessibilityLabel,
+  testID,
 }: ButtonProps) {
-  const customStyle: ViewStyle = {
-    height: btnHeight,
-    flex: isFullWidth ? 1 : undefined,
-    ...buttonStyle,
-  };
+  const { colors, elevation } = useTheme();
+  const isInert = disabled || loading;
 
-  const textExtraStyle = {
-    color: variant === 'filled' ? color || COLORS.light.white : color || COLORS.light.primary,
-    fontSize,
-    fontFamily,
-  };
+  const { container, contentColor } = useMemo(() => {
+    const palette: Record<ButtonVariant, { container: ViewStyle; contentColor: string }> = {
+      primary: {
+        container: { backgroundColor: colors.primary, ...elevation.sm() },
+        contentColor: colors.onPrimary,
+      },
+      secondary: {
+        container: { backgroundColor: colors.primarySoft },
+        contentColor: colors.primary,
+      },
+      outline: {
+        container: {
+          backgroundColor: colors.transparent,
+          borderWidth: 1,
+          borderColor: colors.borderStrong,
+        },
+        contentColor: colors.text,
+      },
+      ghost: {
+        container: { backgroundColor: colors.transparent },
+        contentColor: colors.primary,
+      },
+      danger: {
+        container: { backgroundColor: colors.danger, ...elevation.sm() },
+        contentColor: colors.onDanger,
+      },
+      dangerGhost: {
+        container: { backgroundColor: colors.transparent },
+        contentColor: colors.danger,
+      },
+    };
 
-  const hasTitle = !!title;
+    return palette[variant];
+  }, [variant, colors, elevation]);
+
+  const metrics = SIZES[size];
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        styles[variant],
-        customStyle,
-        showShadow && getShadowStyle(),
-        variant === 'outlined' && {
-          borderColor: borderColor || backgroundColor,
-        },
-        variant === 'underlined' && {
-          borderBottomColor: borderColor || backgroundColor,
-          alignSelf: 'center',
-          height: 'auto',
-        },
-        {... (backgroundColor&& { backgroundColor: COLORS[theme].brand.highEnergyPrimary })}
-      ]}
-      disabled={disabled || isLoading}
-      activeOpacity={disabled ? 1 : 0.2}
+    <Pressable
+      testID={testID}
       onPress={onPress}
+      disabled={isInert}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isInert, busy: loading }}
+      accessibilityLabel={accessibilityLabel ?? title}
+      style={({ pressed }) => [
+        styles.base,
+        container,
+        {
+          height: metrics.height,
+          paddingHorizontal: iconOnly ? 0 : metrics.paddingHorizontal,
+          columnGap: metrics.gap,
+          borderRadius: iconOnly ? RADIUS.pill : RADIUS.md,
+        },
+        iconOnly && { width: metrics.height },
+        fullWidth && styles.fullWidth,
+        pressed && !isInert && styles.pressed,
+        isInert && styles.disabled,
+        style,
+      ]}
     >
-      {!isLoading ? (
-        <View style={GLOBAL_STYLES.row}>
-          {prefix && <View style={styles.prefixSpacing}>{prefix}</View>}
-          {icon && <View style={styles.prefixSpacing}></View>}
+      {loading ? (
+        <ActivityIndicator size="small" color={contentColor} />
+      ) : (
+        <>
+          {!!leftIcon && <View style={styles.icon}>{leftIcon}</View>}
 
-          {hasTitle && (
+          {!iconOnly && (!!title || !!tx) && (
             <Text
-              style={[
-                styles.text,
-                textExtraStyle,
-                textStyle,
-                variant === 'underlined' && { lineHeight: 24 },
-              ]}
+              variant={TEXT_VARIANT[size]}
+              tx={tx}
+              rawColor={contentColor}
+              numberOfLines={1}
+              style={textStyle}
             >
               {title}
             </Text>
           )}
 
-          {suffix && <View style={styles.suffixSpacing}>{suffix}</View>}
-        </View>
-      ) : (
-        <ActivityIndicator color={color} size={24} />
+          {!!rightIcon && <View style={styles.icon}>{rightIcon}</View>}
+        </>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }

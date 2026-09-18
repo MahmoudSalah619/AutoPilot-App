@@ -1,9 +1,13 @@
-// Layout Components - Wrappers, containers and layout-related components
-export { default as AuthScreenWrapper } from './AuthScreenWrapper';
-export { default as MainScreenWrapper } from './MainScreenWrapper';
-export { default as ParallaxScrollView } from './ParallaxScrollView';
+/** Screen shells, headers and overlays. */
+
+export { default as ConfirmDialog } from './ConfirmDialog';
+export { default as Screen } from './Screen';
+export { default as ScreenHeader } from './ScreenHeader';
+export { default as Sheet } from './Sheet';
 export { default as ThemedView } from './ThemedView';
 
-// Modals and Bottomsheets
-export * from './modals';
-export * from './bottomsheets';
+export type { ConfirmDialogProps } from './ConfirmDialog';
+export type { ScreenProps } from './Screen';
+export type { ScreenHeaderProps } from './ScreenHeader';
+export type { SheetProps } from './Sheet';
+export type { ThemedViewProps } from './ThemedView';

@@ -1,22 +1,17 @@
+import React from 'react';
 import { View as RNView, type ViewProps } from 'react-native';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { useTranslation } from 'react-i18next';
 
-export type CustomViewProps = ViewProps & {
-  lightColor?: string;
-  darkColor?: string;
-};
+import { useTheme } from '@/theme';
+import type { ColorToken } from '@/constants/Colors';
 
-export default function ThemedView({
-  style,
-  lightColor,
-  darkColor,
-  ...otherProps
-}: CustomViewProps) {
-  const { i18n } = useTranslation();
-  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+export interface ThemedViewProps extends ViewProps {
+  /** Background color token. Defaults to the app background. */
+  background?: ColorToken;
+}
 
-  return (
-    <RNView style={[{ backgroundColor, direction: i18n.dir() || 'ltr' }, style]} {...otherProps} />
-  );
+/** A `View` whose background follows the active theme. */
+export default function ThemedView({ style, background = 'background', ...rest }: ThemedViewProps) {
+  const { colors } = useTheme();
+
+  return <RNView style={[{ backgroundColor: colors[background] }, style]} {...rest} />;
 }

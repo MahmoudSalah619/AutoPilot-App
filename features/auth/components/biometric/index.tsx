@@ -1,25 +1,41 @@
-import FingerPrint from '@/assets/icons/FingerPrint';
-import { Button } from '@/shared/components/ui';
-import useBiometricLogin from '@/hooks/useBiometricLogin';
-import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
-export default function Biometric() {
-  const router = useRouter();
-  const { isBiometricSupported, isAuthenticated, runBiometric } = useBiometricLogin();
+import { useTheme } from '@/theme';
+import { useBiometricLogin } from '@/hooks/useBiometricLogin';
+import { Button } from '@/shared/components/ui';
+
+/**
+ * Biometric sign-in shortcut.
+ *
+ * Renders nothing when the device has no biometric hardware, rather than
+ * showing a button that cannot work.
+ */
+export default function BiometricAuth() {
+  const { colors } = useTheme();
+  const { isBiometricSupported, isAuthenticated, runBiometric, isChecking } = useBiometricLogin();
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/(main)/(tabs)/Home');
+      router.replace('/(main)/(tabs)/Home');
     }
   }, [isAuthenticated]);
 
+  if (!isBiometricSupported) return null;
+
   return (
     <View>
-      {isBiometricSupported && (
-        <Button onPress={runBiometric} prefix={<FingerPrint />} title={'Biometric Login'} />
-      )}
+      <Button
+        variant="outline"
+        size="lg"
+        fullWidth
+        tx="auth.biometricPrompt"
+        loading={isChecking}
+        leftIcon={<Feather name="unlock" size={18} color={colors.text} />}
+        onPress={runBiometric}
+      />
     </View>
   );
 }

@@ -1,64 +1,22 @@
-import { Stack } from 'expo-router';
 import React from 'react';
-import { COLORS } from '@/constants/Colors';
+import { Stack } from 'expo-router';
 
+import { useTheme } from '@/theme';
+
+/**
+ * Profile stack. Each screen renders its own `ScreenHeader`, which is what
+ * gives these sub-screens a working back button.
+ */
 export default function ProfileLayout() {
+  const { colors } = useTheme();
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: COLORS.light.background,
-        },
-        headerTintColor: COLORS.light.text,
-        headerTitleStyle: {
-          fontWeight: '600',
-          fontSize: 18,
-        },
-        headerShadowVisible: false,
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background },
+        animation: 'slide_from_right',
       }}
-    >
-      <Stack.Screen 
-        name="personal-information" 
-        options={{ 
-          title: 'Personal Information',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="vehicle-information" 
-        options={{ 
-          title: 'Vehicle Information',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="notifications" 
-        options={{ 
-          title: 'Notifications',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="privacy-security" 
-        options={{ 
-          title: 'Privacy & Security',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="help-support" 
-        options={{ 
-          title: 'Help & Support',
-          headerShown: false,
-        }} 
-      />
-      <Stack.Screen 
-        name="about-autopilot" 
-        options={{ 
-          title: 'About AutoPilot',
-          headerShown: false,
-        }} 
-      />
-    </Stack>
+    />
   );
 }

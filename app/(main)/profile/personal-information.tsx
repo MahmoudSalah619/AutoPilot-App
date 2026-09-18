@@ -1,224 +1,219 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import { Text, Input, Button } from '@/shared/components/ui';
-import { CardWrapper } from '@/shared/components/ui';
-import { COLORS } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
-import Feather from '@expo/vector-icons/Feather';
+import React, { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+
+import { SPACING } from '@/constants/Layout';
+import { useGetProfileQuery, useUpdateProfileMutation } from '@/apis/autopilotApi';
+import { Screen } from '@/shared/components/layout';
+import {
+  Avatar,
+  Button,
+  Card,
+  DateField,
+  FormInput,
+  IconButton,
+  SectionHeader,
+  SkeletonCard,
+} from '@/shared/components/ui';
+import { toast } from '@/shared/components/ui/Toast';
+import { EMAIL_RULES } from '@/features/auth/validation';
+
+interface ProfileFormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  address: string;
+}
 
 export default function PersonalInformation() {
-  const router = useRouter();
+  const { t } = useTranslation();
+  const { data: profile, isLoading } = useGetProfileQuery();
+  const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: 'Mahmoud',
-    lastName: 'Salah',
-    email: 'mahmoud.s.m619@gmail.com',
-    phone: '+201005541537',
-    dateOfBirth: '1995-01-15',
-    address: '5th Settlement, Cairo',
+
+  const { control, handleSubmit, reset } = useForm<ProfileFormValues>({
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      dateOfBirth: '',
+      address: '',
+    },
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Save logic here
-    console.log('Saving personal information:', formData);
+  useEffect(() => {
+    if (!profile) return;
+
+    reset({
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      phone: profile.phone ?? '',
+      dateOfBirth: profile.dateOfBirth ?? '',
+      address: profile.address ?? '',
+    });
+  }, [profile, reset]);
+
+  const onSubmit = async (values: ProfileFormValues) => {
+    try {
+      await updateProfile({
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
+        email: values.email.trim(),
+        phone: values.phone.trim() || undefined,
+        dateOfBirth: values.dateOfBirth || undefined,
+        address: values.address.trim() || undefined,
+      }).unwrap();
+
+      toast.success(t('profile.personal.saved'));
+      setIsEditing(false);
+    } catch (error) {
+      const message = (error as { message?: string })?.message ?? 'errors.saveFailed';
+      toast.error(t('errors.saveFailed'), t(message, { defaultValue: message }));
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset form data if needed
+
+    if (profile) {
+      reset({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: profile.email,
+        phone: profile.phone ?? '',
+        dateOfBirth: profile.dateOfBirth ?? '',
+        address: profile.address ?? '',
+      });
+    }
   };
 
+  const fullName = profile ? `${profile.firstName} ${profile.lastName}`.trim() : '';
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text size={24} weight={700} style={styles.title} autoTranslate={false}>
-            Personal Information
-          </Text>
-          <Text size={14} color="grey70" style={styles.subtitle} autoTranslate={false}>
-            Manage your personal details and contact information
-          </Text>
-        </View>
-        
-        {!isEditing && (
-          <Button
-            title="Edit"
-            variant="outlined"
+    <Screen
+      scroll
+      gap="xl"
+      header={{
+        titleTx: 'profile.personal.title',
+        right: isEditing ? undefined : (
+          <IconButton
+            icon="edit-2"
+            variant="soft"
+            color="primary"
+            backgroundColor="primarySoft"
             onPress={() => setIsEditing(true)}
-            prefix={<Feather name="edit-2" size={16} color={COLORS.light.primary} />}
+            accessibilityLabel={t('common.edit')}
           />
-        )}
-      </View>
+        ),
+      }}
+      footer={
+        isEditing ? (
+          <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
+            <Button
+              variant="outline"
+              tx="common.cancel"
+              onPress={handleCancel}
+              style={{ flex: 1 }}
+            />
+            <Button
+              tx="common.saveChanges"
+              loading={isSaving}
+              onPress={handleSubmit(onSubmit)}
+              style={{ flex: 1.4 }}
+            />
+          </View>
+        ) : undefined
+      }
+    >
+      {isLoading ? (
+        <SkeletonCard count={2} />
+      ) : (
+        <>
+          <Card padding="xl" style={{ alignItems: 'center', rowGap: SPACING.md }}>
+            <Avatar name={fullName} uri={profile?.avatarUrl} size={80} />
+          </Card>
 
-      {/* Personal Details Card */}
-      <CardWrapper customStyles={styles.card}>
-        <View style={styles.cardHeader}>
-          <Feather name="user" size={20} color={COLORS.light.primary} />
-          <Text size={18} weight={600} style={styles.cardTitle} autoTranslate={false}>
-            Basic Information
-          </Text>
-        </View>
+          <View style={{ rowGap: SPACING.md }}>
+            <SectionHeader titleTx="profile.personal.basicInfo" icon="user" />
 
-        <View style={styles.formGrid}>
-          <View style={styles.inputRow}>
-            <View style={styles.inputHalf}>
-              <Input
-                label="First Name"
-                placeholder="Enter first name"
-                value={formData.firstName}
-                editable={isEditing}
-                onChange={(text) => setFormData({...formData, firstName: text})}
+            <Card style={{ rowGap: SPACING.lg }}>
+              <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
+                <FormInput
+                  control={control}
+                  name="firstName"
+                  labelTx="auth.firstName"
+                  editable={isEditing}
+                  autoCapitalize="words"
+                  required
+                  containerStyle={{ flex: 1 }}
+                />
+                <FormInput
+                  control={control}
+                  name="lastName"
+                  labelTx="auth.lastName"
+                  editable={isEditing}
+                  autoCapitalize="words"
+                  required
+                  containerStyle={{ flex: 1 }}
+                />
+              </View>
+
+              <Controller
+                control={control}
+                name="dateOfBirth"
+                render={({ field: { onChange, value } }) => (
+                  <DateField
+                    labelTx="profile.personal.dateOfBirth"
+                    value={value}
+                    onChange={onChange}
+                    disabled={!isEditing}
+                    maxDate={new Date().toISOString()}
+                    clearable={isEditing}
+                  />
+                )}
               />
-            </View>
-            <View style={styles.inputHalf}>
-              <Input
-                label="Last Name"
-                placeholder="Enter last name"
-                value={formData.lastName}
-                editable={isEditing}
-                onChange={(text) => setFormData({...formData, lastName: text})}
-              />
-            </View>
+            </Card>
           </View>
 
-          <Input
-            label="Date of Birth"
-            placeholder="YYYY-MM-DD"
-            value={formData.dateOfBirth}
-            editable={isEditing}
-            onChange={(text) => setFormData({...formData, dateOfBirth: text})}
-          />
-        </View>
-      </CardWrapper>
+          <View style={{ rowGap: SPACING.md }}>
+            <SectionHeader titleTx="profile.personal.contactInfo" icon="mail" />
 
-      {/* Contact Information Card */}
-      <CardWrapper customStyles={styles.card}>
-        <View style={styles.cardHeader}>
-          <Feather name="mail" size={20} color="#4ECDC4" />
-          <Text size={18} weight={600} style={styles.cardTitle} autoTranslate={false}>
-            Contact Information
-          </Text>
-        </View>
+            <Card style={{ rowGap: SPACING.lg }}>
+              <FormInput
+                control={control}
+                name="email"
+                labelTx="auth.email"
+                editable={isEditing}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                required
+                rules={EMAIL_RULES}
+              />
 
-        <View style={styles.formGrid}>
-          <Input
-            label="Email Address"
-            placeholder="Enter email"
-            value={formData.email}
-            editable={isEditing}
-            keyboardType="email-address"
-            onChange={(text) => setFormData({...formData, email: text})}
-          />
+              <FormInput
+                control={control}
+                name="phone"
+                labelTx="profile.personal.phone"
+                editable={isEditing}
+                keyboardType="phone-pad"
+              />
 
-          <Input
-            label="Phone Number"
-            placeholder="Enter phone number"
-            value={formData.phone}
-            editable={isEditing}
-            keyboardType="phone-pad"
-            onChange={(text) => setFormData({...formData, phone: text})}
-          />
-        </View>
-      </CardWrapper>
-
-      {/* Address Information Card */}
-      <CardWrapper customStyles={styles.card}>
-        <View style={styles.cardHeader}>
-          <Feather name="map-pin" size={20} color="#FF8C94" />
-          <Text size={18} weight={600} style={styles.cardTitle} autoTranslate={false}>
-            Address
-          </Text>
-        </View>
-
-        <View style={styles.formGrid}>
-          <Input
-            label="Address"
-            placeholder="Enter your address"
-            value={formData.address}
-            editable={isEditing}
-            onChange={(text) => setFormData({...formData, address: text})}
-          />
-        </View>
-      </CardWrapper>
-
-      {/* Action Buttons */}
-      {isEditing && (
-        <View style={styles.actionButtons}>
-          <Button
-            title="Cancel"
-            variant="outlined"
-            onPress={handleCancel}
-            isFullWidth={false}
-            buttonStyle={styles.button}
-          />
-          <Button
-            title="Save Changes"
-            variant="filled"
-            onPress={handleSave}
-            isFullWidth={false}
-            buttonStyle={styles.button}
-          />
-        </View>
+              <FormInput
+                control={control}
+                name="address"
+                labelTx="profile.personal.address"
+                editable={isEditing}
+                multilineBox
+              />
+            </Card>
+          </View>
+        </>
       )}
-
-      <View style={styles.bottomSpacing} />
-    </ScrollView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.light.background,
-    padding: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    marginBottom: 4,
-  },
-  subtitle: {
-    lineHeight: 20,
-  },
-  card: {
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    marginLeft: 8,
-  },
-  formGrid: {
-    gap: 16,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  inputHalf: {
-    flex: 1,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-  },
-  button: {
-    flex: 1,
-  },
-  bottomSpacing: {
-    height: 32,
-  },
-});

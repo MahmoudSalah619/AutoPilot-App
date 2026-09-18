@@ -4,21 +4,25 @@
     "slug": "autopilot-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/white_on_trans.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/icon.png",
+    "scheme": "autopilot",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "bundleIdentifier": "com.nova.autopilotapp"
+      "bundleIdentifier": "com.nova.autopilotapp",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "AutoPilot uses Face ID so you can sign in without typing your password.",
+        "NSPhotoLibraryUsageDescription": "AutoPilot needs access to your photos so you can attach documents such as your insurance or licence."
+      }
     },
     "android": {
       "package": "com.nova.autopilot",
-      "splash": {
-        "image": "./assets/images/nova-black.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#4682c2",
-        "backgroundImage": "./assets/images/white_on_trans.png"
-      }
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#EC5B13"
+      },
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -27,23 +31,30 @@
     },
     "plugins": [
       "expo-router",
+      "expo-localization",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/nova-black.png",
-          "imageWidth": 200,
+          "image": "./assets/images/auto-pilot.png",
+          "imageWidth": 180,
           "resizeMode": "contain",
-          "backgroundColor": "#4682c2",
-          "backgroundImage": "./assets/images/white_on_trans.png"
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/images/auto-pilot.png",
+            "backgroundColor": "#0B0F14"
+          }
         }
       ],
-      "expo-localization",
       [
-        "sentry-expo",
+        "expo-local-authentication",
         {
-          "organization": "autopilot-app",
-          "project": "autopilot-app",
-          "url": "https://sentry.io"
+          "faceIDPermission": "AutoPilot uses Face ID so you can sign in without typing your password."
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
         }
       ]
     ],

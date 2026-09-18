@@ -1,21 +1,14 @@
+import { useTheme } from '@/theme';
+import type { ColorToken } from '@/constants/Colors';
+
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * Resolves a single color token against the active theme.
+ *
+ * Prefer `useTheme().colors` when a component needs more than one color.
  */
-
-import { COLORS } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export function useThemeColor(
-  props: { light?: string; dark?: string },
-  colorName: keyof typeof COLORS.light & keyof typeof COLORS.dark
-) {
-  const theme = useColorScheme() ?? 'light';
-  const colorFromProps = props[theme];
-
-  if (colorFromProps) {
-    return colorFromProps;
-  } else {
-    return COLORS[theme][colorName];
-  }
+export function useThemeColor(token: ColorToken): string {
+  const { colors } = useTheme();
+  return colors[token];
 }
+
+export default useThemeColor;

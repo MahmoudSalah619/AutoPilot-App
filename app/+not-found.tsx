@@ -1,31 +1,19 @@
-import { Text } from '@/shared/components/ui';
-import { ThemedView } from '@/shared/components/layout';
-import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { router } from 'expo-router';
+
+import { Screen } from '@/shared/components/layout';
+import { EmptyState } from '@/shared/components/ui';
 
 export default function NotFoundScreen() {
   return (
-    <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <ThemedView style={styles.container}>
-        <Text type="title">This screen doesn't exist.</Text>
-        <Link href="/" style={styles.link}>
-          <Text type="link">Go to home screen!</Text>
-        </Link>
-      </ThemedView>
-    </>
+    <Screen>
+      <EmptyState
+        icon="compass"
+        titleTx="errors.notFoundTitle"
+        bodyTx="errors.notFoundBody"
+        actionTx="errors.backHome"
+        onAction={() => router.replace('/(main)/(tabs)/Home')}
+      />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-});

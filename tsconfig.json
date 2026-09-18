@@ -3,8 +3,12 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": "./",
-    "moduleResolution": "node16",
-    "module": "node16",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
     "paths": {
       "@/*": ["./*"]
     }
@@ -13,8 +17,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "app/**/*.ts",
-    "app/**/*.tsx"
-  ]
+    "expo-env.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
 }

@@ -1,172 +1,148 @@
-import React from 'react';
-import { StyleSheet, View, Alert } from 'react-native';
-import { Text } from '@/shared/components/ui';
-import { MainScreenWrapper } from '@/shared/components/layout';
-import { ProfileHeader, ProfileItem } from '@/features/profile';
-import { COLORS } from '@/constants/Colors';
-import i18n from '@/locale';
-import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+
+import { useGetProfileQuery, useSignOutMutation } from '@/apis/autopilotApi';
+import { sessionEnded } from '@/redux/authReducer';
+import { useAppDispatch } from '@/redux';
+import { useTheme } from '@/theme';
+import { ConfirmDialog, Screen } from '@/shared/components/layout';
+import { ListRow } from '@/shared/components/ui';
+import { ProfileHeader, SettingsGroup } from '@/features/profile';
 
 export default function Profile() {
-  const router = useRouter();
+  const { t, i18n } = useTranslation();
+  const dispatch = useAppDispatch();
+  const { preference } = useTheme();
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          style: 'destructive',
-          onPress: () => router.replace('/(auth)/welcome')
-        }
-      ]
-    );
-  };
+  const { data: profile } = useGetProfileQuery();
+  const [signOut, { isLoading: isSigningOut }] = useSignOutMutation();
+  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
 
-  const changeLanguage = async (lang: 'en' | 'ar') => {
+  const handleSignOut = async () => {
     try {
-      await i18n.changeLanguage(lang);
-    } catch (error) {
-      console.error('Language change failed', error);
+      await signOut().unwrap();
+    } finally {
+      // Local state is cleared either way — a failed network call must not
+      // leave the user stuck in a session they asked to end.
+      dispatch(sessionEnded());
+      setIsSignOutOpen(false);
+      router.replace('/(auth)/welcome');
     }
   };
-
-  const handleEditProfile = () => {
-    console.log('Edit profile pressed');
-    // Navigate to edit profile screen
-  };
-
-  const profileSections = [
-    {
-      title: 'Account',
-      items: [
-        {
-          icon: 'user',
-          title: 'Personal Information',
-          subtitle: 'Manage your personal details',
-          color: COLORS.light.primary,
-          onPress: () => router.push('/(main)/profile/personal-information'),
-        },
-        {
-          icon: 'truck',
-          title: 'Vehicle Information',
-          subtitle: 'Your car details and preferences',
-          color: '#4ECDC4',
-          onPress: () => router.push('/(main)/profile/vehicle-information'),
-        },
-        {
-          icon: 'bell',
-          title: 'Notifications',
-          subtitle: 'Manage your notification preferences',
-          color: '#45B7D1',
-          onPress: () => router.push('/(main)/profile/notifications'),
-        },
-      ]
-    },
-    {
-      title: 'Settings',
-      items: [
-        {
-          icon: 'globe',
-          title: 'Language',
-          subtitle: 'English',
-          color: '#96CEB4',
-          onPress: () => {
-            Alert.alert(
-              'Select Language',
-              'Choose your preferred language',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'English', onPress: () => changeLanguage('en') },
-                { text: 'العربية', onPress: () => changeLanguage('ar') }
-              ]
-            );
-          },
-        },
-        {
-          icon: 'shield',
-          title: 'Privacy & Security',
-          subtitle: 'Manage your privacy settings',
-          color: '#FF8C94',
-          onPress: () => router.push('/(main)/profile/privacy-security'),
-        },
-      ]
-    },
-    {
-      title: 'Support',
-      items: [
-        {
-          icon: 'help-circle',
-          title: 'Help & Support',
-          subtitle: 'Get help and contact support',
-          color: '#FFD93D',
-          onPress: () => router.push('/(main)/profile/help-support'),
-        },
-        {
-          icon: 'info',
-          title: 'About AutoPilot',
-          subtitle: 'App version and information',
-          color: '#A8E6CF',
-          onPress: () => router.push('/(main)/profile/about-autopilot'),
-        },
-      ]
-    },
-    {
-      title: '',
-      items: [
-        {
-          icon: 'log-out',
-          title: 'Logout',
-          subtitle: 'Sign out of your account',
-          color: '#FF6B6B',
-          onPress: handleLogout,
-          showArrow: false,
-        },
-      ]
-    }
-  ] as const;
 
   return (
-    <MainScreenWrapper isScrollable>
-      <ProfileHeader 
-        name="Mahmoud Salah"
-        email="mahmoud.s.m619@gmail.com"
-        onEditPress={handleEditProfile}
+    <Screen
+      scroll
+      hasTabBar
+      gap="xl"
+      header={{ titleTx: 'profile.title', variant: 'large', showBack: false }}
+    >
+      <ProfileHeader
+        profile={profile}
+        onEditPress={() => router.push('/(main)/profile/personal-information')}
       />
 
-      {profileSections.map((section, sectionIndex) => (
-        <View key={sectionIndex} style={styles.section}>
-          {section.title ? (
-            <Text size={18} weight={600} style={styles.sectionTitle} autoTranslate={false}>
-              {section.title}
-            </Text>
-          ) : null}
-          
-          {section.items.map((item, itemIndex) => (
-            <ProfileItem
-              key={itemIndex}
-              icon={item.icon}
-              title={item.title}
-              subtitle={item.subtitle}
-              color={item.color}
-              onPress={item.onPress}
-              showArrow={'showArrow' in item ? item.showArrow : undefined}
-            />
-          ))}
-        </View>
-      ))}
-    </MainScreenWrapper>
+      <SettingsGroup titleTx="profile.sections.account">
+        <ListRow
+          icon="user"
+          titleTx="profile.personalInformation"
+          subtitleTx="profile.personalInformationSubtitle"
+          onPress={() => router.push('/(main)/profile/personal-information')}
+        />
+        <ListRow
+          icon="truck"
+          iconTone="accentBlue"
+          iconBackground="accentBlueSoft"
+          titleTx="profile.vehicleInformation"
+          subtitleTx="profile.vehicleInformationSubtitle"
+          onPress={() => router.push('/(main)/profile/vehicle-information')}
+        />
+        <ListRow
+          icon="bell"
+          iconTone="accentViolet"
+          iconBackground="accentVioletSoft"
+          titleTx="profile.notifications"
+          subtitleTx="profile.notificationsSubtitle"
+          onPress={() => router.push('/(main)/profile/notifications')}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup titleTx="profile.sections.preferences">
+        <ListRow
+          icon="moon"
+          iconTone="accentViolet"
+          iconBackground="accentVioletSoft"
+          titleTx="profile.appearance"
+          subtitle={t(`appearance.${preference}`)}
+          onPress={() => router.push('/(main)/profile/appearance')}
+        />
+        <ListRow
+          icon="globe"
+          iconTone="accentTeal"
+          iconBackground="accentTealSoft"
+          titleTx="profile.language"
+          subtitle={t(i18n.language === 'ar' ? 'language.arabic' : 'language.english')}
+          onPress={() => router.push('/(main)/profile/language')}
+        />
+        <ListRow
+          icon="sliders"
+          iconTone="accentGreen"
+          iconBackground="accentGreenSoft"
+          titleTx="profile.unitsAndCurrency"
+          subtitleTx="profile.unitsAndCurrencySubtitle"
+          onPress={() => router.push('/(main)/profile/units')}
+        />
+        <ListRow
+          icon="shield"
+          iconTone="accentRose"
+          iconBackground="accentRoseSoft"
+          titleTx="profile.privacy"
+          subtitleTx="profile.privacySubtitle"
+          onPress={() => router.push('/(main)/profile/privacy-security')}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup titleTx="profile.sections.support">
+        <ListRow
+          icon="help-circle"
+          iconTone="accentAmber"
+          iconBackground="accentAmberSoft"
+          titleTx="profile.help"
+          subtitleTx="profile.helpSubtitle"
+          onPress={() => router.push('/(main)/profile/help-support')}
+        />
+        <ListRow
+          icon="info"
+          iconTone="accentBlue"
+          iconBackground="accentBlueSoft"
+          titleTx="profile.about"
+          subtitleTx="profile.aboutSubtitle"
+          onPress={() => router.push('/(main)/profile/about-autopilot')}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup>
+        <ListRow
+          icon="log-out"
+          destructive
+          titleTx="auth.signOut"
+          showChevron={false}
+          onPress={() => setIsSignOutOpen(true)}
+        />
+      </SettingsGroup>
+
+      <ConfirmDialog
+        isVisible={isSignOutOpen}
+        onClose={() => setIsSignOutOpen(false)}
+        onConfirm={handleSignOut}
+        titleTx="profile.signOutTitle"
+        bodyTx="profile.signOutBody"
+        confirmTx="auth.signOut"
+        tone="danger"
+        icon="log-out"
+        loading={isSigningOut}
+      />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    // marginBottom: 4,
-  },
-  sectionTitle: {
-    marginBottom: 12,
-    marginLeft: 4,
-  },
-});

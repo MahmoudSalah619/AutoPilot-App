@@ -1,39 +1,47 @@
-import { Input } from '@/shared/components/ui';
-import { InputFieldProps } from '@/shared/components/ui/Input/types';
-import { Controller, Control, FieldError, FieldErrorsImpl, Merge } from 'react-hook-form';
+import React from 'react';
+import { Controller, type Control, type RegisterOptions } from 'react-hook-form';
 
-interface ControllableInputProps extends InputFieldProps {
-  control: Control;
+import Input from '@/shared/components/ui/Input';
+import type { InputProps } from '@/shared/components/ui/Input/types';
+
+export interface FormInputProps extends Omit<InputProps, 'value' | 'onChangeText' | 'error'> {
+  control: Control<any>;
   name: string;
-  required?: boolean;
-  errorMessage?: string | FieldError | Merge<FieldError, FieldErrorsImpl>;
-  rules?: object;
+  rules?: RegisterOptions<any, string>;
+  /** Overrides the message react-hook-form derives from `rules`. */
+  error?: string;
 }
 
-export default function ControllableInput({
+/**
+ * `Input` bound to react-hook-form.
+ *
+ * Validation messages are translation keys, resolved by `Input`, so screens no
+ * longer hand-narrow `errors.field?.message` union types at every call site.
+ */
+export default function FormInput({
   control,
   name,
   rules,
   required,
-  errorMessage,
-  ...otherProps
-}: ControllableInputProps) {
+  error,
+  ...inputProps
+}: FormInputProps) {
   return (
     <Controller
       control={control}
       name={name}
       rules={{
-        required: { value: required || false, message: 'This field is required' },
+        ...(required ? { required: 'validation.required' } : null),
         ...rules,
       }}
       render={({ field: { onChange, onBlur, value }, fieldState }) => (
         <Input
+          value={value == null ? '' : String(value)}
           onChangeText={onChange}
           onBlur={onBlur}
-          value={value}
-          // @ts-ignore
-          error={errorMessage || fieldState.error?.message}
-          {...otherProps}
+          required={required}
+          error={error ?? fieldState.error?.message}
+          {...inputProps}
         />
       )}
     />

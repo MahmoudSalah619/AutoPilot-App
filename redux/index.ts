@@ -1,25 +1,26 @@
 import { configureStore } from '@reduxjs/toolkit';
-import api from '@/apis';
-import { supabaseApi } from '@/apis/supabaseApi';
-import rtkQueryErrorLogger from '@/apis/middlewares/errorMiddleware';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { autopilotApi } from '@/apis/autopilotApi';
 import appReducer from './appReducer';
 import authReducer from './authReducer';
 
 const store = configureStore({
   reducer: {
-    [api.reducerPath]: api.reducer,
-    [supabaseApi.reducerPath]: supabaseApi.reducer,
+    [autopilotApi.reducerPath]: autopilotApi.reducer,
     auth: authReducer,
     app: appReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware()
-      .concat(api.middleware)
-      .concat(supabaseApi.middleware)
-      .concat(rtkQueryErrorLogger),
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(autopilotApi.middleware),
 });
 
 export default store;
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+/** Typed `useDispatch`, so thunks and mutations keep their inference. */
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
+
+/** Typed `useSelector`, so `state` is never `unknown` at the call site. */
+export const useAppSelector = useSelector.withTypes<RootState>();

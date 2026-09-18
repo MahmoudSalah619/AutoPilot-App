@@ -1,34 +1,40 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '@/apis/@types/auth';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-interface IAuthState {
-  token?: string | null;
-  userData?: User | null;
+export interface AuthState {
+  accessToken: string | null;
+  userId: string | null;
+  email: string | null;
+  /** True once the persisted session has been checked on boot. */
+  isHydrated: boolean;
 }
-const initialState: IAuthState = {
-  token: null,
-  userData: null,
+
+const initialState: AuthState = {
+  accessToken: null,
+  userId: null,
+  email: null,
+  isHydrated: false,
 };
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<string>) => ({
-      ...state,
-      token: action.payload,
-    }),
-    setUserInfo: (state, action: PayloadAction<User>) => ({
-      ...state,
-      userData: action.payload,
-    }),
-    logout: () => ({
-      ...initialState,
-    }),
+    sessionStarted: (
+      state,
+      action: PayloadAction<{ userId: string; email: string; accessToken?: string }>
+    ) => {
+      state.userId = action.payload.userId;
+      state.email = action.payload.email;
+      state.accessToken = action.payload.accessToken ?? null;
+      state.isHydrated = true;
+    },
+    sessionEnded: () => ({ ...initialState, isHydrated: true }),
+    hydrationFinished: (state) => {
+      state.isHydrated = true;
+    },
   },
 });
 
-// Action creators are generated for each case reducer function
-export const { login, setUserInfo, logout } = authSlice.actions;
+export const { sessionStarted, sessionEnded, hydrationFinished } = authSlice.actions;
 
 export default authSlice.reducer;

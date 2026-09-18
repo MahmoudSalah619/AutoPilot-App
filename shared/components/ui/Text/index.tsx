@@ -1,63 +1,57 @@
-import { I18nManager, Text as RNText, TextStyle } from 'react-native';
-
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { COLORS } from '@/constants/Colors';
-import { CustomTextProps } from './types';
-import styles from './styles';
+import React, { useMemo } from 'react';
+import { I18nManager, Text as RNText, type TextStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-/**
- * Text component that uses the current theme color.
- * @param props - Text component props.
- * @returns Text component.
- * @property {string} [color="text"] - Color of the text.
- * @property {string} [lightColor] - Light color of the text.
- * @property {string} [darkColor] - Dark color of the text.
- * @property {number} [size=14] - Size of the text.
- * @property {string} [type="default"] - Type of the text.
- * @example
- * <Text type="title" color="primary">Title</Text>
- * <Text type="default" color="text">Default</Text>
- * <Text type="defaultSemiBold" color="text">Default Semi Bold</Text>
- */
+import { TYPOGRAPHY, WEIGHT_TO_FAMILY } from '@/constants/Typography';
+import { useTheme } from '@/theme';
+import type { TextProps } from './types';
 
+/**
+ * The only text primitive in the app.
+ *
+ * Translation is opt-in through `tx` — anything passed as `children` is
+ * rendered verbatim, which is what you want for user data (vehicle names,
+ * odometer readings, dates).
+ *
+ * @example
+ * <Text variant="h2" tx="home.yourVehicle" />
+ * <Text variant="metric" color="primary">{`${efficiency} km/L`}</Text>
+ */
 export default function Text({
-  style,
-  size = 14,
-  weight = 400,
-  lineHeight,
-  isCentered,
-  fontFamily = 'cosmica',
+  variant = 'body',
   color = 'text',
-  lightColor,
-  darkColor,
-  type,
-  autoTranslate = true,
+  rawColor,
+  align,
+  size,
+  weight,
+  lineHeight,
+  tx,
+  txValues,
+  muted = false,
+  style,
+  children,
   ...rest
-}: CustomTextProps) {
+}: TextProps) {
   const { t } = useTranslation();
-  const themedColor = useThemeColor(
-    {
-      light: lightColor ? COLORS.light[lightColor as keyof typeof COLORS.light] : undefined,
-      dark: darkColor ? COLORS.dark[darkColor as keyof typeof COLORS.dark] : undefined,
-    },
-    color
-  );
-  const textStyle: TextStyle = {
-    color: themedColor,
-    fontSize: size,
-    textAlign: isCentered ? 'center' : undefined,
-    lineHeight: lineHeight || undefined,
-    fontFamily: !type ? `${fontFamily}_${weight}` : undefined,
-    writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
-  };
+  const { colors } = useTheme();
+
+  const resolvedStyle = useMemo<TextStyle>(() => {
+    const base = TYPOGRAPHY[variant] as TextStyle;
+
+    return {
+      ...base,
+      color: rawColor ?? colors[muted ? 'textMuted' : color],
+      ...(size !== undefined && { fontSize: size }),
+      ...(weight !== undefined && { fontFamily: WEIGHT_TO_FAMILY[weight] }),
+      ...(lineHeight !== undefined && { lineHeight }),
+      ...(align !== undefined && { textAlign: align }),
+      writingDirection: I18nManager.isRTL ? 'rtl' : 'ltr',
+    };
+  }, [variant, color, rawColor, muted, size, weight, lineHeight, align, colors]);
 
   return (
-    <RNText
-      style={[{ ...textStyle }, type ? styles?.[type] : undefined, styles.text, style]}
-      {...rest}
-    >
-      {autoTranslate ? t(String(rest.children)) : rest.children}
+    <RNText style={[resolvedStyle, style]} {...rest}>
+      {tx ? (t(tx, txValues ?? {}) as string) : children}
     </RNText>
   );
 }

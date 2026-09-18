@@ -1,27 +1,26 @@
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import useInitialRouting from '../hooks/useInitialRouting';
-import { Redirect, RelativePathString } from 'expo-router';
+import React from 'react';
+import { View } from 'react-native';
+import { Redirect } from 'expo-router';
 
-const InitialScreen = () => {
-  const { targetPath } = useInitialRouting();
+import { useSession } from '@/hooks/useSession';
+import { useTheme } from '@/theme';
+import { Loading } from '@/shared/components/ui';
 
-  if (!targetPath) {
+/**
+ * Entry route. Decides where a launch lands once the persisted session has
+ * been checked, and shows nothing but a spinner until then.
+ */
+export default function Index() {
+  const { isHydrated, isAuthenticated } = useSession();
+  const { colors } = useTheme();
+
+  if (!isHydrated) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={{ backgroundColor: colors.background, flex: 1 }}>
+        <Loading />
       </View>
     );
   }
 
-  return <Redirect href={targetPath as RelativePathString} />;
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-export default InitialScreen;
+  return <Redirect href={isAuthenticated ? '/(main)/(tabs)/Home' : '/(auth)/welcome'} />;
+}
