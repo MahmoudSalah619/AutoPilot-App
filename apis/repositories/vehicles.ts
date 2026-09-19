@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { isLive, TABLES } from '@/apis/config';
+import { isFieldBacked, isLive, TABLES } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { db, delay, mockId } from '@/apis/mock/store';
 import type { Vehicle } from '@/@types/models';
@@ -65,6 +65,11 @@ async function toVehicleRow(draft: Partial<VehicleDraft>): Promise<Record<string
     year: draft.year !== undefined ? yearToDate(draft.year) : undefined,
     odometer: draft.odometer,
     is_primary: draft.isPrimary,
+    // Dropped while the column does not exist; writing it would fail the
+    // insert outright. Carried here so the migration needs no code change.
+    odometer_updated_at: isFieldBacked('vehicles', 'odometerUpdatedAt')
+      ? draft.odometerUpdatedAt
+      : undefined,
   });
 }
 
@@ -126,6 +131,10 @@ export async function createVehicle(draft: VehicleDraft): Promise<Vehicle> {
       id: mockId('vehicle'),
       userId: db.profile.id,
       isPrimary: draft.isPrimary ?? db.vehicles.length === 0,
+      // The odometer was just typed into the form, so the vehicle is born
+      // with a current reading. Leaving this unset made a brand-new vehicle
+      // read as "never updated" and fired the nudge straight after onboarding.
+      odometerUpdatedAt: draft.odometerUpdatedAt ?? dayjs().toISOString(),
       createdAt: dayjs().toISOString(),
     };
 
@@ -155,7 +164,14 @@ export async function createVehicle(draft: VehicleDraft): Promise<Vehicle> {
   const row = unwrapRaw<VehicleRow>(
     await supabase
       .from(TABLES.vehicles)
-      .insert({ ...(await toVehicleRow(draft)), user_id: userId, is_primary: isPrimary })
+      .insert({
+        ...(await toVehicleRow({
+          ...draft,
+          odometerUpdatedAt: draft.odometerUpdatedAt ?? dayjs().toISOString(),
+        })),
+        user_id: userId,
+        is_primary: isPrimary,
+      })
       .select(VEHICLE_COLUMNS)
       .single()
   );
@@ -203,9 +219,11 @@ export async function updateVehicle(id: string, patch: Partial<VehicleDraft>): P
  * and silently accepting a typo would corrupt every distance calculation
  * downstream.
  *
- * The reading's timestamp is not persisted against the live schema: there is
- * no `odometer_updated_at` column, so `useOdometerNudge` falls back to
- * nudging on interval rather than on staleness.
+ * The timestamp is sent but dropped by the mapper while the live schema has
+ * no `odometer_updated_at` column. Freshness then reads as `unknown` rather
+ * than `never`, so the UI makes no claim about the reading's age and
+ * `useOdometerNudge` stays quiet. Once the migration adds the column this
+ * starts working with no change here.
  */
 export async function updateOdometer(id: string, odometer: number): Promise<Vehicle> {
   if (!Number.isFinite(odometer) || odometer < 0) {
@@ -217,14 +235,10 @@ export async function updateOdometer(id: string, odometer: number): Promise<Vehi
     throw new RepositoryError('validation.odometerBelowCurrent', 400);
   }
 
-  if (!isLive('vehicles')) {
-    return updateVehicle(id, {
-      odometer,
-      odometerUpdatedAt: dayjs().toISOString(),
-    } as Partial<VehicleDraft>);
-  }
-
-  return updateVehicle(id, { odometer });
+  return updateVehicle(id, {
+    odometer,
+    odometerUpdatedAt: dayjs().toISOString(),
+  } as Partial<VehicleDraft>);
 }
 
 /**

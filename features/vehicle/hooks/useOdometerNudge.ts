@@ -27,6 +27,15 @@ export interface UseOdometerNudgeOptions {
    * springing up the moment the tour closes.
    */
   isSuppressed?: boolean;
+  /**
+   * Holds the decision until the caller knows whether anything else is about
+   * to claim the screen.
+   *
+   * Deliberately *not* folded into `isSuppressed`: that one is sticky, so a
+   * "not yet" answered on the first render would disable the prompt for the
+   * whole mount. This one only delays.
+   */
+  isDecidable?: boolean;
 }
 
 export interface OdometerNudge {
@@ -50,6 +59,7 @@ export interface OdometerNudge {
 export function useOdometerNudge({
   vehicle,
   isSuppressed = false,
+  isDecidable = true,
 }: UseOdometerNudgeOptions): OdometerNudge {
   const [wasPromptedToday, setWasPromptedToday] = useState<boolean | null>(null);
   const [hasDelayElapsed, setHasDelayElapsed] = useState(false);
@@ -102,6 +112,7 @@ export function useOdometerNudge({
   }, [vehicle?.id]);
 
   const shouldPrompt =
+    isDecidable &&
     !isSuppressed &&
     !wasEverSuppressed.current &&
     hasDelayElapsed &&
