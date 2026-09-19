@@ -29,6 +29,7 @@ import * as diagnostics from './repositories/diagnostics';
 import * as documents from './repositories/documents';
 import * as fuel from './repositories/fuel';
 import * as maintenance from './repositories/maintenance';
+import * as reference from './repositories/reference';
 import * as reminders from './repositories/reminders';
 import * as trips from './repositories/trips';
 import * as vehicles from './repositories/vehicles';
@@ -81,6 +82,7 @@ export const autopilotApi = createApi({
     'Preferences',
     'Notification',
     'Diagnostic',
+    'Reference',
   ],
   endpoints: (build) => ({
     /* ── Auth ─────────────────────────────────────────────────────────── */
@@ -90,7 +92,7 @@ export const autopilotApi = createApi({
       invalidatesTags: ['Profile', 'Vehicle'],
     }),
 
-    signUp: build.mutation<account.Session, account.SignUpPayload>({
+    signUp: build.mutation<account.SignUpResult, account.SignUpPayload>({
       queryFn: (payload) => run(() => account.signUp(payload)),
       invalidatesTags: ['Profile'],
     }),
@@ -339,6 +341,28 @@ export const autopilotApi = createApi({
       providesTags: (_result, _error, code) => [{ type: 'Diagnostic', id: code }],
     }),
 
+    /* ── Reference data ───────────────────────────────────────────────── */
+
+    getCarMakes: build.query<reference.CarMake[], void>({
+      queryFn: () => run(() => reference.listCarMakes()),
+      providesTags: ['Reference'],
+    }),
+
+    getCarModels: build.query<reference.CarModel[], string | void>({
+      queryFn: (makeId) => run(() => reference.listCarModels(makeId ?? undefined)),
+      providesTags: ['Reference'],
+    }),
+
+    getServiceTypes: build.query<reference.ServiceTypeOption[], void>({
+      queryFn: () => run(() => reference.listServiceTypes()),
+      providesTags: ['Reference'],
+    }),
+
+    getTips: build.query<reference.Tip[], reference.TipScreen | void>({
+      queryFn: (screen) => run(() => reference.listTips(screen ?? undefined)),
+      providesTags: ['Reference'],
+    }),
+
     /* ── Notifications ────────────────────────────────────────────────── */
 
     getNotifications: build.query<AppNotification[], void>({
@@ -412,6 +436,11 @@ export const {
 
   useSearchDiagnosticCodesQuery,
   useGetDiagnosticCodeQuery,
+
+  useGetCarMakesQuery,
+  useGetCarModelsQuery,
+  useGetServiceTypesQuery,
+  useGetTipsQuery,
 
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,

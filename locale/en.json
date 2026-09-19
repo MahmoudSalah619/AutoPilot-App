@@ -48,7 +48,8 @@
     "on": "On",
     "off": "Off",
     "selectAnOption": "Select an option",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "noResults": "No matches"
   },
   "units": {
     "km": "km",
@@ -102,7 +103,8 @@
     "deleteFailed": "We could not delete this item.",
     "notFoundTitle": "This page does not exist",
     "notFoundBody": "The link may be out of date. Let us get you back.",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "invalidId": "That record could not be found."
   },
   "auth": {
     "welcomeTitle": "Stay ahead of every service",
@@ -136,7 +138,8 @@
     "errors": {
       "missingCredentials": "Enter your email and password",
       "invalidCredentials": "That email and password do not match",
-      "emailInUse": "An account already exists for this email"
+      "emailInUse": "An account already exists for this email",
+      "notAuthenticated": "Your session has ended. Please sign in again."
     },
     "features": {
       "predictiveTitle": "Know before it breaks",
@@ -145,7 +148,9 @@
       "alertsBody": "One notification when something is actually due. Nothing else.",
       "recordsTitle": "Every record in one place",
       "recordsBody": "Fuel, services, insurance and licences, ready when you need them."
-    }
+    },
+    "confirmEmailTitle": "Confirm your email",
+    "confirmEmailBody": "We sent a confirmation link to your inbox. Open it, then sign in."
   },
   "onboarding": {
     "addVehicleTitle": "Add your vehicle",
@@ -285,6 +290,9 @@
       "totalServices": "Services",
       "spentThisYear": "Spent this year",
       "dueNow": "Due now"
+    },
+    "errors": {
+      "serviceTypeUnavailable": "The service catalogue is not set up yet, so this cannot be saved."
     }
   },
   "reminders": {
@@ -318,6 +326,9 @@
       "overdue": "Overdue",
       "dueSoon": "Due soon",
       "scheduled": "Scheduled"
+    },
+    "errors": {
+      "dueDateRequired": "Pick a due date. Distance-only reminders are not supported yet."
     }
   },
   "fuel": {
@@ -374,7 +385,10 @@
     "moreDetailsHint": "Price per liter, station, notes",
     "derivedPrice": "Price per liter works out to",
     "derivedTotal": "Total for this fill-up",
-    "pricePerLiterHint": "Leave empty and it is worked out from the total"
+    "pricePerLiterHint": "Leave empty and it is worked out from the total",
+    "errors": {
+      "distanceRequired": "Enter the distance driven since your last fill-up."
+    }
   },
   "documents": {
     "title": "Documents",

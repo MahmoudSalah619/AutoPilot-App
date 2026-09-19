@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { SPACING } from '@/constants/Layout';
 import type { FuelType, TransmissionType, Vehicle } from '@/@types/models';
+import { useGetCarMakesQuery } from '@/apis/autopilotApi';
 import type { VehicleDraft } from '@/apis/repositories/vehicles';
-import { Button, FormInput, OptionGroup, Text } from '@/shared/components/ui';
+import { Button, FormInput, OptionGroup, SelectField, Text } from '@/shared/components/ui';
 import {
   OPTIONAL_NUMBER_RULES,
   REQUIRED_NUMBER_RULES,
@@ -66,6 +67,16 @@ export default function VehicleForm({
   secondaryAction,
   compact = false,
 }: VehicleFormProps) {
+  // `vehicles.make` is a foreign key into `car_makes`, so a typed-in make
+  // has nowhere to go — it has to be picked from the catalogue. When that
+  // catalogue is unreachable (mock mode) the field degrades to free text.
+  const { data: carMakes = [], isLoading: areMakesLoading } = useGetCarMakesQuery();
+
+  const makeOptions = useMemo(
+    () => carMakes.map((make) => ({ value: make.name, label: make.name })),
+    [carMakes]
+  );
+
   const { control, handleSubmit } = useForm<VehicleFormValues>({
     defaultValues: {
       make: vehicle?.make ?? '',
@@ -100,15 +111,36 @@ export default function VehicleForm({
     <View style={{ rowGap: SPACING.xl }}>
       <View style={{ rowGap: SPACING.lg }}>
         <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
-          <FormInput
-            control={control}
-            name="make"
-            labelTx="vehicle.make"
-            placeholderTx="vehicle.makePlaceholder"
-            autoCapitalize="words"
-            required
-            containerStyle={{ flex: 1 }}
-          />
+          {makeOptions.length > 0 ? (
+            <Controller
+              control={control}
+              name="make"
+              rules={{ required: 'validation.required' }}
+              render={({ field: { onChange, value }, fieldState: { error } }) => (
+                <SelectField
+                  options={makeOptions}
+                  value={value}
+                  onChange={onChange}
+                  labelTx="vehicle.make"
+                  placeholderTx="vehicle.makePlaceholder"
+                  error={error?.message}
+                  isLoading={areMakesLoading}
+                  required
+                  containerStyle={{ flex: 1 }}
+                />
+              )}
+            />
+          ) : (
+            <FormInput
+              control={control}
+              name="make"
+              labelTx="vehicle.make"
+              placeholderTx="vehicle.makePlaceholder"
+              autoCapitalize="words"
+              required
+              containerStyle={{ flex: 1 }}
+            />
+          )}
           <FormInput
             control={control}
             name="model"

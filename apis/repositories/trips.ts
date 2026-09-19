@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { TABLES, USE_MOCK_DATA } from '@/apis/config';
+import { isLive, PLANNED_TABLES } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { db, delay, mockId } from '@/apis/mock/store';
 import type { Trip } from '@/@types/models';
@@ -22,25 +22,25 @@ export const DEFAULT_TRIP_CHECKLIST = [
 ] as const;
 
 export async function listTrips(vehicleId?: string): Promise<Trip[]> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('trips')) {
     const trips = db.trips.filter((trip) => !vehicleId || trip.vehicleId === vehicleId);
     return delay(byDateAsc(trips, 'departureDate'));
   }
 
-  let query = supabase.from(TABLES.trips).select('*');
+  let query = supabase.from(PLANNED_TABLES.trips).select('*');
   if (vehicleId) query = query.eq('vehicle_id', vehicleId);
 
   return unwrap<Trip[]>(await query.order('departure_date', { ascending: true }));
 }
 
 export async function getTrip(id: string): Promise<Trip> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('trips')) {
     const found = db.trips.find((trip) => trip.id === id);
     if (!found) throw new RepositoryError('Trip not found', 404);
     return delay(found);
   }
 
-  return unwrap<Trip>(await supabase.from(TABLES.trips).select('*').eq('id', id).single());
+  return unwrap<Trip>(await supabase.from(PLANNED_TABLES.trips).select('*').eq('id', id).single());
 }
 
 export async function createTrip(draft: TripDraft): Promise<Trip> {
@@ -52,7 +52,7 @@ export async function createTrip(draft: TripDraft): Promise<Trip> {
       isDone: false,
     }));
 
-  if (USE_MOCK_DATA) {
+  if (!isLive('trips')) {
     const trip: Trip = {
       ...draft,
       checklist,
@@ -66,7 +66,7 @@ export async function createTrip(draft: TripDraft): Promise<Trip> {
 
   return unwrap<Trip>(
     await supabase
-      .from(TABLES.trips)
+      .from(PLANNED_TABLES.trips)
       .insert(toRow({ ...draft, checklist }))
       .select()
       .single()
@@ -74,7 +74,7 @@ export async function createTrip(draft: TripDraft): Promise<Trip> {
 }
 
 export async function updateTrip(id: string, patch: Partial<TripDraft>): Promise<Trip> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('trips')) {
     const index = db.trips.findIndex((trip) => trip.id === id);
     if (index === -1) throw new RepositoryError('Trip not found', 404);
 
@@ -83,7 +83,7 @@ export async function updateTrip(id: string, patch: Partial<TripDraft>): Promise
   }
 
   return unwrap<Trip>(
-    await supabase.from(TABLES.trips).update(toRow(patch)).eq('id', id).select().single()
+    await supabase.from(PLANNED_TABLES.trips).update(toRow(patch)).eq('id', id).select().single()
   );
 }
 
@@ -99,12 +99,12 @@ export async function toggleTripChecklistItem(tripId: string, itemId: string): P
 }
 
 export async function deleteTrip(id: string): Promise<string> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('trips')) {
     db.trips = db.trips.filter((trip) => trip.id !== id);
     return delay(id);
   }
 
-  const { error } = await supabase.from(TABLES.trips).delete().eq('id', id);
+  const { error } = await supabase.from(PLANNED_TABLES.trips).delete().eq('id', id);
   if (error) throw new RepositoryError(error.message);
 
   return id;

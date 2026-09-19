@@ -1,10 +1,11 @@
 import dayjs from 'dayjs';
 
-import { TABLES, USE_MOCK_DATA } from '@/apis/config';
+import { isLive } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { db, delay, mockId } from '@/apis/mock/store';
 import type { AppNotification, UserPreferences, UserProfile } from '@/@types/models';
-import { RepositoryError, toRow, unwrap } from './helpers';
+import { RepositoryError } from './helpers';
+import { resetReferenceCache } from './reference';
 
 /* ── Auth ─────────────────────────────────────────────────────────────────── */
 
@@ -25,12 +26,16 @@ export interface Session {
 }
 
 export async function signIn({ email, password }: Credentials): Promise<Session> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('auth')) {
     if (!email || !password) throw new RepositoryError('auth.errors.missingCredentials', 400);
     return delay({ userId: db.profile.id, email, accessToken: 'mock-access-token' }, 500);
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password,
+  });
+
   if (error) throw new RepositoryError(error.message, error.status ?? 401);
 
   return {
@@ -40,8 +45,26 @@ export async function signIn({ email, password }: Credentials): Promise<Session>
   };
 }
 
-export async function signUp(payload: SignUpPayload): Promise<Session> {
-  if (USE_MOCK_DATA) {
+/**
+ * Result of a sign-up.
+ *
+ * With email confirmation enabled Supabase returns a user but no session, and
+ * the caller has to route somewhere else in that case — so the distinction is
+ * part of the return type rather than something screens have to infer from a
+ * missing token.
+ */
+export interface SignUpResult extends Session {
+  isPendingConfirmation: boolean;
+}
+
+/**
+ * Creates an account.
+ *
+ * The project has no `profiles` table, so the user's name goes into auth
+ * metadata here at sign-up rather than into a row inserted afterwards.
+ */
+export async function signUp(payload: SignUpPayload): Promise<SignUpResult> {
+  if (!isLive('auth')) {
     db.profile = {
       ...db.profile,
       firstName: payload.firstName,
@@ -50,16 +73,24 @@ export async function signUp(payload: SignUpPayload): Promise<Session> {
     };
 
     return delay(
-      { userId: db.profile.id, email: payload.email, accessToken: 'mock-access-token' },
+      {
+        userId: db.profile.id,
+        email: payload.email,
+        accessToken: 'mock-access-token',
+        isPendingConfirmation: false,
+      },
       600
     );
   }
 
   const { data, error } = await supabase.auth.signUp({
-    email: payload.email,
+    email: payload.email.trim(),
     password: payload.password,
     options: {
-      data: { first_name: payload.firstName, last_name: payload.lastName },
+      data: {
+        first_name: payload.firstName.trim(),
+        last_name: payload.lastName.trim(),
+      },
     },
   });
 
@@ -69,11 +100,14 @@ export async function signUp(payload: SignUpPayload): Promise<Session> {
     userId: data.user?.id ?? '',
     email: data.user?.email ?? payload.email,
     accessToken: data.session?.access_token,
+    isPendingConfirmation: Boolean(data.user) && !data.session,
   };
 }
 
 export async function signOut(): Promise<void> {
-  if (USE_MOCK_DATA) {
+  resetReferenceCache();
+
+  if (!isLive('auth')) {
     await delay(null, 200);
     return;
   }
@@ -83,7 +117,7 @@ export async function signOut(): Promise<void> {
 }
 
 export async function getSession(): Promise<Session | null> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('auth')) {
     return delay(null, 100);
   }
 
@@ -99,68 +133,131 @@ export async function getSession(): Promise<Session | null> {
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('auth')) {
     await delay(null, 500);
     return;
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
   if (error) throw new RepositoryError(error.message);
+}
+
+/** The signed-in user's id, or a thrown 401. Used by every owned-table write. */
+export async function requireUserId(): Promise<string> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw new RepositoryError(error.message, error.status ?? 401);
+  if (!data.user) throw new RepositoryError('auth.errors.notAuthenticated', 401);
+
+  return data.user.id;
 }
 
 /* ── Profile ──────────────────────────────────────────────────────────────── */
 
+/**
+ * Profile fields carried in `auth.users.user_metadata`.
+ *
+ * There is no `profiles` table in the project, and auth metadata is the one
+ * per-user store the client can write without a schema change. It is not a
+ * substitute for a real table — it cannot be queried, joined or read by
+ * another user — but it keeps the profile screen honest instead of showing
+ * seed data.
+ */
+interface ProfileMetadata {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  avatar_url?: string;
+  date_of_birth?: string;
+  address?: string;
+  preferences?: UserPreferences;
+}
+
+export const DEFAULT_PREFERENCES: UserPreferences = {
+  distanceUnit: 'km',
+  volumeUnit: 'liter',
+  currency: 'EGP',
+  reminderLeadDays: 7,
+};
+
+async function readMetadata(): Promise<{
+  id: string;
+  email: string;
+  createdAt: string;
+  metadata: ProfileMetadata;
+}> {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw new RepositoryError(error.message, error.status ?? 401);
+  if (!data.user) throw new RepositoryError('auth.errors.notAuthenticated', 401);
+
+  return {
+    id: data.user.id,
+    email: data.user.email ?? '',
+    createdAt: data.user.created_at ?? dayjs().toISOString(),
+    metadata: (data.user.user_metadata ?? {}) as ProfileMetadata,
+  };
+}
+
+async function writeMetadata(patch: ProfileMetadata): Promise<ProfileMetadata> {
+  const { metadata } = await readMetadata();
+  const next = { ...metadata, ...patch };
+
+  const { error } = await supabase.auth.updateUser({ data: next });
+  if (error) throw new RepositoryError(error.message, error.status ?? 400);
+
+  return next;
+}
+
 export async function getProfile(): Promise<UserProfile> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('profile')) {
     return delay(db.profile);
   }
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) throw new RepositoryError('Not authenticated', 401);
+  const { id, email, createdAt, metadata } = await readMetadata();
 
-  return unwrap<UserProfile>(
-    await supabase.from(TABLES.profiles).select('*').eq('id', auth.user.id).single()
-  );
+  return {
+    id,
+    email,
+    createdAt,
+    firstName: metadata.first_name ?? '',
+    lastName: metadata.last_name ?? '',
+    phone: metadata.phone,
+    avatarUrl: metadata.avatar_url,
+    dateOfBirth: metadata.date_of_birth,
+    address: metadata.address,
+  };
 }
 
 export async function updateProfile(patch: Partial<UserProfile>): Promise<UserProfile> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('profile')) {
     db.profile = { ...db.profile, ...patch };
     return delay(db.profile);
   }
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) throw new RepositoryError('Not authenticated', 401);
+  await writeMetadata({
+    ...(patch.firstName !== undefined && { first_name: patch.firstName }),
+    ...(patch.lastName !== undefined && { last_name: patch.lastName }),
+    ...(patch.phone !== undefined && { phone: patch.phone }),
+    ...(patch.avatarUrl !== undefined && { avatar_url: patch.avatarUrl }),
+    ...(patch.dateOfBirth !== undefined && { date_of_birth: patch.dateOfBirth }),
+    ...(patch.address !== undefined && { address: patch.address }),
+  });
 
-  return unwrap<UserProfile>(
-    await supabase
-      .from(TABLES.profiles)
-      .update(toRow(patch))
-      .eq('id', auth.user.id)
-      .select()
-      .single()
-  );
+  return getProfile();
 }
 
 /* ── Preferences ──────────────────────────────────────────────────────────── */
 
 export async function getPreferences(): Promise<UserPreferences> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('profile')) {
     return delay(db.preferences);
   }
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) throw new RepositoryError('Not authenticated', 401);
-
-  const profile = unwrap<{ preferences: UserPreferences }>(
-    await supabase.from(TABLES.profiles).select('preferences').eq('id', auth.user.id).single()
-  );
-
-  return profile.preferences;
+  const { metadata } = await readMetadata();
+  return { ...DEFAULT_PREFERENCES, ...metadata.preferences };
 }
 
 export async function updatePreferences(patch: Partial<UserPreferences>): Promise<UserPreferences> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('profile')) {
     db.preferences = { ...db.preferences, ...patch };
     return delay(db.preferences);
   }
@@ -168,70 +265,41 @@ export async function updatePreferences(patch: Partial<UserPreferences>): Promis
   const current = await getPreferences();
   const next = { ...current, ...patch };
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) throw new RepositoryError('Not authenticated', 401);
-
-  const { error } = await supabase
-    .from(TABLES.profiles)
-    .update({ preferences: next })
-    .eq('id', auth.user.id);
-
-  if (error) throw new RepositoryError(error.message);
+  await writeMetadata({ preferences: next });
 
   return next;
 }
 
 /* ── Notifications ────────────────────────────────────────────────────────── */
 
+/**
+ * Notifications have no table in the project, so they stay in the mock store
+ * regardless of the backend flag — see `apis/migrations/001_app_gap.sql`.
+ * They live for the session only, which is why nothing here consults
+ * `isLive`.
+ */
 export async function listNotifications(): Promise<AppNotification[]> {
-  if (USE_MOCK_DATA) {
-    return delay(
-      [...db.notifications].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-    );
-  }
-
-  return unwrap<AppNotification[]>(
-    await supabase.from(TABLES.notifications).select('*').order('created_at', { ascending: false })
+  return delay(
+    [...db.notifications].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
   );
 }
 
 export async function markNotificationRead(id: string): Promise<AppNotification> {
-  if (USE_MOCK_DATA) {
-    const found = db.notifications.find((notification) => notification.id === id);
-    if (!found) throw new RepositoryError('Notification not found', 404);
+  const found = db.notifications.find((notification) => notification.id === id);
+  if (!found) throw new RepositoryError('Notification not found', 404);
 
-    found.isRead = true;
-    return delay(found, 120);
-  }
-
-  return unwrap<AppNotification>(
-    await supabase
-      .from(TABLES.notifications)
-      .update({ is_read: true })
-      .eq('id', id)
-      .select()
-      .single()
-  );
+  found.isRead = true;
+  return delay(found, 120);
 }
 
 export async function markAllNotificationsRead(): Promise<AppNotification[]> {
-  if (USE_MOCK_DATA) {
-    db.notifications.forEach((notification) => {
-      notification.isRead = true;
-    });
+  db.notifications.forEach((notification) => {
+    notification.isRead = true;
+  });
 
-    return delay(db.notifications, 200);
-  }
-
-  return unwrap<AppNotification[]>(
-    await supabase
-      .from(TABLES.notifications)
-      .update({ is_read: true })
-      .eq('is_read', false)
-      .select()
-  );
+  return delay(db.notifications, 200);
 }
 
 /** Creates a local notification record. Used when a reminder is scheduled. */
@@ -245,12 +313,6 @@ export async function pushNotification(
     createdAt: dayjs().toISOString(),
   };
 
-  if (USE_MOCK_DATA) {
-    db.notifications.unshift(record);
-    return delay(record, 100);
-  }
-
-  return unwrap<AppNotification>(
-    await supabase.from(TABLES.notifications).insert(toRow(record)).select().single()
-  );
+  db.notifications.unshift(record);
+  return delay(record, 100);
 }

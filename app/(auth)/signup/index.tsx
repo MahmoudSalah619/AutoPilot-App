@@ -48,11 +48,20 @@ export default function SignUp() {
         lastName: values.lastName,
       }).unwrap();
 
-      dispatch(sessionStarted(session));
-
       // Only a newly created account is a first-time user, so this is the one
       // place the guided tour is armed. Signing in never sets it.
       await markFirstRunPending();
+
+      // With email confirmation on, Supabase creates the user but issues no
+      // session. Continuing into onboarding would put the user in front of
+      // writes that RLS is going to reject, so send them to sign in instead.
+      if (session.isPendingConfirmation) {
+        toast.success(t('auth.confirmEmailTitle'), t('auth.confirmEmailBody'));
+        router.replace('/(auth)/login');
+        return;
+      }
+
+      dispatch(sessionStarted(session));
 
       // New accounts have no vehicle yet, so onboarding continues there.
       router.replace('/(auth)/addVehicle');

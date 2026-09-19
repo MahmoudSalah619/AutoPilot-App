@@ -48,7 +48,8 @@
     "on": "مفعّل",
     "off": "متوقف",
     "selectAnOption": "اختر خيارًا",
-    "comingSoon": "قريبًا"
+    "comingSoon": "قريبًا",
+    "noResults": "لا توجد نتائج"
   },
   "units": {
     "km": "كم",
@@ -102,7 +103,8 @@
     "deleteFailed": "تعذّر حذف هذا العنصر.",
     "notFoundTitle": "هذه الصفحة غير موجودة",
     "notFoundBody": "قد يكون الرابط قديمًا. لنعد بك إلى البداية.",
-    "backHome": "العودة للرئيسية"
+    "backHome": "العودة للرئيسية",
+    "invalidId": "تعذر العثور على هذا السجل."
   },
   "auth": {
     "welcomeTitle": "اسبق كل موعد صيانة",
@@ -136,7 +138,8 @@
     "errors": {
       "missingCredentials": "أدخل بريدك الإلكتروني وكلمة المرور",
       "invalidCredentials": "البريد الإلكتروني وكلمة المرور غير متطابقين",
-      "emailInUse": "يوجد حساب بهذا البريد الإلكتروني بالفعل"
+      "emailInUse": "يوجد حساب بهذا البريد الإلكتروني بالفعل",
+      "notAuthenticated": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى."
     },
     "features": {
       "predictiveTitle": "اعرف قبل أن تتعطل",
@@ -145,7 +148,9 @@
       "alertsBody": "إشعار واحد عندما يحين موعد فعلي. لا أكثر.",
       "recordsTitle": "كل سجلاتك في مكان واحد",
       "recordsBody": "الوقود والصيانة والتأمين والرخص، جاهزة وقت الحاجة."
-    }
+    },
+    "confirmEmailTitle": "أكّد بريدك الإلكتروني",
+    "confirmEmailBody": "أرسلنا رابط تأكيد إلى بريدك. افتحه ثم سجّل الدخول."
   },
   "onboarding": {
     "addVehicleTitle": "أضف سيارتك",
@@ -285,6 +290,9 @@
       "totalServices": "الصيانات",
       "spentThisYear": "الإنفاق هذا العام",
       "dueNow": "مستحق الآن"
+    },
+    "errors": {
+      "serviceTypeUnavailable": "لم يتم إعداد قائمة الخدمات بعد، لذا لا يمكن الحفظ."
     }
   },
   "reminders": {
@@ -318,6 +326,9 @@
       "overdue": "متأخرة",
       "dueSoon": "تقترب",
       "scheduled": "مجدولة"
+    },
+    "errors": {
+      "dueDateRequired": "اختر تاريخ الاستحقاق. التذكيرات بالمسافة فقط غير مدعومة بعد."
     }
   },
   "fuel": {
@@ -374,7 +385,10 @@
     "moreDetailsHint": "سعر اللتر، المحطة، ملاحظات",
     "derivedPrice": "سعر اللتر يعادل",
     "derivedTotal": "إجمالي هذه التعبئة",
-    "pricePerLiterHint": "اتركه فارغًا ليُحسب من الإجمالي"
+    "pricePerLiterHint": "اتركه فارغًا ليُحسب من الإجمالي",
+    "errors": {
+      "distanceRequired": "أدخل المسافة المقطوعة منذ آخر تعبئة."
+    }
   },
   "documents": {
     "title": "المستندات",

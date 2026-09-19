@@ -66,6 +66,78 @@ export function unwrap<T>(result: { data: unknown; error: PostgrestError | null 
   return fromRow<T>(result.data);
 }
 
+/* ── Live-schema coercions ────────────────────────────────────────────────── */
+
+/**
+ * The live tables key off `bigint` identities while every domain model uses
+ * `string` ids. These two functions are the only place that seam is crossed.
+ */
+export function toDomainId(value: number | string | null | undefined): string {
+  return value == null ? '' : String(value);
+}
+
+/** Throws rather than sending `NaN` to Postgres, which fails opaquely. */
+export function toRowId(value: string | number): number {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(parsed)) {
+    throw new RepositoryError('errors.invalidId', 400);
+  }
+
+  return parsed;
+}
+
+/** `vehicles.year` and `car_models.year` are `date` columns, not integers. */
+export function yearToDate(year?: number | null): string | null {
+  if (year == null || !Number.isFinite(year)) return null;
+  return `${String(year).padStart(4, '0')}-01-01`;
+}
+
+export function dateToYear(value?: string | null): number | undefined {
+  if (!value) return undefined;
+  const year = Number(value.slice(0, 4));
+  return Number.isFinite(year) ? year : undefined;
+}
+
+/** Date-only column value from an ISO date or timestamp. */
+export function toDateOnly(value?: string | null): string | null {
+  return value ? value.slice(0, 10) : null;
+}
+
+/**
+ * Drops keys whose value is `undefined`.
+ *
+ * Patches are built by spreading optional model fields, and sending an
+ * explicit `undefined` to PostgREST nulls the column instead of leaving it
+ * alone — which is how a partial edit quietly erases data.
+ */
+export function compact<T extends Record<string, unknown>>(row: T): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(row).filter(([, value]) => value !== undefined));
+}
+
+/** Throws on a Postgrest error without mapping the payload. */
+export function assertOk(result: { error: PostgrestError | null }): void {
+  if (result.error) {
+    throw new RepositoryError(result.error.message, Number(result.error.code) || 500);
+  }
+}
+
+/**
+ * Like `unwrap`, but hands back the row exactly as Postgres sent it.
+ *
+ * `unwrap` camelCases every key, which is right for tables whose columns
+ * line up with the domain model one-for-one. The live tables do not line up,
+ * so their repositories write explicit mappers and need the raw snake_case
+ * row to map *from* — a silent rename in between is how a mapper ends up
+ * reading `undefined` off every field.
+ */
+export function unwrapRaw<T>(result: { data: unknown; error: PostgrestError | null }): T {
+  if (result.error) {
+    throw new RepositoryError(result.error.message, Number(result.error.code) || 500);
+  }
+
+  return result.data as T;
+}
+
 /** Sorts a list by an ISO date field, newest first. */
 export function byDateDesc<T>(items: T[], field: keyof T): T[] {
   return [...items].sort(

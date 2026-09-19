@@ -1,4 +1,4 @@
-import { TABLES, USE_MOCK_DATA } from '@/apis/config';
+import { isLive, PLANNED_TABLES } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { delay } from '@/apis/mock/store';
 import { seedDiagnosticCodes } from '@/apis/mock/seed';
@@ -29,7 +29,7 @@ function matches(entry: DiagnosticCode, search: string): boolean {
 }
 
 export async function searchDiagnosticCodes(filter?: DiagnosticFilter): Promise<DiagnosticCode[]> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('diagnostics')) {
     const results = seedDiagnosticCodes
       .filter((entry) => !filter?.system || entry.system === filter.system)
       .filter((entry) => matches(entry, filter?.search ?? ''));
@@ -37,7 +37,7 @@ export async function searchDiagnosticCodes(filter?: DiagnosticFilter): Promise<
     return delay(results, 180);
   }
 
-  let query = supabase.from(TABLES.diagnosticCodes).select('*');
+  let query = supabase.from(PLANNED_TABLES.diagnosticCodes).select('*');
 
   if (filter?.system) query = query.eq('system', filter.system);
   if (filter?.search) {
@@ -49,7 +49,7 @@ export async function searchDiagnosticCodes(filter?: DiagnosticFilter): Promise<
 }
 
 export async function getDiagnosticCode(code: string): Promise<DiagnosticCode> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('diagnostics')) {
     const found = seedDiagnosticCodes.find(
       (entry) => entry.code.toLowerCase() === code.toLowerCase()
     );
@@ -59,6 +59,6 @@ export async function getDiagnosticCode(code: string): Promise<DiagnosticCode> {
   }
 
   return unwrap<DiagnosticCode>(
-    await supabase.from(TABLES.diagnosticCodes).select('*').eq('code', code).single()
+    await supabase.from(PLANNED_TABLES.diagnosticCodes).select('*').eq('code', code).single()
   );
 }

@@ -100,19 +100,50 @@ data — switching backends changes no component.
    ```
    EXPO_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=...
-   ```
-
-2. Run [`apis/schema.sql`](apis/schema.sql) in the Supabase SQL editor. It
-   creates every table, the `profiles` trigger, row-level-security policies and
-   the storage buckets.
-
-3. Flip the flag:
-
-   ```
    EXPO_PUBLIC_USE_MOCK_DATA=false
    ```
 
-Nothing else changes. Table names live in `apis/config.ts`.
+That is the whole switch. What it does *not* do is put every screen on
+Supabase, because the project's schema does not yet back every domain.
+
+### What is actually live
+
+`BACKENDS` in [`apis/config.ts`](apis/config.ts) is the source of truth, and
+`isLive(domain)` is what each repository branches on.
+
+| Domain | Backend | Notes |
+| --- | --- | --- |
+| Auth | Supabase | Email/password, session listener at the app root |
+| Reference | Supabase | `car_makes` (65), `car_models` (1), `services_types` (11), `tips` |
+| Profile | Supabase, partial | No `profiles` table — stored in `auth.users.user_metadata` |
+| Vehicles | Supabase, partial | No plate, VIN, colour, fuel type, transmission, tank capacity, photo |
+| Maintenance | Supabase, partial | No custom title, currency, month interval, workshop |
+| Reminders | Supabase, partial | Date-only: no service type, distance trigger or recurrence |
+| Fuel | Supabase, partial | **Blocked** — `gas_consumption` is missing its table grants |
+| Documents | Supabase, partial | Name + file only; no type or expiry, so expiry tracking is inert |
+| Climate, Trips, Notifications, Diagnostics | Mock | No table in the project |
+
+Fields the live schema cannot store are listed in `UNBACKED_FIELDS`; the app
+still collects them, and they round-trip as `undefined`.
+
+### Closing the gap
+
+[`apis/migrations/001_app_gap.sql`](apis/migrations/001_app_gap.sql) is the
+difference between the live schema and what the app needs. It has **not been
+applied** — review it and run it yourself.
+
+Section 0 is the one to apply first and can go on its own: `gas_consumption`
+is the only table without `select/insert/update/delete` granted to `anon` and
+`authenticated`, so every fuel request fails with `42501 permission denied`
+before RLS is even consulted.
+
+After applying, flip the matching `BACKENDS` entries and move the new tables
+from `PLANNED_TABLES` into `TABLES`. Regenerate
+[`@types/database.ts`](@types/database.ts) with:
+
+```bash
+npx supabase gen types typescript --project-id <project-ref> > @types/database.ts
+```
 
 ### Domain rules
 

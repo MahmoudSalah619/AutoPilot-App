@@ -10,6 +10,7 @@ import '@/locale';
 import store from '@/redux';
 import { ThemeProvider, useTheme } from '@/theme';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
+import { useAuthBootstrap } from '@/hooks/useSession';
 import { useLoadResources } from '@/hooks/useLoadResources';
 import { ConfirmDialog } from '@/shared/components/layout';
 import { TourProvider } from '@/features/onboarding';
@@ -18,10 +19,16 @@ import { toastConfig } from '@/shared/components/ui/Toast';
 /**
  * Renders the navigator once the theme exists above it, so the status bar and
  * screen backgrounds can follow the active scheme.
+ *
+ * Also the single owner of the auth lifecycle: the Supabase session listener
+ * lives here so it outlives every screen, and a token that expires deep in
+ * the app still unwinds the navigation stack.
  */
 function ThemedRoot() {
   const { isDark, colors } = useTheme();
   const { updateKind, isUpdateAvailable, isDismissible, dismiss, applyUpdate } = useAppUpdates();
+
+  useAuthBootstrap();
 
   const isStoreUpdate = updateKind === 'store';
 

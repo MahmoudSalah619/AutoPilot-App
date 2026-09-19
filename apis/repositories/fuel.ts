@@ -1,11 +1,20 @@
 import dayjs from 'dayjs';
 
-import { TABLES, USE_MOCK_DATA } from '@/apis/config';
+import { isLive, TABLES } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { db, delay, mockId } from '@/apis/mock/store';
 import type { FuelEntry, FuelStatistics } from '@/@types/models';
 import { calculateFuelStatistics } from '@/utils/domain';
-import { byDateDesc, RepositoryError, toRow, unwrap } from './helpers';
+import {
+  assertOk,
+  byDateDesc,
+  compact,
+  RepositoryError,
+  toDateOnly,
+  toDomainId,
+  toRowId,
+  unwrapRaw,
+} from './helpers';
 
 export type FuelEntryDraft = Omit<FuelEntry, 'id' | 'createdAt' | 'distanceKm'> & {
   /** Optional: derived from the previous entry's odometer when omitted. */
@@ -23,6 +32,53 @@ export interface FuelListResult {
   statistics: FuelStatistics;
 }
 
+/* ── Live-schema mapping ──────────────────────────────────────────────────── */
+
+/**
+ * A row of `public.gas_consumption`, the live fuel table.
+ *
+ * It records distance and volume only — no odometer, price, total cost,
+ * station or full-tank flag — so cost tracking and the per-fill-up odometer
+ * trail are dark until the migration lands. The table's own `efficiency`
+ * column is a generated `(km / L) / 1000`, which is off by three orders of
+ * magnitude, so it is ignored in favour of the app's own calculation.
+ */
+interface FuelRow {
+  id: number;
+  vehicle_id: number;
+  date: string;
+  kilometers_driven: number;
+  liters_consumed: number;
+  created_at: string;
+}
+
+const FUEL_COLUMNS = 'id, vehicle_id, date, kilometers_driven, liters_consumed, created_at';
+
+function fromFuelRow(row: FuelRow): FuelEntry {
+  return {
+    id: toDomainId(row.id),
+    vehicleId: toDomainId(row.vehicle_id),
+    date: row.date,
+    distanceKm: Number(row.kilometers_driven ?? 0),
+    liters: Number(row.liters_consumed ?? 0),
+    createdAt: row.created_at,
+    // Unbacked by the current schema.
+    odometer: 0,
+    isFullTank: true,
+  };
+}
+
+function toFuelRow(draft: Partial<FuelEntryDraft>): Record<string, unknown> {
+  return compact({
+    vehicle_id: draft.vehicleId !== undefined ? toRowId(draft.vehicleId) : undefined,
+    date: draft.date !== undefined ? toDateOnly(draft.date) : undefined,
+    kilometers_driven: draft.distanceKm,
+    liters_consumed: draft.liters,
+  });
+}
+
+/* ── Mock helpers ─────────────────────────────────────────────────────────── */
+
 function applyFilter(entries: FuelEntry[], filter?: FuelFilter) {
   if (!filter) return entries;
 
@@ -36,28 +92,6 @@ function applyFilter(entries: FuelEntry[], filter?: FuelFilter) {
 }
 
 /**
- * Fuel history plus its aggregate statistics.
- *
- * Statistics are computed over the *filtered* set, so narrowing the date range
- * also narrows the averages — which is what makes the filter useful.
- */
-export async function listFuelEntries(filter?: FuelFilter): Promise<FuelListResult> {
-  if (USE_MOCK_DATA) {
-    const entries = byDateDesc(applyFilter(db.fuelEntries, filter), 'date');
-    return delay({ entries, statistics: calculateFuelStatistics(entries) });
-  }
-
-  let query = supabase.from(TABLES.fuelEntries).select('*');
-
-  if (filter?.vehicleId) query = query.eq('vehicle_id', filter.vehicleId);
-  if (filter?.from) query = query.gte('date', filter.from);
-  if (filter?.to) query = query.lte('date', filter.to);
-
-  const entries = unwrap<FuelEntry[]>(await query.order('date', { ascending: false }));
-  return { entries, statistics: calculateFuelStatistics(entries) };
-}
-
-/**
  * Derives distance from the preceding fill-up when the caller did not supply
  * it — drivers read the odometer, not the trip meter.
  */
@@ -68,8 +102,62 @@ function deriveDistance(draft: FuelEntryDraft, previous?: FuelEntry): number {
   return Math.max(0, draft.odometer - previous.odometer);
 }
 
+/**
+ * Distance for a live fill-up.
+ *
+ * `gas_consumption` stores no odometer, so the usual "this reading minus the
+ * last one" trick has nothing to subtract from. The vehicle's own odometer is
+ * the nearest stand-in; failing that the caller has to say how far they drove
+ * rather than have a zero silently poison the efficiency average.
+ */
+async function deriveLiveDistance(draft: FuelEntryDraft): Promise<number> {
+  if (draft.distanceKm != null && draft.distanceKm > 0) return draft.distanceKm;
+
+  if (draft.odometer > 0 && draft.vehicleId) {
+    const vehicle = unwrapRaw<{ odometer: number | null }>(
+      await supabase
+        .from(TABLES.vehicles)
+        .select('odometer')
+        .eq('id', toRowId(draft.vehicleId))
+        .single()
+    );
+
+    const previous = Number(vehicle.odometer ?? 0);
+    if (previous > 0 && draft.odometer > previous) return draft.odometer - previous;
+  }
+
+  throw new RepositoryError('fuel.errors.distanceRequired', 400);
+}
+
+/* ── Queries ──────────────────────────────────────────────────────────────── */
+
+/**
+ * Fuel history plus its aggregate statistics.
+ *
+ * Statistics are computed over the *filtered* set, so narrowing the date range
+ * also narrows the averages — which is what makes the filter useful.
+ */
+export async function listFuelEntries(filter?: FuelFilter): Promise<FuelListResult> {
+  if (!isLive('fuel')) {
+    const entries = byDateDesc(applyFilter(db.fuelEntries, filter), 'date');
+    return delay({ entries, statistics: calculateFuelStatistics(entries) });
+  }
+
+  let query = supabase.from(TABLES.gasConsumption).select(FUEL_COLUMNS);
+
+  if (filter?.vehicleId) query = query.eq('vehicle_id', toRowId(filter.vehicleId));
+  if (filter?.from) query = query.gte('date', toDateOnly(filter.from));
+  if (filter?.to) query = query.lte('date', toDateOnly(filter.to));
+
+  const entries = unwrapRaw<FuelRow[]>(await query.order('date', { ascending: false })).map(
+    fromFuelRow
+  );
+
+  return { entries, statistics: calculateFuelStatistics(entries) };
+}
+
 export async function createFuelEntry(draft: FuelEntryDraft): Promise<FuelEntry> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('fuel')) {
     const previous = byDateDesc(
       db.fuelEntries.filter(
         (entry) =>
@@ -93,38 +181,24 @@ export async function createFuelEntry(draft: FuelEntryDraft): Promise<FuelEntry>
     return delay(entry);
   }
 
-  const previousResult = await supabase
-    .from(TABLES.fuelEntries)
-    .select('*')
-    .eq('vehicle_id', draft.vehicleId)
-    .lt('date', draft.date)
-    .order('date', { ascending: false })
-    .limit(1);
+  const distanceKm = await deriveLiveDistance(draft);
 
-  const previous = unwrap<FuelEntry[]>(previousResult)[0];
-
-  return unwrap<FuelEntry>(
+  const row = unwrapRaw<FuelRow>(
     await supabase
-      .from(TABLES.fuelEntries)
-      .insert(
-        toRow({
-          ...draft,
-          distanceKm: deriveDistance(draft, previous),
-          totalCost:
-            draft.totalCost ??
-            (draft.pricePerLiter ? draft.pricePerLiter * draft.liters : undefined),
-        })
-      )
-      .select()
+      .from(TABLES.gasConsumption)
+      .insert(toFuelRow({ ...draft, distanceKm }))
+      .select(FUEL_COLUMNS)
       .single()
   );
+
+  return fromFuelRow(row);
 }
 
 export async function updateFuelEntry(
   id: string,
   patch: Partial<FuelEntryDraft>
 ): Promise<FuelEntry> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('fuel')) {
     const index = db.fuelEntries.findIndex((entry) => entry.id === id);
     if (index === -1) throw new RepositoryError('Fuel entry not found', 404);
 
@@ -132,19 +206,25 @@ export async function updateFuelEntry(
     return delay(db.fuelEntries[index]);
   }
 
-  return unwrap<FuelEntry>(
-    await supabase.from(TABLES.fuelEntries).update(toRow(patch)).eq('id', id).select().single()
+  const row = unwrapRaw<FuelRow>(
+    await supabase
+      .from(TABLES.gasConsumption)
+      .update(toFuelRow(patch))
+      .eq('id', toRowId(id))
+      .select(FUEL_COLUMNS)
+      .single()
   );
+
+  return fromFuelRow(row);
 }
 
 export async function deleteFuelEntry(id: string): Promise<string> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('fuel')) {
     db.fuelEntries = db.fuelEntries.filter((entry) => entry.id !== id);
     return delay(id);
   }
 
-  const { error } = await supabase.from(TABLES.fuelEntries).delete().eq('id', id);
-  if (error) throw new RepositoryError(error.message);
+  assertOk(await supabase.from(TABLES.gasConsumption).delete().eq('id', toRowId(id)));
 
   return id;
 }

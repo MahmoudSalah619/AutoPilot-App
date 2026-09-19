@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { TABLES, USE_MOCK_DATA } from '@/apis/config';
+import { isLive, PLANNED_TABLES } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { db, delay, mockId } from '@/apis/mock/store';
 import type { ClimateRecord, ClimateServiceType } from '@/@types/models';
@@ -63,7 +63,7 @@ export function buildClimateStatuses(records: ClimateRecord[]): ClimateServiceSt
 }
 
 export async function listClimateRecords(vehicleId?: string): Promise<ClimateRecord[]> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('climate')) {
     const records = db.climateRecords.filter(
       (record) => !vehicleId || record.vehicleId === vehicleId
     );
@@ -71,14 +71,14 @@ export async function listClimateRecords(vehicleId?: string): Promise<ClimateRec
     return delay(byDateDesc(records, 'date'));
   }
 
-  let query = supabase.from(TABLES.climateRecords).select('*');
+  let query = supabase.from(PLANNED_TABLES.climateRecords).select('*');
   if (vehicleId) query = query.eq('vehicle_id', vehicleId);
 
   return unwrap<ClimateRecord[]>(await query.order('date', { ascending: false }));
 }
 
 export async function createClimateRecord(draft: ClimateDraft): Promise<ClimateRecord> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('climate')) {
     const record: ClimateRecord = {
       ...draft,
       id: mockId('clm'),
@@ -90,17 +90,17 @@ export async function createClimateRecord(draft: ClimateDraft): Promise<ClimateR
   }
 
   return unwrap<ClimateRecord>(
-    await supabase.from(TABLES.climateRecords).insert(toRow(draft)).select().single()
+    await supabase.from(PLANNED_TABLES.climateRecords).insert(toRow(draft)).select().single()
   );
 }
 
 export async function deleteClimateRecord(id: string): Promise<string> {
-  if (USE_MOCK_DATA) {
+  if (!isLive('climate')) {
     db.climateRecords = db.climateRecords.filter((record) => record.id !== id);
     return delay(id);
   }
 
-  const { error } = await supabase.from(TABLES.climateRecords).delete().eq('id', id);
+  const { error } = await supabase.from(PLANNED_TABLES.climateRecords).delete().eq('id', id);
   if (error) throw new RepositoryError(error.message);
 
   return id;
