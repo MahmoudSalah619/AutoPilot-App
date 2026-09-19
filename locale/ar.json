@@ -48,7 +48,8 @@
     "on": "مفعّل",
     "off": "متوقف",
     "selectAnOption": "اختر خيارًا",
-    "comingSoon": "قريبًا"
+    "comingSoon": "قريبًا",
+    "noResults": "لا توجد نتائج"
   },
   "units": {
     "km": "كم",

@@ -48,7 +48,8 @@
     "on": "On",
     "off": "Off",
     "selectAnOption": "Select an option",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "noResults": "No matches"
   },
   "units": {
     "km": "km",
