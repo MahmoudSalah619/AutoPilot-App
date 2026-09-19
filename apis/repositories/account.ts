@@ -9,6 +9,51 @@ import { resetReferenceCache } from './reference';
 
 /* ── Auth ─────────────────────────────────────────────────────────────────── */
 
+/**
+ * GoTrue error codes mapped to translation keys.
+ *
+ * Supabase's raw strings are written for developers — "over_email_send_rate_
+ * limit" surfaces to the user as "email rate limit exceeded", which says
+ * nothing about what they should do next. Screens pass whatever comes back
+ * to `t()` with the message as its own fallback, so anything unmapped still
+ * shows, just untranslated.
+ */
+const AUTH_ERROR_KEYS: Record<string, string> = {
+  invalid_credentials: 'auth.errors.invalidCredentials',
+  email_address_invalid: 'validation.invalidEmail',
+  email_exists: 'auth.errors.emailInUse',
+  user_already_exists: 'auth.errors.emailInUse',
+  email_not_confirmed: 'auth.errors.emailNotConfirmed',
+  weak_password: 'validation.passwordTooShort',
+  same_password: 'auth.errors.samePassword',
+  over_email_send_rate_limit: 'auth.errors.tooManyEmails',
+  over_request_rate_limit: 'auth.errors.tooManyRequests',
+  session_expired: 'auth.errors.notAuthenticated',
+  flow_state_expired: 'auth.errors.linkExpired',
+  flow_state_not_found: 'auth.errors.linkExpired',
+  otp_expired: 'auth.errors.linkExpired',
+  signup_disabled: 'auth.errors.signupDisabled',
+};
+
+/** Shape of what `supabase.auth` rejects with, narrowed to what is used. */
+interface AuthLikeError {
+  message: string;
+  status?: number;
+  code?: string;
+}
+
+/**
+ * Turns a Supabase auth error into one the UI can show.
+ *
+ * Matches on `code` rather than the message: the codes are a stable contract,
+ * the prose is not.
+ */
+function authError(error: AuthLikeError, fallbackStatus: number): RepositoryError {
+  const key = error.code ? AUTH_ERROR_KEYS[error.code] : undefined;
+
+  return new RepositoryError(key ?? error.message, error.status ?? fallbackStatus);
+}
+
 export interface Credentials {
   email: string;
   password: string;
@@ -36,7 +81,7 @@ export async function signIn({ email, password }: Credentials): Promise<Session>
     password,
   });
 
-  if (error) throw new RepositoryError(error.message, error.status ?? 401);
+  if (error) throw authError(error, 401);
 
   return {
     userId: data.user?.id ?? '',
@@ -95,7 +140,7 @@ export async function signUp(payload: SignUpPayload): Promise<SignUpResult> {
     },
   });
 
-  if (error) throw new RepositoryError(error.message, error.status ?? 400);
+  if (error) throw authError(error, 400);
 
   return {
     userId: data.user?.id ?? '',
@@ -114,7 +159,7 @@ export async function signOut(): Promise<void> {
   }
 
   const { error } = await supabase.auth.signOut();
-  if (error) throw new RepositoryError(error.message);
+  if (error) throw authError(error, 500);
 }
 
 export async function getSession(): Promise<Session | null> {
@@ -123,7 +168,7 @@ export async function getSession(): Promise<Session | null> {
   }
 
   const { data, error } = await supabase.auth.getSession();
-  if (error) throw new RepositoryError(error.message);
+  if (error) throw authError(error, 401);
   if (!data.session) return null;
 
   return {
@@ -143,7 +188,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
     redirectTo: AUTH_REDIRECTS.recovery,
   });
 
-  if (error) throw new RepositoryError(error.message);
+  if (error) throw authError(error, 400);
 }
 
 /**
@@ -156,7 +201,7 @@ export async function requestPasswordReset(email: string): Promise<void> {
  */
 export async function exchangeAuthCode(code: string): Promise<Session> {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) throw new RepositoryError(error.message, error.status ?? 400);
+  if (error) throw authError(error, 400);
   if (!data.session) throw new RepositoryError('auth.errors.linkExpired', 401);
 
   return {
@@ -179,13 +224,13 @@ export async function updatePassword(password: string): Promise<void> {
   }
 
   const { error } = await supabase.auth.updateUser({ password });
-  if (error) throw new RepositoryError(error.message, error.status ?? 400);
+  if (error) throw authError(error, 400);
 }
 
 /** The signed-in user's id, or a thrown 401. Used by every owned-table write. */
 export async function requireUserId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
-  if (error) throw new RepositoryError(error.message, error.status ?? 401);
+  if (error) throw authError(error, 401);
   if (!data.user) throw new RepositoryError('auth.errors.notAuthenticated', 401);
 
   return data.user.id;
@@ -226,7 +271,7 @@ async function readMetadata(): Promise<{
   metadata: ProfileMetadata;
 }> {
   const { data, error } = await supabase.auth.getUser();
-  if (error) throw new RepositoryError(error.message, error.status ?? 401);
+  if (error) throw authError(error, 401);
   if (!data.user) throw new RepositoryError('auth.errors.notAuthenticated', 401);
 
   return {
@@ -242,7 +287,7 @@ async function writeMetadata(patch: ProfileMetadata): Promise<ProfileMetadata> {
   const next = { ...metadata, ...patch };
 
   const { error } = await supabase.auth.updateUser({ data: next });
-  if (error) throw new RepositoryError(error.message, error.status ?? 400);
+  if (error) throw authError(error, 400);
 
   return next;
 }

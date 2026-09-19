@@ -65,10 +65,16 @@ export default function Home() {
   /**
    * The odometer prompt is suppressed while the tour runs so a first-time user
    * never gets two overlays stacked on top of each other.
+   *
+   * Also suppressed until the tour provider has read its flags: otherwise the
+   * prompt can win the race on the commit where the vehicle first loads, open
+   * its sheet, and leave the tour drawing its spotlight behind a modal — a
+   * separate native window, whose coordinate space does not match the one
+   * targets are measured in.
    */
   const { needsAttention, shouldPrompt, dismissPrompt } = useOdometerNudge({
     vehicle,
-    isSuppressed: Boolean(activeTour) || isOdometerSheetOpen,
+    isSuppressed: !isReady || Boolean(activeTour) || isOdometerSheetOpen,
   });
 
   /**

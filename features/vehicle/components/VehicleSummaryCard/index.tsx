@@ -16,6 +16,7 @@ import {
   PulseHalo,
   Text,
 } from '@/shared/components/ui';
+import { isFieldBacked } from '@/apis/config';
 import { nextDistanceMilestone, resolveOdometerFreshness } from '@/utils/domain';
 import { formatNumber, formatRelative } from '@/utils/format';
 import { TOUR_TARGETS, useTourTarget } from '@/features/onboarding';
@@ -39,6 +40,9 @@ const FRESHNESS_META: Record<
   ReturnType<typeof resolveOdometerFreshness>,
   { tone: ColorToken; labelTx?: string; badgeTone?: 'warning' | 'danger' }
 > = {
+  // No badge and no warning tint: the backend cannot say when the reading
+  // was taken, so the card says nothing rather than something untrue.
+  unknown: { tone: 'textMuted' },
   fresh: { tone: 'textMuted' },
   aging: { tone: 'textSecondary' },
   stale: { tone: 'warning', labelTx: 'vehicle.odometerStale', badgeTone: 'warning' },
@@ -71,7 +75,8 @@ export default function VehicleSummaryCard({
     ? `${vehicle.make} ${vehicle.model} · ${vehicle.year}`
     : String(vehicle.year);
 
-  const freshness = resolveOdometerFreshness(vehicle.odometerUpdatedAt);
+  const isUpdatedAtTracked = isFieldBacked('vehicles', 'odometerUpdatedAt');
+  const freshness = resolveOdometerFreshness(vehicle.odometerUpdatedAt, isUpdatedAtTracked);
   const meta = FRESHNESS_META[freshness];
   const needsAttention = freshness === 'stale' || freshness === 'never';
 
@@ -156,11 +161,15 @@ export default function VehicleSummaryCard({
           <Text variant="h3" color="textSecondary" tx="units.km" />
         </View>
 
-        <Text variant="caption" color={meta.tone}>
-          {vehicle.odometerUpdatedAt
-            ? t('vehicle.odometerUpdated', { when: formatRelative(vehicle.odometerUpdatedAt) })
-            : t('vehicle.odometerNeverBody')}
-        </Text>
+        {/* Omitted entirely when the backend does not track the timestamp —
+            an empty caption beats inventing "never updated". */}
+        {freshness !== 'unknown' && (
+          <Text variant="caption" color={meta.tone}>
+            {vehicle.odometerUpdatedAt
+              ? t('vehicle.odometerUpdated', { when: formatRelative(vehicle.odometerUpdatedAt) })
+              : t('vehicle.odometerNeverBody')}
+          </Text>
+        )}
       </View>
 
       {/* What the reading is counting down to — the reason to keep it current */}

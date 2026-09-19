@@ -102,6 +102,20 @@ export function isLive(domain: DataDomain): boolean {
   return BACKENDS[domain] !== 'mock';
 }
 
+/**
+ * True when the active backend can actually store `field`.
+ *
+ * The difference between "we know this is empty" and "we cannot know" is not
+ * cosmetic. `odometerUpdatedAt` has no column in the live schema, so it comes
+ * back undefined for every vehicle — and code that reads undefined as "never
+ * updated" will tell every user their odometer is stale, forever, and act on
+ * it. Ask this before drawing a conclusion from a missing value.
+ */
+export function isFieldBacked(domain: DataDomain, field: string): boolean {
+  if (!isLive(domain)) return true; // The mock store carries the full model.
+  return !UNBACKED_FIELDS[domain]?.includes(field);
+}
+
 /** Artificial delay on mock calls, so loading states are exercised in dev. */
 export const MOCK_LATENCY_MS = 280;
 

@@ -46,10 +46,20 @@ export const ODOMETER_STALE_DAYS = 21;
  * intervals and fuel economy are all measured against it, so a stale reading
  * quietly degrades everything else. Surfacing its age is what lets the UI ask
  * for an update only when asking is actually warranted.
+ *
+ * `unknown` is not a degree of staleness: it means the backend has no column
+ * for the timestamp, so no claim can be made either way. Kept distinct from
+ * `never`, which is an accusation — acting on it when the truth is simply
+ * unknown nags every user on every launch.
  */
-export type OdometerFreshness = 'never' | 'fresh' | 'aging' | 'stale';
+export type OdometerFreshness = 'unknown' | 'never' | 'fresh' | 'aging' | 'stale';
 
-export function resolveOdometerFreshness(updatedAt?: string): OdometerFreshness {
+export function resolveOdometerFreshness(
+  updatedAt?: string,
+  /** False when the active backend has no column for the timestamp. */
+  isTracked = true
+): OdometerFreshness {
+  if (!isTracked) return 'unknown';
   if (!updatedAt) return 'never';
 
   const age = daysSince(updatedAt);
@@ -62,8 +72,8 @@ export function resolveOdometerFreshness(updatedAt?: string): OdometerFreshness 
 }
 
 /** True when the reading is old enough to justify interrupting the user. */
-export function isOdometerStale(updatedAt?: string): boolean {
-  const freshness = resolveOdometerFreshness(updatedAt);
+export function isOdometerStale(updatedAt?: string, isTracked = true): boolean {
+  const freshness = resolveOdometerFreshness(updatedAt, isTracked);
   return freshness === 'stale' || freshness === 'never';
 }
 

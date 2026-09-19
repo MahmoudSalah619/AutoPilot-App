@@ -140,7 +140,12 @@
       "invalidCredentials": "That email and password do not match",
       "emailInUse": "An account already exists for this email",
       "notAuthenticated": "Your session has ended. Please sign in again.",
-      "linkExpired": "That link has expired or has already been used"
+      "linkExpired": "That link has expired or has already been used",
+      "emailNotConfirmed": "Confirm your email address first, then sign in",
+      "samePassword": "That is already your password. Choose a different one.",
+      "tooManyEmails": "Too many emails sent just now. Try again in a little while.",
+      "tooManyRequests": "Too many attempts. Wait a moment and try again.",
+      "signupDisabled": "New accounts are not being accepted at the moment"
     },
     "features": {
       "predictiveTitle": "Know before it breaks",

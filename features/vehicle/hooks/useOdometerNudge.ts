@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 
+import { isFieldBacked } from '@/apis/config';
 import type { Vehicle } from '@/@types/models';
 import { resolveOdometerFreshness, type OdometerFreshness } from '@/utils/domain';
 
@@ -56,7 +57,14 @@ export function useOdometerNudge({
 
   if (isSuppressed) wasEverSuppressed.current = true;
 
-  const freshness = resolveOdometerFreshness(vehicle?.odometerUpdatedAt);
+  // The live schema has no `odometer_updated_at`, so the timestamp is absent
+  // for every vehicle. Reading that as "never updated" made this prompt fire
+  // on every launch for everyone — and open a sheet over the first-run tour.
+  const freshness = resolveOdometerFreshness(
+    vehicle?.odometerUpdatedAt,
+    isFieldBacked('vehicles', 'odometerUpdatedAt')
+  );
+
   const needsAttention = freshness === 'stale' || freshness === 'never';
 
   useEffect(() => {

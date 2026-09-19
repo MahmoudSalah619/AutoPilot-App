@@ -172,11 +172,20 @@ record('vehicle_documents insert', !documentError, documentError?.message ?? '')
 
 /* ── Storage ──────────────────────────────────────────────────────────────── */
 
+// The bucket restricts mime types to jpeg/png/webp/pdf, so the probe has to
+// be one of those — a text file is rejected before any policy is consulted.
+const PNG_1PX = Uint8Array.from(
+  atob(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+  ),
+  (c) => c.charCodeAt(0)
+);
+
+const uploadPath = `${userId}/${stamp}-test.png`;
+
 const { error: uploadError } = await supabase.storage
   .from('storage')
-  .upload(`${userId}/${stamp}-test.txt`, new Blob(['test'], { type: 'text/plain' }), {
-    contentType: 'text/plain',
-  });
+  .upload(uploadPath, PNG_1PX, { contentType: 'image/png' });
 
 record('storage upload', !uploadError, uploadError?.message ?? 'uploaded');
 
@@ -217,7 +226,7 @@ for (const table of ['maintenance', 'service_reminders', 'gas_consumption', 'veh
 const { error: deleteError } = await supabase.from('vehicles').delete().eq('id', vehicle.id);
 record('cleanup', !deleteError, deleteError?.message ?? 'rows removed');
 
-await supabase.storage.from('storage').remove([`${userId}/${stamp}-test.txt`]);
+await supabase.storage.from('storage').remove([uploadPath]);
 
 /* ── Summary ──────────────────────────────────────────────────────────────── */
 
