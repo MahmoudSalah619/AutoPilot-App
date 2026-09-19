@@ -12,6 +12,7 @@ import type { DiagnosticCode, DiagnosticSystem } from '@/@types/models';
 import { Screen } from '@/shared/components/layout';
 import { Chip, EmptyState, Input, SkeletonCard, Text } from '@/shared/components/ui';
 import { DiagnosticCard, DiagnosticDetailSheet } from '@/features/services/diagnostics';
+import { TipBanner } from '@/features/tips';
 
 const SYSTEMS: DiagnosticSystem[] = [
   'engine',
@@ -54,6 +55,8 @@ export default function ErrorsGuide() {
       }}
     >
       <View style={{ paddingHorizontal: SPACING.screen, rowGap: SPACING.md }}>
+        <TipBanner screen="error_guide" />
+
         <Input
           placeholderTx="errorsGuide.searchPlaceholder"
           value={search}

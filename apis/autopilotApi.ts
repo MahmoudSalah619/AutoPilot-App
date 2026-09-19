@@ -105,6 +105,10 @@ export const autopilotApi = createApi({
       queryFn: (email) => run(() => account.requestPasswordReset(email)),
     }),
 
+    updatePassword: build.mutation<void, string>({
+      queryFn: (password) => run(() => account.updatePassword(password)),
+    }),
+
     /* ── Profile & preferences ────────────────────────────────────────── */
 
     getProfile: build.query<UserProfile, void>({
@@ -387,6 +391,7 @@ export const {
   useSignUpMutation,
   useSignOutMutation,
   useRequestPasswordResetMutation,
+  useUpdatePasswordMutation,
 
   useGetProfileQuery,
   useUpdateProfileMutation,

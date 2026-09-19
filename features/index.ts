@@ -8,4 +8,5 @@ export * as Onboarding from './onboarding';
 export * as Notifications from './notifications';
 export * as Profile from './profile';
 export * as Services from './services';
+export * as Tips from './tips';
 export * as Vehicle from './vehicle';

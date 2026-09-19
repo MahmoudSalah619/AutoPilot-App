@@ -7,11 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { SPACING } from '@/constants/Layout';
 import { useSignInMutation } from '@/apis/autopilotApi';
 import { sessionStarted } from '@/redux/authReducer';
+import { unlocked } from '@/redux/appReducer';
 import { useAppDispatch } from '@/redux';
 import { Screen } from '@/shared/components/layout';
-import { Button, Checkbox, Divider, FormInput, Text } from '@/shared/components/ui';
+import { Button, Checkbox, FormInput, Text } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/Toast';
-import { BiometricAuth } from '@/features/auth';
 import { EMAIL_RULES, PASSWORD_RULES } from '@/features/auth/validation';
 
 interface LoginForm {
@@ -33,6 +33,9 @@ export default function Login() {
     try {
       const session = await signIn(values).unwrap();
       dispatch(sessionStarted(session));
+      // Signing in with a password satisfies the biometric gate for this
+      // launch; re-prompting immediately would be asking twice for one entry.
+      dispatch(unlocked());
       router.replace('/(main)/(tabs)/Home');
     } catch (error) {
       const message = (error as { message?: string })?.message ?? 'errors.unexpected';
@@ -110,10 +113,6 @@ export default function Login() {
         loading={isLoading}
         onPress={handleSubmit(onSubmit)}
       />
-
-      <Divider labelTx="auth.orContinueWith" />
-
-      <BiometricAuth />
     </Screen>
   );
 }

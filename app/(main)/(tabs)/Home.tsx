@@ -29,6 +29,7 @@ import {
 } from '@/features/home';
 import { useOdometerNudge, UpdateOdometerSheet, VehicleSummaryCard } from '@/features/vehicle';
 import { NotificationBell } from '@/features/notifications';
+import { TipBanner } from '@/features/tips';
 import { useTour } from '@/features/onboarding';
 
 /** Time-of-day greeting key. */
@@ -159,6 +160,8 @@ export default function Home() {
         <Text variant="bodySm" color="textSecondary" tx={greetingKey()} />
         <Text variant="display">{profile?.firstName ?? t('app.name')}</Text>
       </View>
+
+      <TipBanner screen="dashboard" />
 
       {!!vehicle && (
         <VehicleSummaryCard

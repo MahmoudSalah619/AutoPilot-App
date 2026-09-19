@@ -30,7 +30,15 @@ function createSupabaseClient(): SupabaseClient {
       storage: AsyncStorage,
       autoRefreshToken: true,
       persistSession: true,
+      // There is no URL to detect a session in: the app is not a web page.
+      // Email links arrive as deep links and are exchanged by hand in
+      // `hooks/useAuthDeepLinks.ts`.
       detectSessionInUrl: false,
+      // PKCE rather than the implicit default. An implicit-flow email link
+      // carries the access token in the URL fragment, which on a device means
+      // the token passes through the OS link handler and anything logging it;
+      // PKCE sends a single-use code instead and keeps the exchange in-app.
+      flowType: 'pkce',
     },
   });
 }

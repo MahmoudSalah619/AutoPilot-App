@@ -11,6 +11,7 @@ import {
 import { useActiveVehicle } from '@/hooks/useActiveVehicle';
 import type { ServiceReminder } from '@/@types/models';
 import { ConfirmDialog, Screen } from '@/shared/components/layout';
+import { TipBanner } from '@/features/tips';
 import { EmptyState, Fab, SegmentedControl, SkeletonCard, StatTile } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/Toast';
 import { ReminderCard, ReminderSheet } from '@/features/services/reminders';
@@ -138,6 +139,8 @@ export default function ServiceReminders() {
         onRefresh={refetch}
         ListHeaderComponent={
           <View style={{ rowGap: SPACING.lg, paddingBottom: SPACING.md }}>
+            <TipBanner screen="service_reminders" />
+
             <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
               <StatTile
                 value={String(counts.overdue)}

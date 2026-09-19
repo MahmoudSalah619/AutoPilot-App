@@ -139,7 +139,8 @@
       "missingCredentials": "Enter your email and password",
       "invalidCredentials": "That email and password do not match",
       "emailInUse": "An account already exists for this email",
-      "notAuthenticated": "Your session has ended. Please sign in again."
+      "notAuthenticated": "Your session has ended. Please sign in again.",
+      "linkExpired": "That link has expired or has already been used"
     },
     "features": {
       "predictiveTitle": "Know before it breaks",
@@ -150,7 +151,18 @@
       "recordsBody": "Fuel, services, insurance and licences, ready when you need them."
     },
     "confirmEmailTitle": "Confirm your email",
-    "confirmEmailBody": "We sent a confirmation link to your inbox. Open it, then sign in."
+    "confirmEmailBody": "We sent a confirmation link to your inbox. Open it, then sign in.",
+    "emailConfirmed": "Email confirmed. Welcome to AutoPilot.",
+    "passwordUpdated": "Your password has been updated",
+    "newPassword": "New password",
+    "newPasswordTitle": "Choose a new password",
+    "newPasswordBody": "Pick something you have not used here before.",
+    "savePassword": "Save password",
+    "resetLinkExpiredBody": "Request a fresh link and open it on this device.",
+    "lockedTitle": "AutoPilot is locked",
+    "lockedBody": "Unlock to get back to your vehicles.",
+    "unlock": "Unlock",
+    "usePasswordInstead": "Sign out and use my password"
   },
   "onboarding": {
     "addVehicleTitle": "Add your vehicle",

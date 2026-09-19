@@ -18,6 +18,8 @@ export default function AuthLayout() {
       <Stack.Screen name="login/index" />
       <Stack.Screen name="signup/index" />
       <Stack.Screen name="forgot-password/index" />
+      <Stack.Screen name="reset-password/index" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="unlock/index" options={{ gestureEnabled: false }} />
       <Stack.Screen name="addVehicle/index" options={{ gestureEnabled: false }} />
     </Stack>
   );

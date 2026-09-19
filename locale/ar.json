@@ -139,7 +139,8 @@
       "missingCredentials": "أدخل بريدك الإلكتروني وكلمة المرور",
       "invalidCredentials": "البريد الإلكتروني وكلمة المرور غير متطابقين",
       "emailInUse": "يوجد حساب بهذا البريد الإلكتروني بالفعل",
-      "notAuthenticated": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى."
+      "notAuthenticated": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+      "linkExpired": "انتهت صلاحية هذا الرابط أو تم استخدامه بالفعل"
     },
     "features": {
       "predictiveTitle": "اعرف قبل أن تتعطل",
@@ -150,7 +151,18 @@
       "recordsBody": "الوقود والصيانة والتأمين والرخص، جاهزة وقت الحاجة."
     },
     "confirmEmailTitle": "أكّد بريدك الإلكتروني",
-    "confirmEmailBody": "أرسلنا رابط تأكيد إلى بريدك. افتحه ثم سجّل الدخول."
+    "confirmEmailBody": "أرسلنا رابط تأكيد إلى بريدك. افتحه ثم سجّل الدخول.",
+    "emailConfirmed": "تم تأكيد بريدك الإلكتروني. مرحبًا بك في AutoPilot.",
+    "passwordUpdated": "تم تحديث كلمة المرور",
+    "newPassword": "كلمة مرور جديدة",
+    "newPasswordTitle": "اختر كلمة مرور جديدة",
+    "newPasswordBody": "اختر كلمة لم تستخدمها هنا من قبل.",
+    "savePassword": "حفظ كلمة المرور",
+    "resetLinkExpiredBody": "اطلب رابطًا جديدًا وافتحه على هذا الجهاز.",
+    "lockedTitle": "التطبيق مقفل",
+    "lockedBody": "افتح القفل للعودة إلى سياراتك.",
+    "unlock": "فتح القفل",
+    "usePasswordInstead": "تسجيل الخروج واستخدام كلمة المرور"
   },
   "onboarding": {
     "addVehicleTitle": "أضف سيارتك",

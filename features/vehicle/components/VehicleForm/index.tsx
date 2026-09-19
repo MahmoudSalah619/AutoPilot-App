@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { SPACING } from '@/constants/Layout';
 import type { FuelType, TransmissionType, Vehicle } from '@/@types/models';
-import { useGetCarMakesQuery } from '@/apis/autopilotApi';
+import { useGetCarMakesQuery, useGetCarModelsQuery } from '@/apis/autopilotApi';
 import type { VehicleDraft } from '@/apis/repositories/vehicles';
 import { Button, FormInput, OptionGroup, SelectField, Text } from '@/shared/components/ui';
 import {
@@ -77,7 +77,7 @@ export default function VehicleForm({
     [carMakes]
   );
 
-  const { control, handleSubmit } = useForm<VehicleFormValues>({
+  const { control, handleSubmit, watch, setValue } = useForm<VehicleFormValues>({
     defaultValues: {
       make: vehicle?.make ?? '',
       model: vehicle?.model ?? '',
@@ -91,6 +91,38 @@ export default function VehicleForm({
       transmission: vehicle?.transmission ?? 'automatic',
     },
   });
+
+  // Models are scoped to the chosen make, so the picker needs the make's id
+  // rather than the name the form holds.
+  const selectedMake = watch('make');
+  const selectedMakeId = useMemo(
+    () => carMakes.find((make) => make.name === selectedMake)?.id,
+    [carMakes, selectedMake]
+  );
+
+  const { data: carModels = [], isLoading: areModelsLoading } = useGetCarModelsQuery(
+    selectedMakeId,
+    { skip: !selectedMakeId }
+  );
+
+  const modelOptions = useMemo(
+    () => carModels.map((model) => ({ value: model.name, label: model.name })),
+    [carModels]
+  );
+
+  // Changing the make invalidates the model. Keyed off the previous value
+  // rather than firing on mount, so opening the form to edit an existing
+  // vehicle does not wipe the model the user already chose.
+  const previousMake = useRef(selectedMake);
+
+  useEffect(() => {
+    if (previousMake.current === selectedMake) return;
+
+    const hadMake = Boolean(previousMake.current);
+    previousMake.current = selectedMake;
+
+    if (hadMake) setValue('model', '');
+  }, [selectedMake, setValue]);
 
   const submit = (values: VehicleFormValues) => {
     onSubmit({
@@ -141,15 +173,39 @@ export default function VehicleForm({
               containerStyle={{ flex: 1 }}
             />
           )}
-          <FormInput
-            control={control}
-            name="model"
-            labelTx="vehicle.model"
-            placeholderTx="vehicle.modelPlaceholder"
-            autoCapitalize="words"
-            required
-            containerStyle={{ flex: 1 }}
-          />
+          {modelOptions.length > 0 ? (
+            <Controller
+              control={control}
+              name="model"
+              rules={{ required: 'validation.required' }}
+              render={({ field: { onChange, value }, fieldState: { error } }) => (
+                <SelectField
+                  options={modelOptions}
+                  value={value}
+                  onChange={onChange}
+                  labelTx="vehicle.model"
+                  placeholderTx="vehicle.modelPlaceholder"
+                  error={error?.message}
+                  isLoading={areModelsLoading}
+                  required
+                  containerStyle={{ flex: 1 }}
+                />
+              )}
+            />
+          ) : (
+            // `car_models` is barely populated, so free text is the normal
+            // path rather than the fallback. `vehicles.model` is a plain
+            // text column, so nothing is lost by typing it.
+            <FormInput
+              control={control}
+              name="model"
+              labelTx="vehicle.model"
+              placeholderTx="vehicle.modelPlaceholder"
+              autoCapitalize="words"
+              required
+              containerStyle={{ flex: 1 }}
+            />
+          )}
         </View>
 
         <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>

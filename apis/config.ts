@@ -140,3 +140,21 @@ export const PLANNED_TABLES = {
 export const BUCKETS = {
   documents: 'storage',
 } as const;
+
+/**
+ * Deep links Supabase sends the user back to from an email.
+ *
+ * Two distinct paths rather than one: under PKCE both the confirmation and
+ * the recovery link arrive as a bare `?code=…`, so the path is the only thing
+ * that says whether the app should sign the user in or take them to a
+ * set-a-new-password screen.
+ *
+ * Both must be listed under Authentication > URL Configuration > Redirect
+ * URLs in the Supabase dashboard, or the link comes back rejected.
+ */
+export const AUTH_REDIRECTS = {
+  /** Email confirmation after sign-up. */
+  confirm: 'autopilot://auth/callback',
+  /** Password recovery. */
+  recovery: 'autopilot://auth/reset-password',
+} as const;

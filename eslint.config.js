@@ -18,7 +18,7 @@ const cleanGlobals = Object.fromEntries(
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*'],
+    ignores: ['dist/*', '.expo/*', 'expo-env.d.ts'],
   },
   // TypeScript config
   {
@@ -112,7 +112,7 @@ module.exports = defineConfig([
 
   // Global rules
   {
-    ignores: ['/dist/*'],
+    ignores: ['/dist/*', '.expo/*', 'expo-env.d.ts'],
     rules: {
       'no-shadow': 'off',
       camelcase: 'off',

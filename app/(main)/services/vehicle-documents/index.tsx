@@ -9,6 +9,7 @@ import { summarizeDocuments } from '@/apis/repositories/documents';
 import { useActiveVehicle } from '@/hooks/useActiveVehicle';
 import type { DocumentType, VehicleDocument } from '@/@types/models';
 import { ConfirmDialog, Screen } from '@/shared/components/layout';
+import { TipBanner } from '@/features/tips';
 import { Chip, EmptyState, Fab, SkeletonCard, StatTile } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/Toast';
 import { DocumentCard, DocumentSheet } from '@/features/services/documents';
@@ -138,6 +139,8 @@ export default function VehicleDocuments() {
         onRefresh={refetch}
         ListHeaderComponent={
           <View style={{ rowGap: SPACING.lg, paddingBottom: SPACING.md }}>
+            <TipBanner screen="vehicle_documents" />
+
             <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
               <StatTile
                 value={String(statistics.total)}

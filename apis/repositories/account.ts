@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-import { isLive } from '@/apis/config';
+import { AUTH_REDIRECTS, isLive } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
 import { db, delay, mockId } from '@/apis/mock/store';
 import type { AppNotification, UserPreferences, UserProfile } from '@/@types/models';
@@ -87,6 +87,7 @@ export async function signUp(payload: SignUpPayload): Promise<SignUpResult> {
     email: payload.email.trim(),
     password: payload.password,
     options: {
+      emailRedirectTo: AUTH_REDIRECTS.confirm,
       data: {
         first_name: payload.firstName.trim(),
         last_name: payload.lastName.trim(),
@@ -138,8 +139,47 @@ export async function requestPasswordReset(email: string): Promise<void> {
     return;
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: AUTH_REDIRECTS.recovery,
+  });
+
   if (error) throw new RepositoryError(error.message);
+}
+
+/**
+ * Trades the `code` from an email deep link for a session.
+ *
+ * Under PKCE the verifier is already in storage from the request that sent
+ * the email, so this only works on the device that asked — which is the
+ * point. Opening the link on another phone fails, rather than handing that
+ * phone an account.
+ */
+export async function exchangeAuthCode(code: string): Promise<Session> {
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  if (error) throw new RepositoryError(error.message, error.status ?? 400);
+  if (!data.session) throw new RepositoryError('auth.errors.linkExpired', 401);
+
+  return {
+    userId: data.session.user.id,
+    email: data.session.user.email ?? '',
+    accessToken: data.session.access_token,
+  };
+}
+
+/**
+ * Sets a new password for the signed-in user.
+ *
+ * Used by the recovery screen, where the deep link has already established a
+ * short-lived session, and by a password change from settings.
+ */
+export async function updatePassword(password: string): Promise<void> {
+  if (!isLive('auth')) {
+    await delay(null, 400);
+    return;
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw new RepositoryError(error.message, error.status ?? 400);
 }
 
 /** The signed-in user's id, or a thrown 401. Used by every owned-table write. */

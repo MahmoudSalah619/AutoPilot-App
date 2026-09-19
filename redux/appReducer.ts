@@ -6,12 +6,19 @@ export interface AppState {
   deviceId: string | null;
   /** Expo push token, registered once permissions are granted. */
   pushToken: string | null;
+  /**
+   * Whether the biometric app lock has been satisfied this launch. Never
+   * persisted — the point of the lock is that it is asked again on a cold
+   * start.
+   */
+  isUnlocked: boolean;
 }
 
 const initialState: AppState = {
   activeVehicleId: null,
   deviceId: null,
   pushToken: null,
+  isUnlocked: false,
 };
 
 export const appSlice = createSlice({
@@ -27,9 +34,15 @@ export const appSlice = createSlice({
     setPushToken: (state, action: PayloadAction<string | null>) => {
       state.pushToken = action.payload;
     },
+    unlocked: (state) => {
+      state.isUnlocked = true;
+    },
+    locked: (state) => {
+      state.isUnlocked = false;
+    },
   },
 });
 
-export const { setActiveVehicle, setDeviceId, setPushToken } = appSlice.actions;
+export const { setActiveVehicle, setDeviceId, setPushToken, unlocked, locked } = appSlice.actions;
 
 export default appSlice.reducer;

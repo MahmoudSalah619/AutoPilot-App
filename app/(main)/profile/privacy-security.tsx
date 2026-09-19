@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { ConfirmDialog, Screen } from '@/shared/components/layout';
 import { ListRow, Switch, Text } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/Toast';
 import { SettingsGroup } from '@/features/profile';
+import { isAppLockEnabled, setAppLockEnabled } from '@/features/auth';
 import IMPORTANT_VARS from '@/constants/ImportantVars';
 
 export default function PrivacySecurity() {
@@ -19,10 +20,32 @@ export default function PrivacySecurity() {
   const { isBiometricSupported } = useBiometricLogin();
   const [signOut] = useSignOutMutation();
 
-  const [biometricEnabled, setBiometricEnabled] = useState(isBiometricSupported);
+  // Reflects what is actually stored, not what the device merely supports —
+  // the previous default made the switch read "on" for everyone while
+  // nothing was locked.
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [crashReportsEnabled, setCrashReportsEnabled] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    isAppLockEnabled().then((enabled) => {
+      if (!cancelled) setBiometricEnabled(enabled);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /** Writes the preference, then re-reads it so a failed write shows as off. */
+  const handleBiometricChange = async (next: boolean) => {
+    setBiometricEnabled(next);
+    await setAppLockEnabled(next);
+    setBiometricEnabled(await isAppLockEnabled());
+  };
 
   /**
    * Account deletion is irreversible and has to be carried out server-side, so
@@ -60,7 +83,7 @@ export default function PrivacySecurity() {
             <Switch
               value={biometricEnabled && isBiometricSupported}
               disabled={!isBiometricSupported}
-              onValueChange={setBiometricEnabled}
+              onValueChange={handleBiometricChange}
             />
           }
         />

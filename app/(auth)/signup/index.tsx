@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { SPACING } from '@/constants/Layout';
 import { useSignUpMutation } from '@/apis/autopilotApi';
 import { sessionStarted } from '@/redux/authReducer';
+import { unlocked } from '@/redux/appReducer';
 import { useAppDispatch } from '@/redux';
 import { Screen } from '@/shared/components/layout';
 import { Button, FormInput, Text } from '@/shared/components/ui';
@@ -62,6 +63,7 @@ export default function SignUp() {
       }
 
       dispatch(sessionStarted(session));
+      dispatch(unlocked());
 
       // New accounts have no vehicle yet, so onboarding continues there.
       router.replace('/(auth)/addVehicle');

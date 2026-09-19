@@ -25,6 +25,7 @@ import {
   type DateRange,
 } from '@/features/services/fuel';
 import { formatDate } from '@/utils/format';
+import { TipBanner } from '@/features/tips';
 
 export default function GasConsumption() {
   const { t } = useTranslation();
@@ -133,6 +134,8 @@ export default function GasConsumption() {
         onRefresh={refetch}
         ListHeaderComponent={
           <View style={{ rowGap: SPACING.md, paddingBottom: SPACING.md }}>
+            <TipBanner screen="gas_consumption" />
+
             {isFiltered && (
               <Chip
                 icon="calendar"

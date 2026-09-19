@@ -10,6 +10,7 @@ import '@/locale';
 import store from '@/redux';
 import { ThemeProvider, useTheme } from '@/theme';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
+import { useAuthDeepLinks } from '@/hooks/useAuthDeepLinks';
 import { useAuthBootstrap } from '@/hooks/useSession';
 import { useLoadResources } from '@/hooks/useLoadResources';
 import { ConfirmDialog } from '@/shared/components/layout';
@@ -29,6 +30,7 @@ function ThemedRoot() {
   const { updateKind, isUpdateAvailable, isDismissible, dismiss, applyUpdate } = useAppUpdates();
 
   useAuthBootstrap();
+  useAuthDeepLinks();
 
   const isStoreUpdate = updateKind === 'store';
 

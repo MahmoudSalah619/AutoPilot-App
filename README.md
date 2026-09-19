@@ -145,6 +145,40 @@ from `PLANNED_TABLES` into `TABLES`. Regenerate
 npx supabase gen types typescript --project-id <project-ref> > @types/database.ts
 ```
 
+### Auth
+
+Email and password, with the session listener mounted once at the root
+(`app/_layout.tsx`) so an expired or revoked token unwinds the navigation
+stack rather than leaving an authenticated shell over failing requests.
+
+The client uses the **PKCE** flow. Confirmation and recovery emails come back
+as deep links, handled by `hooks/useAuthDeepLinks.ts`; the path distinguishes
+them, because under PKCE both arrive as a bare `?code=`.
+
+Two URLs must be allow-listed under **Authentication → URL Configuration →
+Redirect URLs** in the dashboard, or the links bounce:
+
+```
+autopilot://auth/callback
+autopilot://auth/reset-password
+```
+
+Biometrics are an **app lock over an existing session**, not a way to sign in
+— see `features/auth/appLock.ts` and `app/(auth)/unlock`. The toggle lives in
+Privacy & security and is per device.
+
+### Verifying against the live project
+
+```bash
+npm run verify:supabase
+```
+
+Signs up a throwaway account, exercises every write the repositories perform
+with the same column shapes, reads the rows back, checks RLS hides them from
+`anon`, then deletes them. It leaves the auth user behind for you to remove.
+Supabase rate-limits auth requests per hour, so it will refuse if run
+repeatedly.
+
 ### Domain rules
 
 Status is **derived on read**, never stored — a reminder becomes overdue
