@@ -1,21 +1,18 @@
 /**
  * Data-layer configuration.
  *
- * ── Switching to a live Supabase backend ───────────────────────────────────
- * 1. Put `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env`.
- * 2. Create the tables listed in `TABLES` below (see `apis/schema.sql`).
- * 3. Set `EXPO_PUBLIC_USE_MOCK_DATA=false` in `.env`.
+ * This is the design branch: every screen runs on the in-memory mock store
+ * (`apis/mock`), so the UI can be built and reviewed without an account, a
+ * network or a Supabase project. The live backend lives on the `integration`
+ * branch.
  *
- * Nothing else changes: every repository already has its Supabase branch
- * written, and the mock branch is only consulted while the flag is on.
+ * The flag is hard-wired rather than read from `.env` on purpose. Metro
+ * inlines `EXPO_PUBLIC_*` values into its transform cache, so after switching
+ * here from `integration` (which sets `EXPO_PUBLIC_USE_MOCK_DATA=false`) a
+ * stale bundle could keep talking to Supabase and fail with "Not
+ * authenticated". A literal cannot go stale.
  */
-
-/**
- * When true, repositories serve from the in-memory mock store instead of
- * Supabase. Defaults to true so the app is fully explorable before the
- * backend exists.
- */
-export const USE_MOCK_DATA = process.env.EXPO_PUBLIC_USE_MOCK_DATA !== 'false';
+export const USE_MOCK_DATA: boolean = true;
 
 /** Artificial delay on mock calls, so loading states are exercised in dev. */
 export const MOCK_LATENCY_MS = 280;
