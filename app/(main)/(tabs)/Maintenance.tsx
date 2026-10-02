@@ -11,7 +11,7 @@ import { Screen } from '@/shared/components/layout';
 import { EmptyState, Fab, SegmentedControl, SkeletonCard, StatTile } from '@/shared/components/ui';
 import { MaintenanceCard, MaintenanceSheet, ServiceDueList } from '@/features/maintenance';
 import { projectServiceDues } from '@/utils/domain';
-import { formatCurrency } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 
 type Tab = 'upcoming' | 'history' | 'all';
 
@@ -137,7 +137,8 @@ export default function Maintenance() {
                 icon="tool"
               />
               <StatTile
-                value={formatCurrency(spentThisYear, 'EGP')}
+                value={formatNumber(spentThisYear)}
+                unit="EGP"
                 labelTx="maintenance.stats.spentThisYear"
                 icon="credit-card"
                 tone="primary"

@@ -13,7 +13,7 @@ export interface StatTileProps {
   value: string;
   /** Short label under the value. */
   labelTx: string;
-  /** Unit suffix rendered next to the value, e.g. `km` or `L`. */
+  /** Unit shown in the tile's top corner, e.g. `km` or `EGP`. */
   unit?: string;
   icon?: FeatherIconName;
   /** Tints the value and icon. Defaults to plain text color. */
@@ -31,6 +31,9 @@ const SOFT_BY_TONE = {
   info: 'infoSoft',
   text: 'surfaceAlt',
 } as const;
+
+/** Past this many characters the value drops a size so it stays on one line. */
+const LONG_VALUE_LENGTH = 7;
 
 /** One number plus its label. The unit of every stats row in the app. */
 export default function StatTile({
@@ -62,18 +65,23 @@ export default function StatTile({
         style,
       ]}
     >
-      {!!icon && <Feather name={icon} size={16} color={colors[tone]} />}
+      {/* The unit sits up here rather than beside the value: a third-width
+          tile has no room for both once the figure reaches four digits. */}
+      {(!!icon || !!unit) && (
+        <View style={{ alignItems: 'center', flexDirection: 'row', minHeight: 16 }}>
+          {!!icon && <Feather name={icon} size={16} color={colors[tone]} />}
+          <View style={{ flex: 1 }} />
+          {!!unit && (
+            <Text variant="labelSm" color="textMuted">
+              {unit}
+            </Text>
+          )}
+        </View>
+      )}
 
-      <View style={{ alignItems: 'baseline', columnGap: SPACING.xxs, flexDirection: 'row' }}>
-        <Text variant="metric" color={tone}>
-          {value}
-        </Text>
-        {!!unit && (
-          <Text variant="labelSm" color="textMuted">
-            {unit}
-          </Text>
-        )}
-      </View>
+      <Text variant={value.length > LONG_VALUE_LENGTH ? 'metricSm' : 'metric'} color={tone}>
+        {value}
+      </Text>
 
       <Text variant="caption" color="textSecondary" tx={labelTx} numberOfLines={2} />
     </View>

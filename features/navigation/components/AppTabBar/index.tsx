@@ -1,7 +1,8 @@
-import React from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import type { BottomTabBarProps } from 'expo-router/tabs';
 
 import { RADIUS, SPACING } from '@/constants/Layout';
@@ -19,12 +20,93 @@ const TAB_META: Record<string, { icon: FeatherIconName; labelTx: string }> = {
   Profile: { icon: 'user', labelTx: 'tabs.profile' },
 };
 
+const PILL_SPRING = { damping: 14, stiffness: 220, mass: 0.6 };
+
+interface TabItemProps {
+  icon: FeatherIconName;
+  labelTx: string;
+  isFocused: boolean;
+  accessibilityLabel: string;
+  onPress: () => void;
+  onLongPress: () => void;
+}
+
+/** One destination. The filled pill springs in behind the icon on focus. */
+function TabItem({
+  icon,
+  labelTx,
+  isFocused,
+  accessibilityLabel,
+  onPress,
+  onLongPress,
+}: TabItemProps) {
+  const { colors } = useTheme();
+  const focus = useSharedValue(isFocused ? 1 : 0);
+
+  useEffect(() => {
+    focus.value = withSpring(isFocused ? 1 : 0, PILL_SPRING);
+  }, [isFocused, focus]);
+
+  const pillStyle = useAnimatedStyle(() => ({
+    opacity: focus.value,
+    transform: [{ scale: 0.6 + 0.4 * focus.value }],
+  }));
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={accessibilityLabel}
+      style={({ pressed }) => [
+        {
+          alignItems: 'center',
+          flex: 1,
+          justifyContent: 'center',
+          rowGap: SPACING.xs,
+        },
+        pressed && { opacity: 0.6 },
+      ]}
+    >
+      <View style={{ alignItems: 'center', height: 32, justifyContent: 'center', width: 52 }}>
+        <Animated.View
+          style={[
+            {
+              backgroundColor: colors.primary,
+              borderRadius: RADIUS.pill,
+              bottom: 0,
+              left: 0,
+              position: 'absolute',
+              right: 0,
+              top: 0,
+            },
+            pillStyle,
+          ]}
+        />
+
+        <Feather name={icon} size={20} color={isFocused ? colors.onPrimary : colors.textMuted} />
+      </View>
+
+      <Text
+        variant="labelSm"
+        size={10}
+        color={isFocused ? 'primary' : 'textMuted'}
+        tx={labelTx}
+        numberOfLines={1}
+      />
+    </Pressable>
+  );
+}
+
 /**
  * Bottom tab bar.
  *
- * Flat and evenly weighted — the previous version floated Home in a raised
- * circle, which cost vertical space, clipped on small screens, and implied a
- * hierarchy that does not exist between five peer destinations.
+ * A rounded bar lifted off the screen edges, with the five destinations
+ * evenly weighted — an earlier version floated Home in a raised circle, which
+ * clipped on small screens and implied a hierarchy that does not exist between
+ * peers. The bar stays in the layout flow rather than overlaying content, so
+ * screens need no extra clearance for it.
  */
 export default function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, elevation } = useTheme();
@@ -45,71 +127,46 @@ export default function AppTabBar({ state, descriptors, navigation }: BottomTabB
 
   return (
     <View
-      {...tourTarget}
       style={{
-        backgroundColor: colors.surface,
-        borderTopColor: colors.border,
-        borderTopWidth: 1,
-        flexDirection: 'row',
-        height: TAB_BAR_HEIGHT + insets.bottom,
-        paddingBottom: insets.bottom,
-        paddingHorizontal: SPACING.sm,
-        ...(Platform.OS === 'ios' ? elevation.md() : null),
+        backgroundColor: colors.background,
+        paddingBottom: Math.max(insets.bottom, SPACING.sm),
+        paddingHorizontal: SPACING.md,
+        paddingTop: SPACING.xs,
       }}
     >
-      {state.routes.map((route: (typeof state.routes)[number], index: number) => {
-        const meta = TAB_META[route.name];
-        if (!meta) return null;
+      <View
+        {...tourTarget}
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderRadius: RADIUS.xxl,
+          borderWidth: 1,
+          flexDirection: 'row',
+          height: TAB_BAR_HEIGHT,
+          paddingHorizontal: SPACING.xs,
+          ...elevation.md(),
+        }}
+      >
+        {state.routes.map((route: (typeof state.routes)[number], index: number) => {
+          const meta = TAB_META[route.name];
+          if (!meta) return null;
 
-        const isFocused = state.index === index;
-        const { options } = descriptors[route.key];
+          const isFocused = state.index === index;
+          const { options } = descriptors[route.key];
 
-        return (
-          <Pressable
-            key={route.key}
-            onPress={() => handlePress(route, isFocused)}
-            onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: isFocused }}
-            accessibilityLabel={options.title ?? route.name}
-            style={({ pressed }) => [
-              {
-                alignItems: 'center',
-                flex: 1,
-                justifyContent: 'center',
-                paddingTop: SPACING.sm,
-                rowGap: SPACING.xs,
-              },
-              pressed && { opacity: 0.6 },
-            ]}
-          >
-            <View
-              style={{
-                alignItems: 'center',
-                backgroundColor: isFocused ? colors.primarySoft : colors.transparent,
-                borderRadius: RADIUS.pill,
-                height: 30,
-                justifyContent: 'center',
-                width: 52,
-              }}
-            >
-              <Feather
-                name={meta.icon}
-                size={20}
-                color={isFocused ? colors.primary : colors.textMuted}
-              />
-            </View>
-
-            <Text
-              variant="labelSm"
-              size={10}
-              color={isFocused ? 'primary' : 'textMuted'}
-              tx={meta.labelTx}
-              numberOfLines={1}
+          return (
+            <TabItem
+              key={route.key}
+              icon={meta.icon}
+              labelTx={meta.labelTx}
+              isFocused={isFocused}
+              accessibilityLabel={options.title ?? route.name}
+              onPress={() => handlePress(route, isFocused)}
+              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
             />
-          </Pressable>
-        );
-      })}
+          );
+        })}
+      </View>
     </View>
   );
 }

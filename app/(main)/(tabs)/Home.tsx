@@ -28,7 +28,6 @@ import {
   type QuickAction,
 } from '@/features/home';
 import { useOdometerNudge, UpdateOdometerSheet, VehicleSummaryCard } from '@/features/vehicle';
-import { NotificationBell } from '@/features/notifications';
 import { TipBanner } from '@/features/tips';
 import { useTour } from '@/features/onboarding';
 
@@ -137,10 +136,7 @@ export default function Home() {
     []
   );
 
-  const header = {
-    showBack: false,
-    right: <NotificationBell />,
-  };
+  const header = { showBack: false, style: { paddingBottom: SPACING.sm } };
 
   if (isLoading) {
     return (
