@@ -32,6 +32,18 @@ export type DataDomain =
  * true so the app stays fully explorable without credentials.
  */
 export const USE_MOCK_DATA = process.env.EXPO_PUBLIC_USE_MOCK_DATA !== 'false';
+ * This is the design branch: every screen runs on the in-memory mock store
+ * (`apis/mock`), so the UI can be built and reviewed without an account, a
+ * network or a Supabase project. The live backend lives on the `integration`
+ * branch.
+ *
+ * The flag is hard-wired rather than read from `.env` on purpose. Metro
+ * inlines `EXPO_PUBLIC_*` values into its transform cache, so after switching
+ * here from `integration` (which sets `EXPO_PUBLIC_USE_MOCK_DATA=false`) a
+ * stale bundle could keep talking to Supabase and fail with "Not
+ * authenticated". A literal cannot go stale.
+ */
+export const USE_MOCK_DATA: boolean = true;
 
 /**
  * Which domains the live Supabase project can actually serve.
