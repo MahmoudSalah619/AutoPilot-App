@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from 'expo-router/tabs';
 
 import { RADIUS, SPACING } from '@/constants/Layout';
 import { TAB_BAR_HEIGHT } from '@/constants/Metrics';

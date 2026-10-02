@@ -117,6 +117,13 @@ module.exports = defineConfig([
       'no-shadow': 'off',
       camelcase: 'off',
       'linebreak-style': 'off',
+      // React Compiler diagnostics, pulled in by eslint-plugin-react-hooks v7's
+      // recommended set. The compiler is not enabled here
+      // (`experiments.reactCompiler`), so they only flag working code.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/incompatible-library': 'off',
     },
   },
 ]);

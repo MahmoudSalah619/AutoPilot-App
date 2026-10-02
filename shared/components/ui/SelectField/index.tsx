@@ -167,7 +167,6 @@ export default function SelectField({
         ) : (
           <FlashList
             data={results}
-            estimatedItemSize={60}
             keyExtractor={(item) => item.value}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
