@@ -2,8 +2,8 @@ import dayjs from 'dayjs';
 
 import { AUTH_REDIRECTS, isLive } from '@/apis/config';
 import { supabase } from '@/apis/supabaseClient';
-import { db, delay, mockId } from '@/apis/mock/store';
-import type { AppNotification, UserPreferences, UserProfile } from '@/@types/models';
+import { db, delay } from '@/apis/mock/store';
+import type { UserPreferences, UserProfile } from '@/@types/models';
 import { RepositoryError } from './helpers';
 import { resetReferenceCache } from './reference';
 
@@ -353,51 +353,4 @@ export async function updatePreferences(patch: Partial<UserPreferences>): Promis
   await writeMetadata({ preferences: next });
 
   return next;
-}
-
-/* ── Notifications ────────────────────────────────────────────────────────── */
-
-/**
- * Notifications have no table in the project, so they stay in the mock store
- * regardless of the backend flag — see `apis/migrations/001_app_gap.sql`.
- * They live for the session only, which is why nothing here consults
- * `isLive`.
- */
-export async function listNotifications(): Promise<AppNotification[]> {
-  return delay(
-    [...db.notifications].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-  );
-}
-
-export async function markNotificationRead(id: string): Promise<AppNotification> {
-  const found = db.notifications.find((notification) => notification.id === id);
-  if (!found) throw new RepositoryError('Notification not found', 404);
-
-  found.isRead = true;
-  return delay(found, 120);
-}
-
-export async function markAllNotificationsRead(): Promise<AppNotification[]> {
-  db.notifications.forEach((notification) => {
-    notification.isRead = true;
-  });
-
-  return delay(db.notifications, 200);
-}
-
-/** Creates a local notification record. Used when a reminder is scheduled. */
-export async function pushNotification(
-  notification: Omit<AppNotification, 'id' | 'createdAt' | 'isRead'>
-): Promise<AppNotification> {
-  const record: AppNotification = {
-    ...notification,
-    id: mockId('ntf'),
-    isRead: false,
-    createdAt: dayjs().toISOString(),
-  };
-
-  db.notifications.unshift(record);
-  return delay(record, 100);
 }

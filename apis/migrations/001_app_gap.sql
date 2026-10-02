@@ -395,8 +395,6 @@ where not exists (
   select 1 from public.services_types s where lower(s.name) = lower(v.name)
 );
 
--- `car_models` has a single row against 65 makes, so a model picker would be
--- empty for almost every vehicle. The app keeps `model` as free text for that
--- reason; seeding the catalogue is what would let it become a picker.
+-- `car_models` is seeded separately, by 003_car_models.sql.
 
 commit;

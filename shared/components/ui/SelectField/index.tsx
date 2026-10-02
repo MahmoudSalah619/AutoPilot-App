@@ -32,6 +32,12 @@ export interface SelectFieldProps {
   disabled?: boolean;
   /** Shows the search box. Defaults to on once the list gets long. */
   searchable?: boolean;
+  /**
+   * Lets the user keep what they typed in the search box when no option
+   * matches it. For catalogues that can never be complete, where refusing an
+   * unlisted value would block the form.
+   */
+  allowCustom?: boolean;
   isLoading?: boolean;
   containerStyle?: React.ComponentProps<typeof View>['style'];
   testID?: string;
@@ -60,6 +66,7 @@ export default function SelectField({
   required = false,
   disabled = false,
   searchable,
+  allowCustom = false,
   isLoading = false,
   containerStyle,
   testID,
@@ -70,7 +77,8 @@ export default function SelectField({
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
 
-  const showSearch = searchable ?? options.length > SEARCH_THRESHOLD;
+  // A custom value is typed into the search box, so it has to be there.
+  const showSearch = searchable ?? (allowCustom || options.length > SEARCH_THRESHOLD);
 
   const selectedLabel = useMemo(
     () => options.find((option) => option.value === value)?.label ?? value ?? '',
@@ -84,6 +92,15 @@ export default function SelectField({
     return options.filter((option) => option.label.toLowerCase().includes(needle));
   }, [options, query]);
 
+  // Offered after the real matches, and only when it is not one of them.
+  const typed = query.trim();
+  const customOption =
+    allowCustom &&
+    typed &&
+    !options.some((option) => option.label.toLowerCase() === typed.toLowerCase())
+      ? typed
+      : undefined;
+
   const close = () => {
     setIsOpen(false);
     // Cleared on close, so reopening never starts inside a stale filter.
@@ -96,7 +113,7 @@ export default function SelectField({
   };
 
   return (
-    <View style={containerStyle}>
+    <View style={[containerStyle, disabled && { opacity: 0.5 }]}>
       <Pressable
         testID={testID}
         onPress={() => setIsOpen(true)}
@@ -137,12 +154,13 @@ export default function SelectField({
               placeholderTx="common.search"
               autoCapitalize="none"
               autoCorrect={false}
+              hintTx={allowCustom ? 'common.notListedHint' : undefined}
               prefix={<Feather name="search" size={16} color={colors.textMuted} />}
             />
           </View>
         )}
 
-        {results.length === 0 ? (
+        {results.length === 0 && !customOption ? (
           <View style={{ paddingHorizontal: SPACING.xl, paddingVertical: SPACING.xl }}>
             <EmptyState icon="search" titleTx="common.noResults" />
           </View>
@@ -168,6 +186,17 @@ export default function SelectField({
             ItemSeparatorComponent={() => (
               <View style={{ backgroundColor: colors.border, height: 1, marginLeft: SPACING.xl }} />
             )}
+            ListFooterComponent={
+              customOption ? (
+                <ListRow
+                  icon="plus"
+                  title={t('common.useTyped', { value: customOption })}
+                  onPress={() => select(customOption)}
+                  showChevron={false}
+                  style={{ paddingHorizontal: SPACING.xl }}
+                />
+              ) : undefined
+            }
           />
         )}
 

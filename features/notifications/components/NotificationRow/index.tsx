@@ -60,12 +60,29 @@ export default function NotificationRow({
       </View>
 
       <View style={{ flex: 1, rowGap: SPACING.xxs }}>
-        <Text variant="h3" color={notification.isRead ? 'textSecondary' : 'text'}>
-          {notification.title}
-        </Text>
-        <Text variant="bodySm" color="textSecondary">
-          {notification.body}
-        </Text>
+        {notification.titleTx ? (
+          <Text
+            variant="h3"
+            color={notification.isRead ? 'textSecondary' : 'text'}
+            tx={notification.titleTx}
+          />
+        ) : (
+          <Text variant="h3" color={notification.isRead ? 'textSecondary' : 'text'}>
+            {notification.title}
+          </Text>
+        )}
+        {notification.bodyTx ? (
+          <Text
+            variant="bodySm"
+            color="textSecondary"
+            tx={notification.bodyTx}
+            txValues={notification.bodyValues}
+          />
+        ) : (
+          <Text variant="bodySm" color="textSecondary">
+            {notification.body}
+          </Text>
+        )}
         <Text variant="caption" color="textMuted">
           {formatRelative(notification.createdAt)}
         </Text>

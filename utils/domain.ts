@@ -20,10 +20,14 @@ import type {
   Vehicle,
   VehicleDocument,
 } from '@/@types/models';
-import { daysSince, daysUntil } from './date';
+import { daysSince, daysUntil, describeDueDate } from './date';
 
-/** A service falling due within this many days is flagged "due soon". */
-export const DUE_SOON_DAYS = 14;
+/**
+ * A service or reminder falling due within this many days is flagged "due
+ * soon". Past its date or distance it is overdue; on the day, or exactly at
+ * the due odometer, it is still only due.
+ */
+export const DUE_SOON_DAYS = 7;
 
 /** A document expiring within this many days is flagged "expiring soon". */
 export const DOCUMENT_EXPIRY_WARNING_DAYS = 30;
@@ -115,7 +119,7 @@ export function nextDistanceMilestone(
     title: nearest.reminder.title,
     remainingKm: nearest.remainingKm,
     progress: Math.max(0, Math.min(1, 1 - nearest.remainingKm / span)),
-    isOverdue: nearest.remainingKm <= 0,
+    isOverdue: nearest.remainingKm < 0,
   };
 }
 
@@ -154,6 +158,123 @@ export function projectNextService(record: MaintenanceRecord): string | undefine
   return dayjs(record.date).add(record.intervalMonths, 'month').toISOString();
 }
 
+/**
+ * When a service comes due again, projected from the last time it was done.
+ *
+ * `odometer + intervalKm` and `date + intervalMonths` are both things the
+ * driver already entered when logging the service, so the next occurrence
+ * needs no separate reminder to exist.
+ */
+export interface ServiceDue {
+  /** The most recent completed service of its type — what the due is counted from. */
+  record: MaintenanceRecord;
+  dueOdometer?: number;
+  dueDate?: string;
+  /** Kilometers left before it is due. Negative once overdue. */
+  remainingKm?: number;
+  /** Days left before it is due. Negative once overdue. */
+  remainingDays?: number;
+  status: Exclude<MaintenanceStatus, 'completed'>;
+  /**
+   * Which trigger is closest, and so which one to describe. A "10,000 km or
+   * 12 months" service is due on whichever comes first.
+   */
+  basis: 'distance' | 'date';
+}
+
+/** Days of warning one kilometer of warning is worth, to rank the two together. */
+const DAYS_PER_KM = DUE_SOON_DAYS / DUE_SOON_KM;
+
+/** Lower is more urgent; comparable between distance- and date-driven dues. */
+export function serviceDueUrgency(due: ServiceDue): number {
+  return due.basis === 'distance'
+    ? (due.remainingKm as number) * DAYS_PER_KM
+    : (due.remainingDays as number);
+}
+
+export function projectServiceDues(
+  records: MaintenanceRecord[],
+  currentOdometer: number
+): ServiceDue[] {
+  // The latest completed record of each service is the one that counts: an
+  // oil change done since has reset the clock on the one before it.
+  const latest = new Map<string, MaintenanceRecord>();
+
+  records
+    .filter((record) => record.status === 'completed')
+    .forEach((record) => {
+      const key = [
+        record.vehicleId,
+        record.serviceType,
+        record.serviceType === 'other' ? (record.customTitle ?? '') : '',
+      ].join('|');
+
+      const existing = latest.get(key);
+      const isNewer =
+        !existing ||
+        dayjs(record.date).isAfter(dayjs(existing.date)) ||
+        (dayjs(record.date).isSame(dayjs(existing.date), 'day') &&
+          (record.odometer ?? 0) > (existing.odometer ?? 0));
+
+      if (isNewer) latest.set(key, record);
+    });
+
+  const dues: ServiceDue[] = [];
+
+  latest.forEach((record) => {
+    const dueOdometer =
+      record.odometer != null && record.intervalKm
+        ? record.odometer + record.intervalKm
+        : undefined;
+    const dueDate = projectNextService(record);
+
+    if (dueOdometer == null && !dueDate) return;
+
+    const remainingKm = dueOdometer != null ? dueOdometer - currentOdometer : undefined;
+    const remainingDays = dueDate ? daysUntil(dueDate) : undefined;
+
+    const isOverdue = (remainingKm ?? 0) < 0 || (remainingDays ?? 0) < 0;
+    const isDueSoon =
+      (remainingKm ?? Number.POSITIVE_INFINITY) <= DUE_SOON_KM ||
+      (remainingDays ?? Number.POSITIVE_INFINITY) <= DUE_SOON_DAYS;
+
+    const distanceUrgency =
+      remainingKm != null ? remainingKm * DAYS_PER_KM : Number.POSITIVE_INFINITY;
+    const dateUrgency = remainingDays ?? Number.POSITIVE_INFINITY;
+
+    dues.push({
+      record,
+      dueOdometer,
+      dueDate,
+      remainingKm,
+      remainingDays,
+      status: isOverdue ? 'overdue' : isDueSoon ? 'dueSoon' : 'upcoming',
+      basis: distanceUrgency <= dateUrgency ? 'distance' : 'date',
+    });
+  });
+
+  return dues.sort((a, b) => serviceDueUrgency(a) - serviceDueUrgency(b));
+}
+
+/**
+ * Translation key (plus values) for how far off a service is, in whichever
+ * unit is driving it: "In 2000 km", "300 km past due", "In 12 days".
+ */
+export function describeServiceDue(due: ServiceDue): {
+  key: string;
+  values?: Record<string, number>;
+} {
+  if (due.basis === 'date') return describeDueDate(due.dueDate);
+
+  const remainingKm = Math.round(due.remainingKm as number);
+
+  if (remainingKm === 0) return { key: 'due.now' };
+
+  return remainingKm > 0
+    ? { key: 'due.inKm', values: { count: remainingKm } }
+    : { key: 'due.overdueByKm', values: { count: Math.abs(remainingKm) } };
+}
+
 /* ── Reminders ────────────────────────────────────────────────────────────── */
 
 /**
@@ -179,7 +300,7 @@ export function resolveReminderStatus(
 
   if (reminder.dueOdometer != null && reminder.trigger !== 'date') {
     const remaining = reminder.dueOdometer - currentOdometer;
-    if (remaining <= 0) statuses.push('overdue');
+    if (remaining < 0) statuses.push('overdue');
     else if (remaining <= DUE_SOON_KM) statuses.push('dueSoon');
     else statuses.push('active');
   }

@@ -66,7 +66,7 @@ export default function AttentionRow({
 
       <View style={{ flex: 1, rowGap: 2 }}>
         <Text variant="h3" numberOfLines={1}>
-          {item.title}
+          {item.titleTx ? (t(item.titleTx) as string) : item.title}
         </Text>
         <Text variant="caption" color={TONE_FG[item.tone]}>
           {t(item.detailTx, item.detailValues ?? {}) as string}

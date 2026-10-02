@@ -60,7 +60,13 @@ export default function FuelEntryCard({
             size="sm"
           />
         ) : (
-          <Badge tone="neutral" tx="fuel.partialFill" size="sm" />
+          // A full tank with no distance behind it — the first fill-up — has
+          // no economy figure yet, which is not the same as a partial fill.
+          <Badge
+            tone="neutral"
+            tx={entry.isFullTank ? 'fuel.fullTankBadge' : 'fuel.partialFill'}
+            size="sm"
+          />
         )}
       </View>
 

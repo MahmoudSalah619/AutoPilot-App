@@ -105,8 +105,13 @@ export default function VehicleForm({
     { skip: !selectedMakeId }
   );
 
+  // `car_models` can hold one row per model year, so names are collapsed.
   const modelOptions = useMemo(
-    () => carModels.map((model) => ({ value: model.name, label: model.name })),
+    () =>
+      [...new Set(carModels.map((model) => model.name))].map((name) => ({
+        value: name,
+        label: name,
+      })),
     [carModels]
   );
 
@@ -173,7 +178,10 @@ export default function VehicleForm({
               containerStyle={{ flex: 1 }}
             />
           )}
-          {modelOptions.length > 0 ? (
+          {makeOptions.length > 0 ? (
+            // Locked until a make is chosen, then scoped to that make's
+            // models. No catalogue is complete, so a model that is not listed
+            // can still be typed in — `vehicles.model` is a plain text column.
             <Controller
               control={control}
               name="model"
@@ -184,18 +192,21 @@ export default function VehicleForm({
                   value={value}
                   onChange={onChange}
                   labelTx="vehicle.model"
-                  placeholderTx="vehicle.modelPlaceholder"
+                  placeholderTx={
+                    selectedMakeId ? 'vehicle.modelPlaceholder' : 'vehicle.modelNeedsMake'
+                  }
                   error={error?.message}
                   isLoading={areModelsLoading}
+                  disabled={!selectedMakeId}
+                  allowCustom
                   required
                   containerStyle={{ flex: 1 }}
                 />
               )}
             />
           ) : (
-            // `car_models` is barely populated, so free text is the normal
-            // path rather than the fallback. `vehicles.model` is a plain
-            // text column, so nothing is lost by typing it.
+            // No make catalogue (mock mode), so there is nothing to scope a
+            // model list to and both fields are free text.
             <FormInput
               control={control}
               name="model"

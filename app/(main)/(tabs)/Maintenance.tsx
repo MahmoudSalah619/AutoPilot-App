@@ -9,7 +9,8 @@ import { useActiveVehicle } from '@/hooks/useActiveVehicle';
 import type { MaintenanceRecord } from '@/@types/models';
 import { Screen } from '@/shared/components/layout';
 import { EmptyState, Fab, SegmentedControl, SkeletonCard, StatTile } from '@/shared/components/ui';
-import { MaintenanceCard, MaintenanceSheet } from '@/features/maintenance';
+import { MaintenanceCard, MaintenanceSheet, ServiceDueList } from '@/features/maintenance';
+import { projectServiceDues } from '@/utils/domain';
 import { formatCurrency } from '@/utils/format';
 
 type Tab = 'upcoming' | 'history' | 'all';
@@ -47,10 +48,18 @@ export default function Maintenance() {
       .reduce((sum, record) => sum + (record.cost ?? 0), 0);
   }, [history]);
 
+  // Each service's next occurrence, counted from the last time it was done.
+  const serviceDues = useMemo(
+    () => projectServiceDues(records, vehicle?.odometer ?? 0),
+    [records, vehicle?.odometer]
+  );
+
+  // Scheduled services that have come due, plus intervals that have run out.
   const dueNowCount = useMemo(
     () =>
-      records.filter((record) => record.status === 'overdue' || record.status === 'dueSoon').length,
-    [records]
+      records.filter((record) => record.status === 'overdue' || record.status === 'dueSoon')
+        .length + serviceDues.filter((due) => due.status !== 'upcoming').length,
+    [records, serviceDues]
   );
 
   const visibleRecords = tab === 'upcoming' ? upcoming : tab === 'history' ? history : records;
@@ -140,6 +149,8 @@ export default function Maintenance() {
                 tone={dueNowCount > 0 ? 'danger' : 'success'}
               />
             </View>
+
+            <ServiceDueList dues={serviceDues} />
 
             <SegmentedControl<Tab>
               value={tab}

@@ -295,7 +295,16 @@ export interface AppNotification {
   id: string;
   kind: NotificationKind;
   title: string;
+  /** Translation key for the title; takes precedence over `title`. */
+  titleTx?: string;
   body: string;
+  /**
+   * Translation key for the body, with its interpolation values. Set on
+   * notifications computed from live data, which have no authored prose and
+   * must read in the active language; takes precedence over `body`.
+   */
+  bodyTx?: string;
+  bodyValues?: Record<string, number>;
   createdAt: ISODate;
   isRead: boolean;
   /** In-app route to open when tapped. */

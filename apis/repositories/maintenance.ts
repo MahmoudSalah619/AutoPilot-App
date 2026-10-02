@@ -53,6 +53,15 @@ function toRowStatus(status: MaintenanceStatus): 'completed' | 'upcoming' | 'ove
   return status === 'dueSoon' ? 'upcoming' : status;
 }
 
+/**
+ * A service dated today or earlier has happened. Today counts: comparing with
+ * "before today" left a service logged on the day it was done reading as
+ * "due soon" until midnight.
+ */
+function isCarriedOut(date: string): boolean {
+  return !dayjs(date).isAfter(dayjs(), 'day');
+}
+
 async function fromMaintenanceRow(row: MaintenanceRow): Promise<MaintenanceRecord> {
   const date = row.date ?? row.created_at;
 
@@ -67,7 +76,7 @@ async function fromMaintenanceRow(row: MaintenanceRow): Promise<MaintenanceRecor
     notes: row.notes ?? undefined,
     createdAt: row.created_at,
     // Recomputed against today so "overdue" reflects now, not insert time.
-    status: resolveMaintenanceStatus(date, dayjs(date).isBefore(dayjs(), 'day')),
+    status: resolveMaintenanceStatus(date, isCarriedOut(date)),
   };
 }
 
@@ -107,8 +116,7 @@ async function toMaintenanceRow(
 /* ── Mock helpers ─────────────────────────────────────────────────────────── */
 
 function withStatus(record: MaintenanceRecord): MaintenanceRecord {
-  const isPast = dayjs(record.date).isBefore(dayjs(), 'day');
-  return { ...record, status: resolveMaintenanceStatus(record.date, isPast) };
+  return { ...record, status: resolveMaintenanceStatus(record.date, isCarriedOut(record.date)) };
 }
 
 function applyFilter(records: MaintenanceRecord[], filter?: MaintenanceFilter) {

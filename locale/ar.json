@@ -49,7 +49,9 @@
     "off": "متوقف",
     "selectAnOption": "اختر خيارًا",
     "comingSoon": "قريبًا",
-    "noResults": "لا توجد نتائج"
+    "noResults": "لا توجد نتائج",
+    "useTyped": "استخدم «{{value}}»",
+    "notListedHint": "غير موجود في القائمة؟ اكتبه ثم اختره بالأسفل."
   },
   "units": {
     "km": "كم",
@@ -61,6 +63,7 @@
     "days": "أيام"
   },
   "due": {
+    "now": "مستحق الآن",
     "today": "مستحق اليوم",
     "tomorrow": "مستحق غدًا",
     "yesterday": "متأخر بيوم واحد",
@@ -187,6 +190,8 @@
     "greetingAfternoon": "طاب يومك",
     "greetingEvening": "مساء الخير",
     "attentionTitle": "يحتاج انتباهك",
+    "comingUpTitle": "القادم",
+    "comingUpSubtitle": "التالي في الدور — لا شيء مطلوب الآن",
     "attentionSubtitle": "مرتّب حسب قرب الموعد",
     "allClearTitle": "كل شيء محدَّث",
     "allClearBody": "لا توجد صيانة أو مستندات تحتاج انتباهك الآن.",
@@ -211,6 +216,7 @@
     "makePlaceholder": "تويوتا",
     "model": "الموديل",
     "modelPlaceholder": "كورولا",
+    "modelNeedsMake": "اختر الماركة أولًا",
     "year": "سنة الصنع",
     "yearPlaceholder": "2021",
     "nickname": "اسم مختصر",
@@ -293,6 +299,10 @@
     "intervalKm": "التكرار كل (كم)",
     "intervalMonths": "التكرار كل (شهر)",
     "intervalHint": "سنذكّرك عندما يحين موعدها مجددًا.",
+    "comingUpTitle": "القادم",
+    "comingUpSubtitle": "محسوب من آخر مرة أُجريت فيها كل خدمة",
+    "dueAt": "مستحقة عند {{odometer}}",
+    "dueOn": "مستحقة في {{date}}",
     "markCompleted": "تمّت بالفعل",
     "markCompletedHint": "أوقفه لجدولة الصيانة مستقبلًا.",
     "deleteTitle": "حذف سجل الصيانة؟",
@@ -369,6 +379,7 @@
     "deleteTitle": "حذف هذا التزويد؟",
     "deleteBody": "سيؤثر ذلك أيضًا على متوسط استهلاكك.",
     "partialFill": "تعبئة جزئية",
+    "fullTankBadge": "تعبئة كاملة",
     "emptyTitle": "لا توجد عمليات تزويد",
     "emptyBody": "سجّل عمليتَي تزويد ليحسب أوتوبايلوت استهلاكك الفعلي.",
     "needMoreDataTitle": "تزويد واحد إضافي",
@@ -402,10 +413,7 @@
     "moreDetailsHint": "سعر اللتر، المحطة، ملاحظات",
     "derivedPrice": "سعر اللتر يعادل",
     "derivedTotal": "إجمالي هذه التعبئة",
-    "pricePerLiterHint": "اتركه فارغًا ليُحسب من الإجمالي",
-    "errors": {
-      "distanceRequired": "أدخل المسافة المقطوعة منذ آخر تعبئة."
-    }
+    "pricePerLiterHint": "اتركه فارغًا ليُحسب من الإجمالي"
   },
   "documents": {
     "title": "المستندات",

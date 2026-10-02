@@ -49,7 +49,9 @@
     "off": "Off",
     "selectAnOption": "Select an option",
     "comingSoon": "Coming soon",
-    "noResults": "No matches"
+    "noResults": "No matches",
+    "useTyped": "Use “{{value}}”",
+    "notListedHint": "Not in the list? Type it and choose it below."
   },
   "units": {
     "km": "km",
@@ -61,6 +63,7 @@
     "days": "days"
   },
   "due": {
+    "now": "Due now",
     "today": "Due today",
     "tomorrow": "Due tomorrow",
     "yesterday": "1 day overdue",
@@ -187,6 +190,8 @@
     "greetingAfternoon": "Good afternoon",
     "greetingEvening": "Good evening",
     "attentionTitle": "Needs your attention",
+    "comingUpTitle": "Coming up",
+    "comingUpSubtitle": "Next in line — nothing to do yet",
     "attentionSubtitle": "Sorted by how soon it is due",
     "allClearTitle": "Everything is up to date",
     "allClearBody": "No services or documents need attention right now.",
@@ -211,6 +216,7 @@
     "makePlaceholder": "Toyota",
     "model": "Model",
     "modelPlaceholder": "Corolla",
+    "modelNeedsMake": "Choose a make first",
     "year": "Year",
     "yearPlaceholder": "2021",
     "nickname": "Nickname",
@@ -293,6 +299,10 @@
     "intervalKm": "Repeat every (km)",
     "intervalMonths": "Repeat every (months)",
     "intervalHint": "We will remind you when it comes due again.",
+    "comingUpTitle": "Coming up",
+    "comingUpSubtitle": "Counted from the last time each service was done",
+    "dueAt": "due at {{odometer}}",
+    "dueOn": "due {{date}}",
     "markCompleted": "Already completed",
     "markCompletedHint": "Turn off to schedule this for the future.",
     "deleteTitle": "Delete this service record?",
@@ -369,6 +379,7 @@
     "deleteTitle": "Delete this fill-up?",
     "deleteBody": "It will also change your average economy.",
     "partialFill": "Partial fill",
+    "fullTankBadge": "Full tank",
     "emptyTitle": "No fill-ups logged",
     "emptyBody": "Log two fill-ups and AutoPilot works out your real-world economy.",
     "needMoreDataTitle": "One more fill-up",
@@ -402,10 +413,7 @@
     "moreDetailsHint": "Price per liter, station, notes",
     "derivedPrice": "Price per liter works out to",
     "derivedTotal": "Total for this fill-up",
-    "pricePerLiterHint": "Leave empty and it is worked out from the total",
-    "errors": {
-      "distanceRequired": "Enter the distance driven since your last fill-up."
-    }
+    "pricePerLiterHint": "Leave empty and it is worked out from the total"
   },
   "documents": {
     "title": "Documents",

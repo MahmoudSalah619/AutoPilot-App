@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 
 import { SPACING } from '@/constants/Layout';
 import { useCreateReminderMutation, useUpdateReminderMutation } from '@/apis/autopilotApi';
+import { isFieldBacked } from '@/apis/config';
 import type { ReminderTrigger, ServiceReminder, ServiceTypeKey } from '@/@types/models';
 import { DEFAULT_SERVICE_INTERVALS } from '@/utils/domain';
 import { Sheet } from '@/shared/components/layout';
@@ -80,11 +81,18 @@ export default function ReminderSheet({
 
   const isEditing = Boolean(reminder);
 
+  // Fields the active backend cannot store are left off the form rather than
+  // collected and silently dropped on save.
+  const canStoreDistance = isFieldBacked('reminders', 'dueOdometer');
+  const canStoreRepeat = isFieldBacked('reminders', 'repeatEveryKm');
+  const canStoreNotes = isFieldBacked('reminders', 'notes');
+  const defaultTrigger: ReminderTrigger = canStoreDistance ? 'both' : 'date';
+
   const { control, handleSubmit, reset, watch, setValue } = useForm<ReminderFormValues>({
     defaultValues: {
       title: '',
       serviceType: 'oilChange',
-      trigger: 'both',
+      trigger: defaultTrigger,
       dueDate: dayjs().add(6, 'month').toISOString(),
       dueOdometer: '',
       repeatEveryMonths: '',
@@ -102,7 +110,7 @@ export default function ReminderSheet({
     reset({
       title: reminder?.title ?? '',
       serviceType: reminder?.serviceType ?? 'oilChange',
-      trigger: reminder?.trigger ?? 'both',
+      trigger: reminder?.trigger ?? defaultTrigger,
       dueDate: reminder?.dueDate ?? dayjs().add(6, 'month').toISOString(),
       dueOdometer: reminder?.dueOdometer != null ? String(reminder.dueOdometer) : '',
       repeatEveryMonths:
@@ -110,7 +118,7 @@ export default function ReminderSheet({
       repeatEveryKm: reminder?.repeatEveryKm != null ? String(reminder.repeatEveryKm) : '',
       notes: reminder?.notes ?? '',
     });
-  }, [isVisible, reminder, reset]);
+  }, [isVisible, reminder, reset, defaultTrigger]);
 
   // Seed title, intervals and projected due points from the chosen service.
   useEffect(() => {
@@ -200,19 +208,21 @@ export default function ReminderSheet({
         required
       />
 
-      <Controller
-        control={control}
-        name="trigger"
-        render={({ field: { onChange, value } }) => (
-          <OptionGroup
-            labelTx="reminders.trigger"
-            options={TRIGGER_OPTIONS}
-            value={value}
-            onChange={onChange}
-            required
-          />
-        )}
-      />
+      {canStoreDistance && (
+        <Controller
+          control={control}
+          name="trigger"
+          render={({ field: { onChange, value } }) => (
+            <OptionGroup
+              labelTx="reminders.trigger"
+              options={TRIGGER_OPTIONS}
+              value={value}
+              onChange={onChange}
+              required
+            />
+          )}
+        />
+      )}
 
       {trigger !== 'distance' && (
         <Controller
@@ -230,7 +240,7 @@ export default function ReminderSheet({
         />
       )}
 
-      {trigger !== 'date' && (
+      {canStoreDistance && trigger !== 'date' && (
         <FormInput
           control={control}
           name="dueOdometer"
@@ -242,38 +252,42 @@ export default function ReminderSheet({
         />
       )}
 
-      <View style={{ rowGap: SPACING.sm }}>
-        <Text variant="label" color="textSecondary" tx="reminders.repeat" />
+      {canStoreRepeat && (
+        <View style={{ rowGap: SPACING.sm }}>
+          <Text variant="label" color="textSecondary" tx="reminders.repeat" />
 
-        <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
-          <FormInput
-            control={control}
-            name="repeatEveryMonths"
-            labelTx="reminders.repeatMonths"
-            keyboardType="number-pad"
-            rules={OPTIONAL_NUMBER_RULES}
-            containerStyle={{ flex: 1 }}
-          />
-          <FormInput
-            control={control}
-            name="repeatEveryKm"
-            labelTx="reminders.repeatKm"
-            keyboardType="number-pad"
-            rules={OPTIONAL_NUMBER_RULES}
-            containerStyle={{ flex: 1 }}
-          />
+          <View style={{ columnGap: SPACING.md, flexDirection: 'row' }}>
+            <FormInput
+              control={control}
+              name="repeatEveryMonths"
+              labelTx="reminders.repeatMonths"
+              keyboardType="number-pad"
+              rules={OPTIONAL_NUMBER_RULES}
+              containerStyle={{ flex: 1 }}
+            />
+            <FormInput
+              control={control}
+              name="repeatEveryKm"
+              labelTx="reminders.repeatKm"
+              keyboardType="number-pad"
+              rules={OPTIONAL_NUMBER_RULES}
+              containerStyle={{ flex: 1 }}
+            />
+          </View>
+
+          <Text variant="caption" color="textMuted" tx="reminders.repeatHint" />
         </View>
+      )}
 
-        <Text variant="caption" color="textMuted" tx="reminders.repeatHint" />
-      </View>
-
-      <FormInput
-        control={control}
-        name="notes"
-        labelTx="common.notes"
-        placeholderTx="common.notesPlaceholder"
-        multilineBox
-      />
+      {canStoreNotes && (
+        <FormInput
+          control={control}
+          name="notes"
+          labelTx="common.notes"
+          placeholderTx="common.notesPlaceholder"
+          multilineBox
+        />
+      )}
     </Sheet>
   );
 }

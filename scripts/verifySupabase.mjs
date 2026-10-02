@@ -153,14 +153,31 @@ const { error: reminderError } = await supabase.from('service_reminders').insert
 
 record('service_reminders insert', !reminderError, reminderError?.message ?? '');
 
-const { error: fuelError } = await supabase.from('gas_consumption').insert({
-  vehicle_id: vehicle.id,
-  date: '2026-09-10',
-  kilometers_driven: 420,
-  liters_consumed: 35,
-});
+// Exactly what `toFuelRow` builds. The odometer and cost columns come from
+// apis/migrations/002_fuel.sql, so this fails until that has been applied.
+const { data: fuelRow, error: fuelError } = await supabase
+  .from('gas_consumption')
+  .insert({
+    vehicle_id: vehicle.id,
+    date: '2026-09-10',
+    odometer: 84420,
+    kilometers_driven: 420,
+    liters_consumed: 35,
+    price_per_liter: 13.75,
+    total_cost: 481.25,
+    currency: 'EGP',
+    is_full_tank: true,
+  })
+  .select('id, odometer, total_cost, is_full_tank')
+  .single();
 
 record('gas_consumption insert', !fuelError, fuelError?.message ?? '');
+
+record(
+  'gas_consumption odometer round-trips',
+  Number(fuelRow?.odometer) === 84420,
+  `stored ${fuelRow?.odometer ?? 'nothing'}`
+);
 
 const { error: documentError } = await supabase.from('vehicle_documents').insert({
   vehicle_id: vehicle.id,

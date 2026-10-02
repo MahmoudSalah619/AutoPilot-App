@@ -13,6 +13,7 @@ import {
   useUpdateDocumentMutation,
   useUploadDocumentFileMutation,
 } from '@/apis/autopilotApi';
+import { isFieldBacked } from '@/apis/config';
 import type { DocumentType, VehicleDocument } from '@/@types/models';
 import { Sheet } from '@/shared/components/layout';
 import {
@@ -78,6 +79,13 @@ export default function DocumentSheet({
   const [uploadFile, { isLoading: isUploading }] = useUploadDocumentFileMutation();
 
   const [file, setFile] = useState<PickedFile | null>(null);
+
+  // Fields the active backend cannot store are left off the form rather than
+  // collected and silently dropped on save.
+  const canStoreType = isFieldBacked('documents', 'type');
+  const canStoreDates = isFieldBacked('documents', 'expiryDate');
+  const canStoreFile = isFieldBacked('documents', 'fileUri');
+  const canStoreNotes = isFieldBacked('documents', 'notes');
 
   const { control, handleSubmit, reset } = useForm<DocumentFormValues>({
     defaultValues: {
@@ -191,19 +199,21 @@ export default function DocumentSheet({
         </View>
       }
     >
-      <Controller
-        control={control}
-        name="type"
-        render={({ field: { onChange, value } }) => (
-          <OptionGroup
-            labelTx="documents.type"
-            options={TYPE_OPTIONS}
-            value={value}
-            onChange={onChange}
-            required
-          />
-        )}
-      />
+      {canStoreType && (
+        <Controller
+          control={control}
+          name="type"
+          render={({ field: { onChange, value } }) => (
+            <OptionGroup
+              labelTx="documents.type"
+              options={TYPE_OPTIONS}
+              value={value}
+              onChange={onChange}
+              required
+            />
+          )}
+        />
+      )}
 
       <FormInput
         control={control}
@@ -213,85 +223,93 @@ export default function DocumentSheet({
         required
       />
 
-      <Controller
-        control={control}
-        name="issueDate"
-        render={({ field: { onChange, value } }) => (
-          <DateField
-            labelTx="documents.issueDate"
-            value={value}
-            onChange={onChange}
-            maxDate={dayjs().toISOString()}
-            clearable
+      {canStoreDates && (
+        <>
+          <Controller
+            control={control}
+            name="issueDate"
+            render={({ field: { onChange, value } }) => (
+              <DateField
+                labelTx="documents.issueDate"
+                value={value}
+                onChange={onChange}
+                maxDate={dayjs().toISOString()}
+                clearable
+              />
+            )}
           />
-        )}
-      />
 
-      <Controller
-        control={control}
-        name="expiryDate"
-        render={({ field: { onChange, value } }) => (
-          <DateField
-            labelTx="documents.expiryDate"
-            hintTx="documents.expiryHint"
-            value={value}
-            onChange={onChange}
-            clearable
+          <Controller
+            control={control}
+            name="expiryDate"
+            render={({ field: { onChange, value } }) => (
+              <DateField
+                labelTx="documents.expiryDate"
+                hintTx="documents.expiryHint"
+                value={value}
+                onChange={onChange}
+                clearable
+              />
+            )}
           />
-        )}
-      />
+        </>
+      )}
 
-      <View style={{ rowGap: SPACING.sm }}>
-        <Text variant="label" color="textSecondary" tx="documents.attachFile" />
+      {canStoreFile && (
+        <View style={{ rowGap: SPACING.sm }}>
+          <Text variant="label" color="textSecondary" tx="documents.attachFile" />
 
-        {file ? (
-          <View
-            style={{
-              alignItems: 'center',
-              backgroundColor: colors.surfaceAlt,
-              borderRadius: RADIUS.md,
-              columnGap: SPACING.sm,
-              flexDirection: 'row',
-              padding: SPACING.md,
-            }}
-          >
-            <Feather name="file-text" size={18} color={colors.primary} />
+          {file ? (
+            <View
+              style={{
+                alignItems: 'center',
+                backgroundColor: colors.surfaceAlt,
+                borderRadius: RADIUS.md,
+                columnGap: SPACING.sm,
+                flexDirection: 'row',
+                padding: SPACING.md,
+              }}
+            >
+              <Feather name="file-text" size={18} color={colors.primary} />
 
-            <View style={{ flex: 1, rowGap: 2 }}>
-              <Text variant="labelSm" numberOfLines={1}>
-                {file.name}
-              </Text>
-              <Text variant="caption" color="textMuted">
-                {formatFileSize(file.size)}
-              </Text>
+              <View style={{ flex: 1, rowGap: 2 }}>
+                <Text variant="labelSm" numberOfLines={1}>
+                  {file.name}
+                </Text>
+                <Text variant="caption" color="textMuted">
+                  {formatFileSize(file.size)}
+                </Text>
+              </View>
+
+              <IconButton
+                icon="x"
+                size="sm"
+                color="textMuted"
+                onPress={() => setFile(null)}
+                accessibilityLabel={t('documents.removeFile')}
+              />
             </View>
-
-            <IconButton
-              icon="x"
-              size="sm"
-              color="textMuted"
-              onPress={() => setFile(null)}
-              accessibilityLabel={t('documents.removeFile')}
+          ) : (
+            <Button
+              variant="outline"
+              tx="documents.attachFile"
+              fullWidth
+              leftIcon={<Feather name="paperclip" size={16} color={colors.text} />}
+              onPress={handlePickFile}
             />
-          </View>
-        ) : (
-          <Button
-            variant="outline"
-            tx="documents.attachFile"
-            fullWidth
-            leftIcon={<Feather name="paperclip" size={16} color={colors.text} />}
-            onPress={handlePickFile}
-          />
-        )}
-      </View>
+          )}
+        </View>
+      )}
 
-      <FormInput
-        control={control}
-        name="notes"
-        labelTx="common.notes"
-        placeholderTx="common.notesPlaceholder"
-        multilineBox
-      />
+      {canStoreNotes && (
+        <FormInput
+          control={control}
+          name="notes"
+          labelTx="common.notes"
+          placeholderTx="common.notesPlaceholder"
+          multilineBox
+        />
+      )}
     </Sheet>
   );
 }

@@ -51,7 +51,11 @@ export default function Home() {
 
   const { activeTour, isReady, startFirstRunTour, consumeRequestedTour } = useTour();
 
-  const { items: attentionItems, isLoading: isAttentionLoading } = useAttentionItems(vehicle?.id);
+  const {
+    items: attentionItems,
+    upcoming: upcomingItems,
+    isLoading: isAttentionLoading,
+  } = useAttentionItems(vehicle?.id, vehicle?.odometer);
 
   const { data: fuel } = useGetFuelEntriesQuery(vehicle ? { vehicleId: vehicle.id } : undefined, {
     skip: !vehicle,
@@ -219,6 +223,27 @@ export default function Home() {
           </Card>
         )}
       </View>
+
+      {/* What comes next, before any of it needs doing. Left out entirely when
+          there is nothing on the horizon rather than shown empty. */}
+      {upcomingItems.length > 0 && (
+        <View style={{ rowGap: SPACING.md }}>
+          <SectionHeader
+            titleTx="home.comingUpTitle"
+            subtitleTx="home.comingUpSubtitle"
+            icon="calendar"
+          />
+
+          <Card padding="md">
+            {upcomingItems.slice(0, 3).map((item, index) => (
+              <View key={`${item.kind}-${item.id}`}>
+                {index > 0 && <Divider inset={50} />}
+                <AttentionRow item={item} onPress={() => router.push(item.href as never)} />
+              </View>
+            ))}
+          </Card>
+        </View>
+      )}
 
       {hasFuelData && !!fuel && (
         <FuelSnapshot

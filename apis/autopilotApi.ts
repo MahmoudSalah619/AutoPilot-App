@@ -29,6 +29,7 @@ import * as diagnostics from './repositories/diagnostics';
 import * as documents from './repositories/documents';
 import * as fuel from './repositories/fuel';
 import * as maintenance from './repositories/maintenance';
+import * as notifications from './repositories/notifications';
 import * as reference from './repositories/reference';
 import * as reminders from './repositories/reminders';
 import * as trips from './repositories/trips';
@@ -159,12 +160,12 @@ export const autopilotApi = createApi({
     updateOdometer: build.mutation<Vehicle, { id: string; odometer: number }>({
       queryFn: ({ id, odometer }) => run(() => vehicles.updateOdometer(id, odometer)),
       // Reminders and maintenance are distance-triggered, so they re-resolve too.
-      invalidatesTags: ['Vehicle', 'Reminder', 'Maintenance'],
+      invalidatesTags: ['Vehicle', 'Reminder', 'Maintenance', 'Notification'],
     }),
 
     deleteVehicle: build.mutation<string, string>({
       queryFn: (id) => run(() => vehicles.deleteVehicle(id)),
-      invalidatesTags: ['Vehicle', 'Maintenance', 'Reminder', 'Fuel', 'Document'],
+      invalidatesTags: ['Vehicle', 'Maintenance', 'Reminder', 'Fuel', 'Document', 'Notification'],
     }),
 
     /* ── Maintenance ──────────────────────────────────────────────────── */
@@ -189,12 +190,12 @@ export const autopilotApi = createApi({
       { id: string; patch: Partial<maintenance.MaintenanceDraft> }
     >({
       queryFn: ({ id, patch }) => run(() => maintenance.updateMaintenance(id, patch)),
-      invalidatesTags: ['Maintenance'],
+      invalidatesTags: ['Maintenance', 'Notification'],
     }),
 
     deleteMaintenance: build.mutation<string, string>({
       queryFn: (id) => run(() => maintenance.deleteMaintenance(id)),
-      invalidatesTags: ['Maintenance'],
+      invalidatesTags: ['Maintenance', 'Notification'],
     }),
 
     /* ── Reminders ────────────────────────────────────────────────────── */
@@ -206,7 +207,7 @@ export const autopilotApi = createApi({
 
     createReminder: build.mutation<ServiceReminder, reminders.ReminderDraft>({
       queryFn: (draft) => run(() => reminders.createReminder(draft)),
-      invalidatesTags: ['Reminder'],
+      invalidatesTags: ['Reminder', 'Notification'],
     }),
 
     updateReminder: build.mutation<
@@ -214,17 +215,17 @@ export const autopilotApi = createApi({
       { id: string; patch: Partial<reminders.ReminderDraft> }
     >({
       queryFn: ({ id, patch }) => run(() => reminders.updateReminder(id, patch)),
-      invalidatesTags: ['Reminder'],
+      invalidatesTags: ['Reminder', 'Notification'],
     }),
 
     completeReminder: build.mutation<ServiceReminder, string>({
       queryFn: (id) => run(() => reminders.completeReminder(id)),
-      invalidatesTags: ['Reminder', 'Maintenance'],
+      invalidatesTags: ['Reminder', 'Maintenance', 'Notification'],
     }),
 
     deleteReminder: build.mutation<string, string>({
       queryFn: (id) => run(() => reminders.deleteReminder(id)),
-      invalidatesTags: ['Reminder'],
+      invalidatesTags: ['Reminder', 'Notification'],
     }),
 
     /* ── Fuel ─────────────────────────────────────────────────────────── */
@@ -236,7 +237,8 @@ export const autopilotApi = createApi({
 
     createFuelEntry: build.mutation<FuelEntry, fuel.FuelEntryDraft>({
       queryFn: (draft) => run(() => fuel.createFuelEntry(draft)),
-      invalidatesTags: ['Fuel', 'Vehicle'],
+      // A fill-up can advance the odometer, which distance triggers resolve against.
+      invalidatesTags: ['Fuel', 'Vehicle', 'Reminder', 'Maintenance', 'Notification'],
     }),
 
     updateFuelEntry: build.mutation<FuelEntry, { id: string; patch: Partial<fuel.FuelEntryDraft> }>(
@@ -268,12 +270,12 @@ export const autopilotApi = createApi({
       { id: string; patch: Partial<documents.DocumentDraft> }
     >({
       queryFn: ({ id, patch }) => run(() => documents.updateDocument(id, patch)),
-      invalidatesTags: ['Document'],
+      invalidatesTags: ['Document', 'Notification'],
     }),
 
     deleteDocument: build.mutation<string, string>({
       queryFn: (id) => run(() => documents.deleteDocument(id)),
-      invalidatesTags: ['Document'],
+      invalidatesTags: ['Document', 'Notification'],
     }),
 
     uploadDocumentFile: build.mutation<
@@ -370,17 +372,17 @@ export const autopilotApi = createApi({
     /* ── Notifications ────────────────────────────────────────────────── */
 
     getNotifications: build.query<AppNotification[], void>({
-      queryFn: () => run(() => account.listNotifications()),
+      queryFn: () => run(() => notifications.listNotifications()),
       providesTags: ['Notification'],
     }),
 
-    markNotificationRead: build.mutation<AppNotification, string>({
-      queryFn: (id) => run(() => account.markNotificationRead(id)),
+    markNotificationRead: build.mutation<string, string>({
+      queryFn: (id) => run(() => notifications.markNotificationRead(id)),
       invalidatesTags: ['Notification'],
     }),
 
-    markAllNotificationsRead: build.mutation<AppNotification[], void>({
-      queryFn: () => run(() => account.markAllNotificationsRead()),
+    markAllNotificationsRead: build.mutation<void, void>({
+      queryFn: () => run(() => notifications.markAllNotificationsRead()),
       invalidatesTags: ['Notification'],
     }),
   }),

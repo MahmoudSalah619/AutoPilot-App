@@ -32,26 +32,16 @@ export type DataDomain =
  * true so the app stays fully explorable without credentials.
  */
 export const USE_MOCK_DATA = process.env.EXPO_PUBLIC_USE_MOCK_DATA !== 'false';
- * This is the design branch: every screen runs on the in-memory mock store
- * (`apis/mock`), so the UI can be built and reviewed without an account, a
- * network or a Supabase project. The live backend lives on the `integration`
- * branch.
- *
- * The flag is hard-wired rather than read from `.env` on purpose. Metro
- * inlines `EXPO_PUBLIC_*` values into its transform cache, so after switching
- * here from `integration` (which sets `EXPO_PUBLIC_USE_MOCK_DATA=false`) a
- * stale bundle could keep talking to Supabase and fail with "Not
- * authenticated". A literal cannot go stale.
- */
-export const USE_MOCK_DATA: boolean = true;
 
 /**
  * Which domains the live Supabase project can actually serve.
  *
  * `partial` means the table exists but is narrower than the app's model, so
- * some fields round-trip as `undefined` — see `UNBACKED_FIELDS`.
+ * some fields round-trip as `undefined` — see `UNBACKED_FIELDS`. `derived`
+ * means there is no table and none is needed: the data is computed from
+ * other live domains.
  */
-export const BACKENDS: Record<DataDomain, 'supabase' | 'partial' | 'mock'> = {
+export const BACKENDS: Record<DataDomain, 'supabase' | 'partial' | 'derived' | 'mock'> = {
   auth: 'supabase',
   // No `profiles` table — name, phone, address and preferences round-trip
   // through `auth.users.user_metadata` instead. Real and per-user, but not
@@ -61,15 +51,17 @@ export const BACKENDS: Record<DataDomain, 'supabase' | 'partial' | 'mock'> = {
   reference: 'supabase', // car_makes, car_models, services_types, tips
   maintenance: 'partial',
   reminders: 'partial',
-  // `gas_consumption`. Note this table is missing its SELECT/INSERT/UPDATE/
-  // DELETE grants for `anon` and `authenticated`, so every request fails with
-  // "permission denied" (42501) regardless of RLS. Section 0 of the migration
-  // fixes it; until then fuel is live in code but dead in practice.
-  fuel: 'partial',
+  // `gas_consumption`, as widened by `apis/migrations/002_fuel.sql`. Until
+  // that has run the table has neither its grants nor the odometer and cost
+  // columns the repository selects, so every fuel request fails.
+  fuel: 'supabase',
   documents: 'partial',
   climate: 'mock', // no `climate_records` table
   trips: 'mock', // no `trips` table
-  notifications: 'mock', // no `notifications` table
+  // No `notifications` table, and nothing server-side that would fill one.
+  // The inbox is computed on read from the user's own reminders and
+  // documents instead — see `apis/repositories/notifications.ts`.
+  notifications: 'derived',
   diagnostics: 'mock', // no `diagnostic_codes` table
 };
 
@@ -98,9 +90,20 @@ export const UNBACKED_FIELDS: Partial<Record<DataDomain, readonly string[]>> = {
     'dueOdometer',
     'repeatEveryMonths',
     'repeatEveryKm',
+    // The one free-text column, `notes`, holds the reminder's title.
+    'notes',
   ],
-  fuel: ['odometer', 'pricePerLiter', 'totalCost', 'currency', 'stationName', 'isFullTank'],
-  documents: ['type', 'issueDate', 'expiryDate', 'fileName', 'fileSize', 'mimeType', 'notes'],
+  documents: [
+    'type',
+    'issueDate',
+    'expiryDate',
+    // The `storage` bucket has no policies, so every upload is refused.
+    'fileUri',
+    'fileName',
+    'fileSize',
+    'mimeType',
+    'notes',
+  ],
 } as const;
 
 /**

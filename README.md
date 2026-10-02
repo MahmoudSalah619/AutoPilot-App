@@ -114,14 +114,15 @@ Supabase, because the project's schema does not yet back every domain.
 | Domain | Backend | Notes |
 | --- | --- | --- |
 | Auth | Supabase | Email/password, session listener at the app root |
-| Reference | Supabase | `car_makes` (65), `car_models` (1), `services_types` (11), `tips` |
+| Reference | Supabase | `car_makes` (65), `car_models` (1,174, seeded by `003_car_models.sql`), `services_types` (11), `tips` |
 | Profile | Supabase, partial | No `profiles` table — stored in `auth.users.user_metadata` |
 | Vehicles | Supabase, partial | No plate, VIN, colour, fuel type, transmission, tank capacity, photo |
 | Maintenance | Supabase, partial | No custom title, currency, month interval, workshop |
 | Reminders | Supabase, partial | Date-only: no service type, distance trigger or recurrence |
-| Fuel | Supabase, partial | **Blocked** — `gas_consumption` is missing its table grants |
+| Fuel | Supabase | **Needs `002_fuel.sql`** — until it runs the table has no grants and no odometer or cost columns |
 | Documents | Supabase, partial | Name + file only; no type or expiry, so expiry tracking is inert |
-| Climate, Trips, Notifications, Diagnostics | Mock | No table in the project |
+| Notifications | Derived | No table: the inbox is computed from live reminders and documents; read state is per device |
+| Climate, Trips, Diagnostics | Mock | No table in the project |
 
 Fields the live schema cannot store are listed in `UNBACKED_FIELDS`; the app
 still collects them, and they round-trip as `undefined`.
@@ -132,10 +133,12 @@ still collects them, and they round-trip as `undefined`.
 difference between the live schema and what the app needs. It has **not been
 applied** — review it and run it yourself.
 
-Section 0 is the one to apply first and can go on its own: `gas_consumption`
-is the only table without `select/insert/update/delete` granted to `anon` and
-`authenticated`, so every fuel request fails with `42501 permission denied`
-before RLS is even consulted.
+[`apis/migrations/002_fuel.sql`](apis/migrations/002_fuel.sql) is the one to
+apply first and goes on its own. `gas_consumption` is the only table without
+`select/insert/update/delete` granted, so every fuel request fails with
+`42501 permission denied` before RLS is even consulted; it also has no
+`odometer` column, which the app needs to work out distance between
+fill-ups. The fuel repository is already written against the result.
 
 After applying, flip the matching `BACKENDS` entries and move the new tables
 from `PLANNED_TABLES` into `TABLES`. Regenerate
